@@ -49,7 +49,7 @@ async function bootstrap(): Promise<void> {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'Placeholder — autenticação JWT na Feature 002',
+          description: 'JWT access token obtido via POST /auth/login',
         },
         'access-token',
       )
