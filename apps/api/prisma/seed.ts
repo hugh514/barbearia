@@ -1,4 +1,11 @@
-import { CustomerOrigin, PrismaClient, UserRole } from '@prisma/client';
+import {
+  ConversationChannel,
+  ConversationStatus,
+  CustomerOrigin,
+  MessageDirection,
+  PrismaClient,
+  UserRole,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -16,7 +23,7 @@ async function main(): Promise<void> {
 
   const passwordHash = await bcrypt.hash('admin123', 12);
 
-  await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: {
       tenantId_email: {
         tenantId: tenant.id,
@@ -65,8 +72,10 @@ async function main(): Promise<void> {
     },
   ];
 
+  const customers = [];
+
   for (const customer of demoCustomers) {
-    await prisma.customer.upsert({
+    const created = await prisma.customer.upsert({
       where: {
         tenantId_phone: {
           tenantId: tenant.id,
@@ -82,10 +91,102 @@ async function main(): Promise<void> {
         origin: customer.origin,
       },
     });
+    customers.push(created);
+  }
+
+  const joao = customers[0];
+  const maria = customers[1];
+
+  const whatsappConversation = await prisma.conversation.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000401' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000401',
+      tenantId: tenant.id,
+      customerId: joao.id,
+      channel: ConversationChannel.WHATSAPP,
+      status: ConversationStatus.EM_ATENDIMENTO,
+      assignedTo: admin.id,
+    },
+  });
+
+  const instagramConversation = await prisma.conversation.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000402' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000402',
+      tenantId: tenant.id,
+      customerId: maria.id,
+      channel: ConversationChannel.INSTAGRAM,
+      status: ConversationStatus.AGUARDANDO,
+    },
+  });
+
+  const closedConversation = await prisma.conversation.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000403' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000403',
+      tenantId: tenant.id,
+      customerId: joao.id,
+      channel: ConversationChannel.INSTAGRAM,
+      status: ConversationStatus.FECHADA,
+    },
+  });
+
+  const demoMessages = [
+    {
+      id: '00000000-0000-4000-8000-000000000411',
+      conversationId: whatsappConversation.id,
+      content: 'Olá, gostaria de saber o horário de funcionamento.',
+      direction: MessageDirection.INBOUND,
+      channel: ConversationChannel.WHATSAPP,
+      externalId: 'wamid.demo001',
+    },
+    {
+      id: '00000000-0000-4000-8000-000000000412',
+      conversationId: whatsappConversation.id,
+      content: 'Funcionamos de segunda a sábado, das 9h às 19h.',
+      direction: MessageDirection.OUTBOUND,
+      channel: ConversationChannel.WHATSAPP,
+      externalId: 'wamid.demo002',
+    },
+    {
+      id: '00000000-0000-4000-8000-000000000413',
+      conversationId: instagramConversation.id,
+      content: 'Vocês fazem degradê?',
+      direction: MessageDirection.INBOUND,
+      channel: ConversationChannel.INSTAGRAM,
+      externalId: 'ig.demo001',
+    },
+    {
+      id: '00000000-0000-4000-8000-000000000414',
+      conversationId: closedConversation.id,
+      content: 'Obrigado pelo atendimento!',
+      direction: MessageDirection.INBOUND,
+      channel: ConversationChannel.INSTAGRAM,
+      externalId: 'ig.demo002',
+    },
+  ];
+
+  for (const message of demoMessages) {
+    await prisma.message.upsert({
+      where: { id: message.id },
+      update: {},
+      create: {
+        id: message.id,
+        tenantId: tenant.id,
+        conversationId: message.conversationId,
+        content: message.content,
+        direction: message.direction,
+        channel: message.channel,
+        externalId: message.externalId,
+      },
+    });
   }
 
   console.log(
-    'Seed completed: tenant "Barbearia Modelo" + ADMIN user + demo customers',
+    'Seed completed: tenant + admin + customers + demo conversations/messages',
   );
 }
 
