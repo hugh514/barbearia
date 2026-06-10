@@ -19,6 +19,8 @@ import { HealthModule } from '@modules/health/health.module';
 import { TenantsModule } from '@modules/tenants/tenants.module';
 import { UsersModule } from '@modules/users/users.module';
 import { CustomersModule } from '@modules/customers/customers.module';
+import { ConversationsModule } from '@modules/conversations/conversations.module';
+import { MessagesModule } from '@modules/messages/messages.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
 @Module({
@@ -89,6 +91,8 @@ import { PrismaModule } from '@prisma/prisma.module';
     AuthModule,
     UsersModule,
     CustomersModule,
+    ConversationsModule,
+    MessagesModule,
   ],
   providers: [
     {
