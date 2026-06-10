@@ -25,12 +25,15 @@ import {
 import { UpdateCustomerDto } from '@modules/customers/dto/update-customer.dto';
 import { UpsertCustomerDto } from '@modules/customers/dto/upsert-customer.dto';
 import { toCustomerResponse } from '@modules/customers/customers.mapper';
+import { ConversationResponseDto } from '@modules/conversations/dto/conversation-response.dto';
+import { ConversationsService } from '@modules/conversations/conversations.service';
 
 @Injectable()
 export class CustomersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly conversationsService: ConversationsService,
   ) {}
 
   async create(
@@ -181,9 +184,13 @@ export class CustomersService {
     customerId: string,
     page: number,
     perPage: number,
-  ): Promise<PaginatedResult<unknown>> {
-    await this.findCustomerInTenant(customerId, tenantId);
-    return buildPaginatedResult([], 0, page, perPage);
+  ): Promise<PaginatedResult<ConversationResponseDto>> {
+    return this.conversationsService.findByCustomer(
+      tenantId,
+      customerId,
+      page,
+      perPage,
+    );
   }
 
   private buildSearchWhere(
