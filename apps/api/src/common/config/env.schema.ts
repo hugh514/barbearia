@@ -17,9 +17,21 @@ export const envSchema = z.object({
     .transform((v) => v === 'true'),
   SWAGGER_USER: z.string().default('admin'),
   SWAGGER_PASS: z.string().default('secret'),
-  JWT_SECRET: z.string().optional().default(''),
+  JWT_SECRET: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z
+      .string()
+      .min(32)
+      .default('dev-jwt-secret-change-in-production-min-32-chars!!'),
+  ),
   JWT_EXPIRES_IN: z.string().default('15m'),
-  JWT_REFRESH_SECRET: z.string().optional().default(''),
+  JWT_REFRESH_SECRET: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z
+      .string()
+      .min(32)
+      .default('dev-refresh-secret-change-production-32-chars!!'),
+  ),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 });
 

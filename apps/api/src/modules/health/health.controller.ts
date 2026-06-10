@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from '@modules/auth/decorators/public.decorator';
 import {
   HealthCheck,
   HealthCheckResult,
@@ -11,6 +12,7 @@ import {
 } from '@modules/health/health.indicators';
 
 @ApiTags('health')
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(
