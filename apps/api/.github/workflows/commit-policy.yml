@@ -1,0 +1,30 @@
+name: Commit policy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate-commit-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          set -euo pipefail
+          chmod +x scripts/validate-commit-msg.sh
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            mapfile -t shas < <(git rev-list "${base}..${head}")
+          else
+            shas=("${{ github.sha }}")
+          fi
+          for sha in "${shas[@]}"; do
+            echo "Checking ${sha}"
+            git log -1 --format=%B "${sha}" | ./scripts/validate-commit-msg.sh
+          done
