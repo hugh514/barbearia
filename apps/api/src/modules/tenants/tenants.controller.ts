@@ -3,6 +3,7 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { createZodDto } from '@anatine/zod-nestjs';
+import { Public } from '@modules/auth/decorators/public.decorator';
 
 const validateBodySchema = z.object({
   name: z.string().min(1),
@@ -11,6 +12,7 @@ const validateBodySchema = z.object({
 class ValidateBodyDto extends createZodDto(validateBodySchema) {}
 
 @ApiTags('tenants')
+@Public()
 @Controller('tenants')
 export class TenantsController {
   @Post('validate')

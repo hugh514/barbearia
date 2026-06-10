@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
@@ -7,6 +7,9 @@ import { validateEnv } from '@common/config/env.schema';
 import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 import { CorrelationIdInterceptor } from '@common/interceptors/correlation-id.interceptor';
 import { RedisModule } from '@common/redis/redis.module';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { AuthModule } from '@modules/auth/auth.module';
 import { HealthModule } from '@modules/health/health.module';
 import { TenantsModule } from '@modules/tenants/tenants.module';
 import { PrismaModule } from '@prisma/prisma.module';
@@ -48,6 +51,7 @@ import { PrismaModule } from '@prisma/prisma.module';
     RedisModule,
     HealthModule,
     TenantsModule,
+    AuthModule,
   ],
   providers: [
     {
@@ -57,6 +61,14 @@ import { PrismaModule } from '@prisma/prisma.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: CorrelationIdInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
