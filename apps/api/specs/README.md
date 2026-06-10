@@ -5,10 +5,12 @@
 
 ## Como usar com IA
 
-1. Comece lendo `.specify/memory/constitution.md` — são os princípios inegociáveis
-2. Para cada feature (001→010), leia na ordem: `spec.md` → `plan.md` → `tasks.md`
-3. Implemente as tasks na ordem listada
-4. Só passe para a próxima feature quando todas as tasks da atual estiverem completas
+1. Leia `specs/000-development-workflow/workflow.md` — ciclo Composer, branches e sessões de fix
+2. Comece lendo `.specify/memory/constitution.md` — são os princípios inegociáveis
+3. Para cada feature (001→010), leia na ordem: `spec.md` → `plan.md` → `tasks.md`
+4. Implemente as tasks na ordem listada
+5. Peça ao agente **criar** `validation.md`, `scripts/smoke-NNN.sh` e `test/feature-NNN.e2e-spec.ts`, depois **rodar** `npm run smoke:NNN` e `npm run test:e2e`
+6. Só passe para a próxima feature quando smoke + e2e passarem e os itens manuais estiverem OK
 
 ## Mapa de Features
 
@@ -31,4 +33,4 @@ NestJS · Prisma · PostgreSQL · Redis · BullMQ · JWT · Swagger · Socket.IO
 
 ## Repositório
 
-`github.com/hugh514/api-nestjs`
+`github.com/hugh514/api-barbearia`
