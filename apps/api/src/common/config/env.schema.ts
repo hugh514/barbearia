@@ -33,6 +33,10 @@ export const envSchema = z.object({
       .default('dev-refresh-secret-change-production-32-chars!!'),
   ),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+  INTERNAL_API_KEY: z
+    .string()
+    .min(16)
+    .default('dev-internal-api-key-change-in-production'),
 });
 
 export type Env = z.infer<typeof envSchema>;

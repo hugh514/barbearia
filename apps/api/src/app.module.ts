@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -17,6 +18,7 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { HealthModule } from '@modules/health/health.module';
 import { TenantsModule } from '@modules/tenants/tenants.module';
 import { UsersModule } from '@modules/users/users.module';
+import { CustomersModule } from '@modules/customers/customers.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
 @Module({
@@ -79,12 +81,14 @@ import { PrismaModule } from '@prisma/prisma.module';
         },
       }),
     }),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     RedisModule,
     HealthModule,
     TenantsModule,
     AuthModule,
     UsersModule,
+    CustomersModule,
   ],
   providers: [
     {
