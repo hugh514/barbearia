@@ -15,7 +15,7 @@ Você é um engenheiro de software sênior configurando a infraestrutura de um p
 ## Contexto do Projeto
 
 - **Projeto:** API central para plataforma de barbearia (Barbearia Modelo, Ji-Paraná/RO)
-- **Repositório:** `github.com/hugh514/api-nestjs`
+- **Repositório:** `github.com/hugh514/api-barbearia`
 - **Stack:** NestJS + Prisma + PostgreSQL + Redis + BullMQ + JWT + Socket.IO + Docker
 - **Metodologia:** Spec-Driven Development com GitHub Spec Kit
 - **Modelo de negócio:** Atendimento por ordem de chegada (walk-in), NÃO agendamento
@@ -28,7 +28,7 @@ Você é um engenheiro de software sênior configurando a infraestrutura de um p
 
 ```bash
 # 1. Clonar o repositório (se não estiver clonado)
-git clone https://github.com/hugh514/api-nestjs.git barber-api
+git clone https://github.com/hugh514/api-barbearia.git barber-api
 cd barber-api
 
 # 2. Criar branch de setup
@@ -195,28 +195,35 @@ insert_final_newline = true
 
 Crie um arquivo `CLAUDE.md` na raiz do repositório:
 
-```markdown
+````markdown
 # CLAUDE.md — Contexto do Projeto para Claude Code
 
 ## O que é este projeto
+
 API central (hub) para plataforma de barbearia. Todos os sistemas (WhatsApp, Instagram, App Mobile, Backoffice) se comunicam exclusivamente pela API. Nenhum sistema fala direto com outro.
 
 ## Constituição
+
 Leia OBRIGATORIAMENTE `.specify/memory/constitution.md` antes de qualquer implementação. São 10 artigos inegociáveis.
 
 ## Stack
+
 NestJS 10+ · Prisma 5+ · PostgreSQL 16 · Redis 7 · BullMQ · JWT + Refresh Token · Socket.IO · Pino · Sentry · Docker
 
 ## Metodologia
+
 Spec-Driven Development (SDD). Cada feature tem:
+
 - `spec.md` → O QUE construir (requisitos, user stories, acceptance criteria)
 - `plan.md` → COMO construir (arquitetura técnica, schema, endpoints)
 - `tasks.md` → ORDEM de construção (tasks numeradas com checkboxes)
 
 ## Ordem de desenvolvimento (NUNCA pule)
+
 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009 → 010
 
 ## Regras invioláveis
+
 1. TODO endpoint tem `tenant_id` — multi-tenancy desde o dia 1
 2. Sem agendamento — a barbearia funciona por ORDEM DE CHEGADA (walk-in)
 3. Efeitos colaterais (enviar WhatsApp, pedir avaliação) NUNCA no handler HTTP — vão para BullMQ
@@ -226,6 +233,7 @@ Spec-Driven Development (SDD). Cada feature tem:
 7. TypeScript strict, sem `any` implícito
 
 ## Como trabalhar neste projeto
+
 1. Leia a spec da feature (`specs/NNN-feature/spec.md`)
 2. Leia o plano técnico (`plan.md`)
 3. Siga as tasks na ordem (`tasks.md`)
@@ -233,6 +241,7 @@ Spec-Driven Development (SDD). Cada feature tem:
 5. Só passe para a próxima feature quando TODAS as tasks estiverem [x]
 
 ## Comandos úteis
+
 ```bash
 docker-compose up -d          # Subir PostgreSQL + Redis
 npm run start:dev             # API em modo dev com hot reload
@@ -241,7 +250,9 @@ npx prisma studio             # UI visual do banco
 npm run lint                  # Lint
 npm test                      # Testes
 ```
-```
+````
+
+````
 
 ### Fase 5 — Validar a Integração
 
@@ -268,7 +279,7 @@ ls .claude/commands/ 2>/dev/null || echo "Usando outro agente"
 
 # 6. CLAUDE.md existe?
 test -f CLAUDE.md && echo "OK" || echo "FALTA CLAUDE.md"
-```
+````
 
 ### Fase 6 — Commit Inicial
 
@@ -311,6 +322,6 @@ Leia `specs/001-core-foundation/tasks.md` e execute cada task na ordem.
 
 ---
 
-*Este prompt foi gerado para o projeto Barbearia Modelo — Barber API*
-*Spec Kit integration: Claude Code*
-*Total de features: 10 | Total de tasks: ~268*
+_Este prompt foi gerado para o projeto Barbearia Modelo — Barber API_
+_Spec Kit integration: Claude Code_
+_Total de features: 10 | Total de tasks: ~268_

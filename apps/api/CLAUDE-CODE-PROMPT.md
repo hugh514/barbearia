@@ -5,9 +5,10 @@
 
 ---
 
-Estou configurando o projeto Barber API. O repositório é `hugh514/api-nestjs`.
+Estou configurando o projeto Barber API. O repositório é `hugh514/api-barbearia`.
 
 Antes de qualquer coisa:
+
 1. Leia o arquivo `PROMPT.md` neste diretório — ele contém o guia completo de setup
 2. Leia `.specify/memory/constitution.md` — são os 10 artigos inegociáveis do projeto
 

@@ -12,7 +12,7 @@ Você está configurando o projeto **Barber API** — uma API NestJS que será o
 
 **NESTA SESSÃO, você NÃO vai codar features.** Você vai apenas:
 
-1. Inicializar o repositório no GitHub `hugh514/api-nestjs`
+1. Inicializar o repositório no GitHub `hugh514/api-barbearia`
 2. Integrar o Spec Kit
 3. Copiar as 10 feature specs (spec.md + plan.md + tasks.md) para a estrutura correta
 4. Criar os arquivos base (CLAUDE.md, .gitignore, .editorconfig, .nvmrc)
@@ -22,7 +22,7 @@ Você está configurando o projeto **Barber API** — uma API NestJS que será o
 ### Passo 1 — Clonar e Setup Inicial
 
 ```bash
-git clone https://github.com/hugh514/api-nestjs.git barber-api
+git clone https://github.com/hugh514/api-barbearia.git barber-api
 cd barber-api
 git checkout -b setup/spec-kit-integration
 ```
@@ -56,6 +56,7 @@ cp -r barber-specs/specs/* specs/
 ### Passo 4 — Criar Arquivos de Configuração
 
 Crie os arquivos listados no `PROMPT.md` (seção "Fase 3"):
+
 - `.gitignore`
 - `.nvmrc` (conteúdo: `20`)
 - `.editorconfig`
