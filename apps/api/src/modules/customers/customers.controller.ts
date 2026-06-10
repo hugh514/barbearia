@@ -82,7 +82,9 @@ export class CustomersController {
   @ApiSecurity('internal-api-key')
   @ApiHeader({ name: 'X-Internal-Key', required: true })
   @ApiHeader({ name: 'X-Tenant-Id', required: true })
-  @ApiOperation({ summary: 'CRM automático — upsert por telefone (API interna)' })
+  @ApiOperation({
+    summary: 'CRM automático — upsert por telefone (API interna)',
+  })
   @ApiBody({ type: UpsertCustomerDto })
   @ApiResponse({ status: 201, type: UpsertCustomerResponseDto })
   async upsert(

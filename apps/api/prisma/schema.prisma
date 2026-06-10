@@ -15,8 +15,10 @@ model Tenant {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users     User[]
-  customers Customer[]
+  users         User[]
+  customers     Customer[]
+  conversations Conversation[]
+  messages      Message[]
 
   @@map("tenants")
 }
@@ -32,6 +34,8 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+
+  assignedConversations Conversation[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -60,11 +64,67 @@ model Customer {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
+  conversations Conversation[]
+
   @@unique([tenantId, phone])
   @@index([tenantId])
   @@index([tenantId, phone])
   @@index([tenantId, name])
   @@map("customers")
+}
+
+model Conversation {
+  id         String              @id @default(uuid())
+  tenantId   String              @map("tenant_id")
+  tenant     Tenant              @relation(fields: [tenantId], references: [id])
+  customerId String              @map("customer_id")
+  customer   Customer            @relation(fields: [customerId], references: [id])
+  channel    ConversationChannel
+  status     ConversationStatus  @default(ABERTA)
+  assignedTo String?             @map("assigned_to")
+  assignedUser User?             @relation(fields: [assignedTo], references: [id])
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  messages Message[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String              @id @default(uuid())
+  tenantId       String              @map("tenant_id")
+  tenant         Tenant              @relation(fields: [tenantId], references: [id])
+  conversationId String              @map("conversation_id")
+  conversation   Conversation        @relation(fields: [conversationId], references: [id])
+  content        String
+  direction      MessageDirection
+  channel        ConversationChannel
+  externalId     String?             @map("external_id")
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  @@index([conversationId])
+  @@index([tenantId])
+  @@map("messages")
+}
+
+enum ConversationChannel {
+  WHATSAPP
+  INSTAGRAM
+}
+
+enum ConversationStatus {
+  ABERTA
+  AGUARDANDO
+  EM_ATENDIMENTO
+  FECHADA
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
 }
 
 enum CustomerOrigin {
