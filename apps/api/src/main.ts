@@ -53,6 +53,15 @@ async function bootstrap(): Promise<void> {
         },
         'access-token',
       )
+      .addApiKey(
+        {
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-Internal-Key',
+          description: 'Chave interna para integrações WhatsApp/Instagram',
+        },
+        'internal-api-key',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);

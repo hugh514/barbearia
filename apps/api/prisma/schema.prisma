@@ -15,7 +15,8 @@ model Tenant {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users User[]
+  users     User[]
+  customers Customer[]
 
   @@map("tenants")
 }
@@ -42,4 +43,40 @@ enum UserRole {
   GERENTE
   BARBEIRO
   CLIENTE
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  tenantId      String         @map("tenant_id")
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  name          String
+  phone         String
+  instagramId   String?        @map("instagram_id")
+  instagramUser String?        @map("instagram_user")
+  origin        CustomerOrigin @default(MANUAL)
+  planStatus    PlanStatus     @default(NONE)
+  lastVisit     DateTime?      @map("last_visit")
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@unique([tenantId, phone])
+  @@index([tenantId])
+  @@index([tenantId, phone])
+  @@index([tenantId, name])
+  @@map("customers")
+}
+
+enum CustomerOrigin {
+  MANUAL
+  WHATSAPP
+  INSTAGRAM
+}
+
+enum PlanStatus {
+  NONE
+  ACTIVE
+  PENDING
+  OVERDUE
+  CANCELLED
 }
