@@ -21,6 +21,7 @@ import { UsersModule } from '@modules/users/users.module';
 import { CustomersModule } from '@modules/customers/customers.module';
 import { ConversationsModule } from '@modules/conversations/conversations.module';
 import { MessagesModule } from '@modules/messages/messages.module';
+import { AppointmentsModule } from '@modules/appointments/appointments.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
 @Module({
@@ -93,6 +94,7 @@ import { PrismaModule } from '@prisma/prisma.module';
     CustomersModule,
     ConversationsModule,
     MessagesModule,
+    AppointmentsModule,
   ],
   providers: [
     {

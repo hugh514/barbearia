@@ -19,6 +19,7 @@ model Tenant {
   customers     Customer[]
   conversations Conversation[]
   messages      Message[]
+  appointments  Appointment[]
 
   @@map("tenants")
 }
@@ -36,6 +37,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   assignedConversations Conversation[]
+  appointments          Appointment[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -65,6 +67,7 @@ model Customer {
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
   conversations Conversation[]
+  appointments  Appointment[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
@@ -139,4 +142,36 @@ enum PlanStatus {
   PENDING
   OVERDUE
   CANCELLED
+}
+
+model Appointment {
+  id           String            @id @default(uuid())
+  tenantId     String            @map("tenant_id")
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  customerId   String            @map("customer_id")
+  customer     Customer          @relation(fields: [customerId], references: [id])
+  barberId     String?           @map("barber_id")
+  barber       User?             @relation(fields: [barberId], references: [id])
+  status       AppointmentStatus @default(AGUARDANDO)
+  services     String[]
+  totalPrice   Decimal?          @map("total_price") @db.Decimal(10, 2)
+  notes        String?
+  cancelReason String?           @map("cancel_reason")
+  startedAt    DateTime?         @map("started_at")
+  finishedAt   DateTime?         @map("finished_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@index([tenantId, status])
+  @@index([tenantId, barberId])
+  @@index([tenantId, customerId])
+  @@index([tenantId, createdAt])
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  AGUARDANDO
+  EM_ATENDIMENTO
+  FINALIZADO
+  CANCELADO
 }
