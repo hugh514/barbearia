@@ -1,107 +1,125 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Barber API
 
-<h1 align="center">Barber API</h1>
+API central (hub) da plataforma de barbearia. WhatsApp, Instagram, app mobile e backoffice se comunicam **somente** por esta API — nenhum sistema fala direto com outro.
 
-<p align="center">
-  Uma API robusta para gerenciar barbearias com recursos de agendamentos, CRM, pagamentos e integrações WhatsApp/Instagram.
-</p>
+Multi-tenant desde o dia 1: todo endpoint é isolado por `tenant_id`.
 
-<p align="center">
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-  <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-  <a href="https://github.com/hugh514/api-barbearia" target="_blank"><img src="https://img.shields.io/github/stars/hugh514/api-barbearia.svg" alt="GitHub Stars" /></a>
-</p>
+## O que a API faz
 
----
+| Área | Descrição |
+|------|-----------|
+| **Auth & RBAC** | JWT + refresh token, papéis `ADMIN`, `GERENTE`, `BARBEIRO`, `CLIENTE` |
+| **CRM** | Cadastro e histórico de clientes |
+| **Mensagens** | Conversas omnichannel (WhatsApp / Instagram) com Socket.IO |
+| **Fila walk-in** | Atendimentos por ordem de chegada — **sem agendamento** |
+| **Check-in QR** | Cliente gera token; equipe consome e entra na fila |
+| **Planos & assinaturas** | Planos recorrentes e ciclo de vida da assinatura |
+| **Pagamentos** | Integração Mercado Pago (PIX, webhook) |
+| **Eventos & filas** | Efeitos colaterais via BullMQ (não no handler HTTP) |
+| **Dashboard** | Métricas para backoffice (receita, fila, planos, etc.) |
+| **Canais** | WhatsApp (Evolution API), Instagram (Graph API) + IA (OpenAI) |
 
-## 📊 Stats
+## Stack
 
-![Gabriel R. Antunes' GitHub Stats](https://img.shields.io/badge/Rank-A-brightgreen?style=for-the-badge)
+NestJS 10 · Prisma 5 · PostgreSQL 16 · Redis 7 · BullMQ · Socket.IO · Zod · Pino · Sentry · Docker
 
-| Métrica | Valor |
-|---------|-------|
-| ⭐ Total Stars Earned | 84 |
-| 🔄 Total Commits (last year) | 1.4k |
-| 📤 Total PRs | 1.2k |
-| 📋 Total Issues | 539 |
-| 📦 Repositories Contributed (last year) | 13 |
+## Pré-requisitos
 
----
+- Node.js 20+
+- Docker e Docker Compose (para PostgreSQL e Redis)
 
-## 📋 Description
-
-[NestJS](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## 🚀 Project Setup
+## Configuração rápida
 
 ```bash
-$ npm install
+# 1. Dependências
+npm install
+
+# 2. Variáveis de ambiente
+cp .env.example .env
+# Ajuste DATABASE_URL, JWT_* e integrações conforme necessário
+
+# 3. Infra local
+docker compose up -d postgres redis
+
+# 4. Banco de dados
+npm run prisma:migrate
+npm run prisma:seed
+
+# 5. API em modo dev
+npm run start:dev
 ```
 
-## 🏗️ Compile and Run the Project
+A API sobe em `http://localhost:3000`.
+
+- **Swagger** (dev): `http://localhost:3000/docs` — usuário/senha em `SWAGGER_USER` / `SWAGGER_PASS`
+- **Health**: `GET /health`
+
+### Docker (API + banco + Redis)
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up
 ```
 
-## 🧪 Run Tests
+O serviço `api` usa hot reload; PostgreSQL fica exposto na porta **5433** no host.
+
+## Scripts úteis
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev        # desenvolvimento com watch
+npm run build            # build de produção
+npm run lint             # ESLint
+npm test                 # testes unitários
+npm run test:e2e         # testes e2e (Jest)
+npm run prisma:studio    # UI do banco
+npm run smoke:001        # smoke test da feature 001
 ```
 
-## 📦 Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment).
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deploying your application seamless.
+Testes e2e por feature:
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+npm run test:e2e -- feature-005
+npm run test:e2e -- feature-011
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Estrutura do projeto
 
-## 📚 Resources
+```
+src/
+  modules/          # domínios (auth, customers, appointments, payments, …)
+  queue/            # listeners e processors BullMQ
+  events/           # contratos de eventos de domínio
+  common/           # guards, interceptors, config, pagination
+prisma/             # schema, migrations, seed
+specs/              # specs SDD (spec.md, plan.md, tasks.md)
+test/               # e2e por feature (feature-NNN.e2e-spec.ts)
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Desenvolvimento orientado a specs (SDD). Features numeradas de `001` a `011` em `specs/`. Detalhes de arquitetura e regras de negócio estão em `.specify/memory/constitution.md`.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Integrações (opcionais em dev)
 
-## 💼 Support
+| Variável | Serviço |
+|----------|---------|
+| `MERCADO_PAGO_*` | Pagamentos |
+| `EVOLUTION_API_*` | WhatsApp |
+| `INSTAGRAM_*` | Instagram |
+| `OPENAI_*` | Respostas assistidas por IA nos canais |
+| `SENTRY_DSN` | Observabilidade |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Valores padrão de desenvolvimento estão em `.env.example`.
 
-## 🤝 Stay in Touch
+## Contribuindo
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Commits em **inglês**, [Conventional Commits](https://www.conventionalcommits.org/)
+- Um commit lógico por mudança; PRs pequenos por feature
+- Sem trailers de atribuição a IA em commits ou PRs
 
-## 📄 License
+```bash
+git config core.hooksPath .githooks
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Veja [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Licença
+
+UNLICENSED — uso privado.
