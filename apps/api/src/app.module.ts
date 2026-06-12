@@ -33,6 +33,7 @@ import { AiModule } from '@modules/ai/ai.module';
 import { WhatsAppModule } from '@modules/whatsapp/whatsapp.module';
 import { InstagramModule } from '@modules/instagram/instagram.module';
 import { ChannelsModule } from '@modules/channels/channels.module';
+import { CheckinModule } from '@modules/checkin/checkin.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
 @Module({
@@ -85,7 +86,10 @@ import { PrismaModule } from '@prisma/prisma.module';
       imports: [ThrottlerConfigModule],
       inject: [RedisThrottlerStorage],
       useFactory: (storage: RedisThrottlerStorage) => ({
-        throttlers: [{ name: 'login', ttl: 60000, limit: 5 }],
+        throttlers: [
+          { name: 'login', ttl: 60000, limit: 5 },
+          { name: 'checkin', ttl: 60000, limit: 30 },
+        ],
         storage,
         getTracker: (req: {
           ip: string;
@@ -121,6 +125,7 @@ import { PrismaModule } from '@prisma/prisma.module';
     WhatsAppModule,
     InstagramModule,
     ChannelsModule,
+    CheckinModule,
   ],
   providers: [
     {

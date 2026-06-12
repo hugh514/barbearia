@@ -6,14 +6,17 @@ import { SubscriptionsModule } from '@modules/subscriptions/subscriptions.module
 import { WhatsAppModule } from '@modules/whatsapp/whatsapp.module';
 import { PrismaModule } from '@prisma/prisma.module';
 import { AppointmentListener } from './listeners/appointment.listener';
+import { CheckinListener } from './listeners/checkin.listener';
 import { CustomerListener } from './listeners/customer.listener';
 import { PaymentListener } from './listeners/payment.listener';
+import { CheckinProcessor } from './processors/checkin.processor';
 import { NotificationsProcessor } from './processors/notifications.processor';
 import { PostAttendanceProcessor } from './processors/post-attendance.processor';
 import { PostPaymentProcessor } from './processors/post-payment.processor';
 import { PostRegistrationProcessor } from './processors/post-registration.processor';
 import {
   QUEUE_NAMES,
+  QUEUE_CHECKIN,
   QUEUE_NOTIFICATIONS,
   QUEUE_POST_ATTENDANCE,
   QUEUE_POST_PAYMENT,
@@ -44,12 +47,15 @@ import {
       { name: QUEUE_POST_PAYMENT },
       { name: QUEUE_POST_REGISTRATION },
       { name: QUEUE_NOTIFICATIONS },
+      { name: QUEUE_CHECKIN },
     ),
   ],
   providers: [
     AppointmentListener,
+    CheckinListener,
     PaymentListener,
     CustomerListener,
+    CheckinProcessor,
     PostAttendanceProcessor,
     PostPaymentProcessor,
     PostRegistrationProcessor,
