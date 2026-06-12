@@ -115,6 +115,7 @@ model Conversation {
   assignedUser User?             @relation(fields: [assignedTo], references: [id])
   createdAt  DateTime            @default(now()) @map("created_at")
   updatedAt  DateTime            @updatedAt @map("updated_at")
+  deletedAt  DateTime?           @map("deleted_at")
 
   messages Message[]
 
@@ -134,6 +135,7 @@ model Message {
   channel        ConversationChannel
   externalId     String?             @map("external_id")
   createdAt      DateTime            @default(now()) @map("created_at")
+  deletedAt      DateTime?           @map("deleted_at")
 
   @@index([conversationId])
   @@index([tenantId])
@@ -188,6 +190,7 @@ model Appointment {
   finishedAt   DateTime?         @map("finished_at")
   createdAt    DateTime          @default(now()) @map("created_at")
   updatedAt    DateTime          @updatedAt @map("updated_at")
+  deletedAt    DateTime?         @map("deleted_at")
 
   @@index([tenantId, status])
   @@index([tenantId, barberId])
@@ -236,6 +239,7 @@ model Subscription {
   cancelledAt   DateTime?          @map("cancelled_at")
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
+  deletedAt     DateTime?          @map("deleted_at")
 
   payments Payment[]
 
@@ -269,6 +273,7 @@ model Payment {
   paidAt         DateTime?     @map("paid_at")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
 
   @@index([tenantId, status])
   @@index([tenantId, subscriptionId])
