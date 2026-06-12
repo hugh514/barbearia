@@ -76,6 +76,7 @@ export class AppointmentsService {
           gte: startOfDay,
           lte: endOfDay,
         },
+        deletedAt: null,
       },
       include: appointmentInclude,
       orderBy: { createdAt: 'asc' },
@@ -95,13 +96,13 @@ export class AppointmentsService {
 
     const [appointments, total] = await Promise.all([
       this.prisma.appointment.findMany({
-        where,
+        where: { ...where, deletedAt: null },
         skip,
         take: query.perPage,
         include: appointmentInclude,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.appointment.count({ where }),
+      this.prisma.appointment.count({ where: { ...where, deletedAt: null } }),
     ]);
 
     return buildPaginatedResult(
@@ -135,6 +136,7 @@ export class AppointmentsService {
     const where: Prisma.AppointmentWhereInput = {
       tenantId,
       customerId,
+      deletedAt: null,
     };
     const skip = getPaginationSkip(page, perPage);
 
@@ -180,6 +182,7 @@ export class AppointmentsService {
         tenantId,
         barberId,
         status: AppointmentStatus.EM_ATENDIMENTO,
+        deletedAt: null,
       },
     });
 
@@ -348,7 +351,7 @@ export class AppointmentsService {
       Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>
   > {
     const appointment = await this.prisma.appointment.findFirst({
-      where: { id: appointmentId, tenantId },
+      where: { id: appointmentId, tenantId, deletedAt: null },
       include: appointmentInclude,
     });
 
