@@ -25,6 +25,8 @@ import {
 import { UpdateCustomerDto } from '@modules/customers/dto/update-customer.dto';
 import { UpsertCustomerDto } from '@modules/customers/dto/upsert-customer.dto';
 import { toCustomerResponse } from '@modules/customers/customers.mapper';
+import { AppointmentResponseDto } from '@modules/appointments/dto/appointment-response.dto';
+import { AppointmentsService } from '@modules/appointments/appointments.service';
 import { ConversationResponseDto } from '@modules/conversations/dto/conversation-response.dto';
 import { ConversationsService } from '@modules/conversations/conversations.service';
 
@@ -34,6 +36,7 @@ export class CustomersService {
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly conversationsService: ConversationsService,
+    private readonly appointmentsService: AppointmentsService,
   ) {}
 
   async create(
@@ -174,9 +177,14 @@ export class CustomersService {
     customerId: string,
     page: number,
     perPage: number,
-  ): Promise<PaginatedResult<unknown>> {
+  ): Promise<PaginatedResult<AppointmentResponseDto>> {
     await this.findCustomerInTenant(customerId, tenantId);
-    return buildPaginatedResult([], 0, page, perPage);
+    return this.appointmentsService.findByCustomer(
+      tenantId,
+      customerId,
+      page,
+      perPage,
+    );
   }
 
   async getConversations(

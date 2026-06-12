@@ -1,4 +1,5 @@
 import {
+  AppointmentStatus,
   ConversationChannel,
   ConversationStatus,
   CustomerOrigin,
@@ -37,6 +38,24 @@ async function main(): Promise<void> {
       email: 'admin@barbearia.example',
       passwordHash,
       role: UserRole.ADMIN,
+      active: true,
+    },
+  });
+
+  const barber = await prisma.user.upsert({
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: 'barbeiro@barbearia.example',
+      },
+    },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: 'Barbeiro Demo',
+      email: 'barbeiro@barbearia.example',
+      passwordHash,
+      role: UserRole.BARBEIRO,
       active: true,
     },
   });
@@ -185,8 +204,67 @@ async function main(): Promise<void> {
     });
   }
 
+  const pedro = customers[2];
+  const carlos = customers[3];
+
+  const waitingAppointment = await prisma.appointment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000501' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000501',
+      tenantId: tenant.id,
+      customerId: pedro.id,
+      status: AppointmentStatus.AGUARDANDO,
+      services: ['Corte', 'Barba'],
+    },
+  });
+
+  const inProgressStartedAt = new Date();
+  inProgressStartedAt.setMinutes(inProgressStartedAt.getMinutes() - 15);
+
+  await prisma.appointment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000502' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000502',
+      tenantId: tenant.id,
+      customerId: carlos.id,
+      barberId: barber.id,
+      status: AppointmentStatus.EM_ATENDIMENTO,
+      services: ['Corte'],
+      startedAt: inProgressStartedAt,
+    },
+  });
+
+  const finishedStartedAt = new Date();
+  finishedStartedAt.setHours(finishedStartedAt.getHours() - 2);
+  const finishedAt = new Date();
+  finishedAt.setHours(finishedAt.getHours() - 1);
+
+  await prisma.appointment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000503' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000503',
+      tenantId: tenant.id,
+      customerId: joao.id,
+      barberId: barber.id,
+      status: AppointmentStatus.FINALIZADO,
+      services: ['Corte', 'Sobrancelha'],
+      totalPrice: 55.0,
+      notes: 'Cliente satisfeito',
+      startedAt: finishedStartedAt,
+      finishedAt,
+    },
+  });
+
+  await prisma.customer.update({
+    where: { id: joao.id },
+    data: { lastVisit: finishedAt },
+  });
+
   console.log(
-    'Seed completed: tenant + admin + customers + demo conversations/messages',
+    `Seed completed: tenant + users + customers + conversations/messages + appointments (waiting: ${waitingAppointment.id})`,
   );
 }
 
