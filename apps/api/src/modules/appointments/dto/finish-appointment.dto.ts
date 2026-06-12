@@ -6,4 +6,6 @@ export const finishAppointmentSchema = z.object({
   totalPrice: z.number().positive().optional(),
 });
 
-export class FinishAppointmentDto extends createZodDto(finishAppointmentSchema) {}
+export class FinishAppointmentDto extends createZodDto(
+  finishAppointmentSchema,
+) {}

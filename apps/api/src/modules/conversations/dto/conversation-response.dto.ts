@@ -4,7 +4,7 @@ import {
   ConversationStatus,
   CustomerOrigin,
 } from '@prisma/client';
-import { PaginationMetaDto } from '@modules/customers/dto/customer-response.dto';
+import { PaginationMetaDto } from '@common/pagination/pagination-meta.dto';
 
 export class ConversationCustomerDto {
   @ApiProperty()

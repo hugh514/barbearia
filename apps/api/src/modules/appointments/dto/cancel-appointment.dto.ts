@@ -5,4 +5,6 @@ export const cancelAppointmentSchema = z.object({
   reason: z.string().min(1).optional(),
 });
 
-export class CancelAppointmentDto extends createZodDto(cancelAppointmentSchema) {}
+export class CancelAppointmentDto extends createZodDto(
+  cancelAppointmentSchema,
+) {}

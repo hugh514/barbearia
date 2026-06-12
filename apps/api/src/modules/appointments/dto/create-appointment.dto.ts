@@ -6,4 +6,6 @@ export const createAppointmentSchema = z.object({
   services: z.array(z.string().min(1)).min(1),
 });
 
-export class CreateAppointmentDto extends createZodDto(createAppointmentSchema) {}
+export class CreateAppointmentDto extends createZodDto(
+  createAppointmentSchema,
+) {}

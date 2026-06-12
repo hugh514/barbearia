@@ -410,8 +410,30 @@ async function main(): Promise<void> {
     data: { planStatus: PlanStatus.CANCELLED },
   });
 
+  const ana = customers[4];
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekAgoFinished = new Date(weekAgo);
+  weekAgoFinished.setHours(weekAgoFinished.getHours() + 1);
+
+  await prisma.appointment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000504' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000504',
+      tenantId: tenant.id,
+      customerId: ana.id,
+      barberId: barber.id,
+      status: AppointmentStatus.FINALIZADO,
+      services: ['Corte'],
+      totalPrice: 45.0,
+      startedAt: weekAgo,
+      finishedAt: weekAgoFinished,
+    },
+  });
+
   console.log(
-    `Seed completed: tenant + users + customers + conversations/messages + appointments + plans/subscriptions/payments`,
+    `Seed completed: tenant + users + customers + conversations/messages + appointments + plans/subscriptions/payments + dashboard fixtures`,
   );
 }
 

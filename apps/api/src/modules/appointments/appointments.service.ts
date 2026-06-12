@@ -5,11 +5,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  Appointment,
-  AppointmentStatus,
-  Prisma,
-} from '@prisma/client';
+import { Appointment, AppointmentStatus, Prisma } from '@prisma/client';
 import {
   ATENDIMENTO_FINALIZADO,
   ATENDIMENTO_INICIADO,
@@ -347,7 +343,10 @@ export class AppointmentsService {
   private async findAppointmentInTenant(
     appointmentId: string,
     tenantId: string,
-  ): Promise<Appointment & Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>> {
+  ): Promise<
+    Appointment &
+      Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>
+  > {
     const appointment = await this.prisma.appointment.findFirst({
       where: { id: appointmentId, tenantId },
       include: appointmentInclude,

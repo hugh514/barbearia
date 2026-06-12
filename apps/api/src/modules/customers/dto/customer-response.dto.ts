@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CustomerOrigin, PlanStatus } from '@prisma/client';
-import { PaginationMeta } from '@common/pagination/pagination.types';
+import { PaginationMetaDto } from '@common/pagination/pagination-meta.dto';
 import { ConversationResponseDto } from '@modules/conversations/dto/conversation-response.dto';
 
 export class CustomerResponseDto {
@@ -50,20 +50,6 @@ export class CustomerProfileResponseDto extends CustomerResponseDto {
 
   @ApiPropertyOptional({ description: 'Plano ativo (Feature 006)' })
   activePlan!: unknown | null;
-}
-
-export class PaginationMetaDto implements PaginationMeta {
-  @ApiProperty()
-  total!: number;
-
-  @ApiProperty()
-  page!: number;
-
-  @ApiProperty()
-  perPage!: number;
-
-  @ApiProperty()
-  lastPage!: number;
 }
 
 export class PaginatedCustomersResponseDto {
