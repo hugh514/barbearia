@@ -75,6 +75,7 @@ export class SubscriptionsService {
         tenantId,
         customerId: dto.customerId,
         status: { in: ACTIVE_STATUSES },
+        deletedAt: null,
       },
     });
 
@@ -130,6 +131,7 @@ export class SubscriptionsService {
   ): Promise<PaginatedResult<SubscriptionResponseDto>> {
     const where: Prisma.SubscriptionWhereInput = {
       tenantId,
+      deletedAt: null,
       ...(query.status ? { status: query.status } : {}),
       ...(query.customerId ? { customerId: query.customerId } : {}),
       ...(query.planId ? { planId: query.planId } : {}),
@@ -434,7 +436,7 @@ export class SubscriptionsService {
       Prisma.SubscriptionGetPayload<{ include: typeof subscriptionInclude }>
   > {
     const subscription = await this.prisma.subscription.findFirst({
-      where: { id: subscriptionId, tenantId },
+      where: { id: subscriptionId, tenantId, deletedAt: null },
       include: subscriptionInclude,
     });
 
