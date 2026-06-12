@@ -432,8 +432,46 @@ async function main(): Promise<void> {
     },
   });
 
+  await prisma.channelConfig.upsert({
+    where: { tenantId: tenant.id },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      businessName: 'Barbearia Modelo',
+      services: [
+        { name: 'Corte', price: 'R$ 45,00' },
+        { name: 'Barba', price: 'R$ 30,00' },
+        { name: 'Corte + Barba', price: 'R$ 65,00' },
+        { name: 'Sobrancelha', price: 'R$ 15,00' },
+      ],
+      address: 'Rua das Flores, 123 — Centro, São Paulo - SP',
+      phone: '11999990000',
+      workingHours: 'Segunda a Sábado, das 9h às 19h',
+      rules:
+        'Aceitamos cartão e PIX. Atendimento por ordem de chegada, sem agendamento.',
+      whatsappInstance: 'barbearia-modelo',
+      instagramPageId: 'barbearia-modelo-page',
+    },
+  });
+
+  await prisma.appointment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000505' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000505',
+      tenantId: tenant.id,
+      customerId: joao.id,
+      barberId: barber.id,
+      status: AppointmentStatus.FINALIZADO,
+      services: ['Corte'],
+      totalPrice: 50.0,
+      startedAt: weekAgo,
+      finishedAt: weekAgoFinished,
+    },
+  });
+
   console.log(
-    `Seed completed: tenant + users + customers + conversations/messages + appointments + plans/subscriptions/payments + dashboard fixtures`,
+    `Seed completed: tenant + users + customers + conversations/messages + appointments (waiting: ${waitingAppointment.id}) + plans/subscriptions (active: ${joaoSubscription.id}, pending: ${mariaSubscription.id}, cancelled: ${carlosSubscription.id}) + payments (approved: ${joaoPayment.id}, pending: ${mariaPayment.id})`,
   );
 }
 
