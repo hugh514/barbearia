@@ -12,10 +12,15 @@ export const envSchema = z
     REDIS_PORT: z.coerce.number().default(6379),
     REDIS_PASSWORD: z.string().optional().default(''),
     SENTRY_DSN: z.string().optional().default(''),
-    SWAGGER_ENABLED: z
-      .enum(['true', 'false'])
-      .default('true')
-      .transform((v) => v === 'true'),
+    SWAGGER_ENABLED: z.preprocess(
+      (val) => {
+        if (val === undefined || val === '') {
+          return process.env['NODE_ENV'] === 'production' ? 'false' : 'true';
+        }
+        return val;
+      },
+      z.enum(['true', 'false']).transform((v) => v === 'true'),
+    ),
     SWAGGER_USER: z.string().default('admin'),
     SWAGGER_PASS: z.string().default('secret'),
     JWT_SECRET: z.preprocess(
