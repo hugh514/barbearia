@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventsModule } from './events/events.module';
+import { QueueModule } from './queue/queue.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -24,6 +25,7 @@ import { MessagesModule } from '@modules/messages/messages.module';
 import { PlansModule } from '@modules/plans/plans.module';
 import { SubscriptionsModule } from '@modules/subscriptions/subscriptions.module';
 import { PaymentsModule } from '@modules/payments/payments.module';
+import { QueuesAdminModule } from '@modules/queues-admin/queues-admin.module';
 import { AppointmentsModule } from '@modules/appointments/appointments.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
@@ -87,7 +89,8 @@ import { PrismaModule } from '@prisma/prisma.module';
         },
       }),
     }),
-    EventEmitterModule.forRoot(),
+    EventsModule,
+    QueueModule,
     PrismaModule,
     RedisModule,
     HealthModule,
