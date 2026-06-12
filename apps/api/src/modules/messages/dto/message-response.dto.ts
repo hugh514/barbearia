@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ConversationChannel, MessageDirection } from '@prisma/client';
-import { PaginationMetaDto } from '@modules/customers/dto/customer-response.dto';
+import { PaginationMetaDto } from '@common/pagination/pagination-meta.dto';
 
 export class MessageResponseDto {
   @ApiProperty()
