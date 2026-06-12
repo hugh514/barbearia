@@ -2,12 +2,18 @@ export const QUEUE_POST_ATTENDANCE = 'post-attendance';
 export const QUEUE_POST_PAYMENT = 'post-payment';
 export const QUEUE_POST_REGISTRATION = 'post-registration';
 export const QUEUE_NOTIFICATIONS = 'notifications';
+export const QUEUE_CHECKIN = 'checkin';
+
+export const CHECKIN_JOB_NAMES = {
+  REALIZADO: 'checkin.realizado',
+} as const;
 
 export const QUEUE_NAMES = [
   QUEUE_POST_ATTENDANCE,
   QUEUE_POST_PAYMENT,
   QUEUE_POST_REGISTRATION,
   QUEUE_NOTIFICATIONS,
+  QUEUE_CHECKIN,
 ] as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[number];
