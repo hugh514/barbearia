@@ -67,7 +67,7 @@ export class PaymentsService {
     dto: CreatePaymentDto,
   ): Promise<PaymentResponseDto> {
     const subscription = await this.prisma.subscription.findFirst({
-      where: { id: dto.subscriptionId, tenantId },
+      where: { id: dto.subscriptionId, tenantId, deletedAt: null },
       include: {
         plan: true,
         customer: { select: { id: true, phone: true } },
@@ -87,6 +87,7 @@ export class PaymentsService {
         tenantId,
         subscriptionId: dto.subscriptionId,
         status: PaymentStatus.PENDENTE,
+        deletedAt: null,
       },
     });
 
@@ -147,7 +148,7 @@ export class PaymentsService {
       await this.paymentGateway.getPaymentStatus(externalId);
 
     const payment = await this.prisma.payment.findFirst({
-      where: { externalId },
+      where: { externalId, deletedAt: null },
       include: paymentInclude,
     });
 
@@ -219,6 +220,7 @@ export class PaymentsService {
   ): Promise<PaginatedResult<PaymentResponseDto>> {
     const where: Prisma.PaymentWhereInput = {
       tenantId,
+      deletedAt: null,
       ...(query.subscriptionId ? { subscriptionId: query.subscriptionId } : {}),
       ...(query.customerId ? { customerId: query.customerId } : {}),
       ...(query.status ? { status: query.status } : {}),
@@ -287,7 +289,7 @@ export class PaymentsService {
     tenantId: string,
   ): Promise<Prisma.PaymentGetPayload<{ include: typeof paymentInclude }>> {
     const payment = await this.prisma.payment.findFirst({
-      where: { id: paymentId, tenantId },
+      where: { id: paymentId, tenantId, deletedAt: null },
       include: paymentInclude,
     });
 

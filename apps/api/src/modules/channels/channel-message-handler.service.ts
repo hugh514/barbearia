@@ -195,7 +195,7 @@ export class ChannelMessageHandlerService {
         });
 
         const conversation = await this.prisma.conversation.findFirstOrThrow({
-          where: { id: conversationId, tenantId },
+          where: { id: conversationId, tenantId, deletedAt: null },
           include: {
             customer: true,
             messages: { orderBy: { createdAt: 'desc' }, take: 1 },

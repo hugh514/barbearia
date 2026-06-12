@@ -35,6 +35,7 @@ export class DashboardService {
       tenantId,
       status: AppointmentStatus.FINALIZADO,
       finishedAt: { gte: from, lte: to },
+      deletedAt: null,
     };
 
     const [totalAppointments, revenueAgg, appointmentsByBarber, newCustomers] =
@@ -115,6 +116,7 @@ export class DashboardService {
           where: {
             tenantId,
             status: AppointmentStatus.FINALIZADO,
+            deletedAt: null,
           },
           _count: true,
         }),
@@ -161,6 +163,7 @@ export class DashboardService {
       tenantId,
       status: AppointmentStatus.FINALIZADO,
       finishedAt: { gte: from, lte: to },
+      deletedAt: null,
     };
 
     const previousFinishedWhere = {
@@ -173,12 +176,14 @@ export class DashboardService {
       tenantId,
       status: PaymentStatus.APROVADO,
       paidAt: { gte: from, lte: to },
+      deletedAt: null,
     };
 
     const previousPaymentWhere = {
       tenantId,
       status: PaymentStatus.APROVADO,
       paidAt: { gte: previousFrom, lte: previousTo },
+      deletedAt: null,
     };
 
     const [
@@ -269,17 +274,26 @@ export class DashboardService {
     const [activeSubscribers, cancellationsInPeriod, activeSubscriptions] =
       await Promise.all([
         this.prisma.subscription.count({
-          where: { tenantId, status: SubscriptionStatus.ATIVO },
+          where: {
+            tenantId,
+            status: SubscriptionStatus.ATIVO,
+            deletedAt: null,
+          },
         }),
         this.prisma.subscription.count({
           where: {
             tenantId,
             status: SubscriptionStatus.CANCELADO,
             cancelledAt: { gte: from, lte: to },
+            deletedAt: null,
           },
         }),
         this.prisma.subscription.findMany({
-          where: { tenantId, status: SubscriptionStatus.ATIVO },
+          where: {
+            tenantId,
+            status: SubscriptionStatus.ATIVO,
+            deletedAt: null,
+          },
           include: {
             plan: { select: { priceCents: true, intervalDays: true } },
           },
@@ -319,16 +333,21 @@ export class DashboardService {
     const [openConversations, waitingForHuman, messagesByChannel, messages] =
       await Promise.all([
         this.prisma.conversation.count({
-          where: { tenantId, status: { in: openStatuses } },
+          where: { tenantId, status: { in: openStatuses }, deletedAt: null },
         }),
         this.prisma.conversation.count({
-          where: { tenantId, status: ConversationStatus.AGUARDANDO },
+          where: {
+            tenantId,
+            status: ConversationStatus.AGUARDANDO,
+            deletedAt: null,
+          },
         }),
         this.prisma.message.groupBy({
           by: ['channel'],
           where: {
             tenantId,
             createdAt: { gte: from, lte: to },
+            deletedAt: null,
           },
           _count: true,
         }),
@@ -336,6 +355,7 @@ export class DashboardService {
           where: {
             tenantId,
             createdAt: { gte: from, lte: to },
+            deletedAt: null,
           },
           orderBy: [{ conversationId: 'asc' }, { createdAt: 'asc' }],
           select: {
@@ -381,6 +401,7 @@ export class DashboardService {
         status: AppointmentStatus.FINALIZADO,
         finishedAt: { gte: from, lte: to },
         barberId: { in: barbers.map((b) => b.id) },
+        deletedAt: null,
       },
       select: {
         barberId: true,

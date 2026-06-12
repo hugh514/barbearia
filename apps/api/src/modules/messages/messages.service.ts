@@ -106,7 +106,7 @@ export class MessagesService {
       tenantId,
     );
 
-    const where = { tenantId, conversationId };
+    const where = { tenantId, conversationId, deletedAt: null };
     const skip = getPaginationSkip(page, perPage);
 
     const [messages, total] = await Promise.all([

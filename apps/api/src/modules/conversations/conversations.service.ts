@@ -73,6 +73,7 @@ export class ConversationsService {
   ): Promise<PaginatedResult<ConversationResponseDto>> {
     const where: Prisma.ConversationWhereInput = {
       tenantId,
+      deletedAt: null,
       ...(query.status ? { status: query.status } : {}),
       ...(query.channel ? { channel: query.channel } : {}),
       ...(query.assignedTo ? { assignedTo: query.assignedTo } : {}),
@@ -169,7 +170,7 @@ export class ConversationsService {
   async getStats(tenantId: string): Promise<ConversationStatsResponseDto> {
     const grouped = await this.prisma.conversation.groupBy({
       by: ['status'],
-      where: { tenantId },
+      where: { tenantId, deletedAt: null },
       _count: { status: true },
     });
 
@@ -206,6 +207,7 @@ export class ConversationsService {
         customerId,
         channel,
         status: { in: ACTIVE_STATUSES },
+        deletedAt: null,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -231,7 +233,7 @@ export class ConversationsService {
     tenantId: string,
   ): Promise<Conversation> {
     const conversation = await this.prisma.conversation.findFirst({
-      where: { id: conversationId, tenantId },
+      where: { id: conversationId, tenantId, deletedAt: null },
     });
 
     if (!conversation) {
@@ -252,6 +254,7 @@ export class ConversationsService {
     const where: Prisma.ConversationWhereInput = {
       tenantId,
       customerId,
+      deletedAt: null,
     };
 
     const skip = getPaginationSkip(page, perPage);
@@ -286,7 +289,7 @@ export class ConversationsService {
     tenantId: string,
   ): Promise<ConversationResponseDto> {
     const conversation = await this.prisma.conversation.findFirst({
-      where: { id: conversationId, tenantId },
+      where: { id: conversationId, tenantId, deletedAt: null },
       include: {
         customer: true,
         messages: {
