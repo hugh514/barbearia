@@ -98,7 +98,11 @@ export class ChannelsReplyService {
     });
 
     const updated = await this.prisma.conversation.findFirstOrThrow({
-      where: { id: params.conversationId, tenantId: params.tenantId },
+      where: {
+        id: params.conversationId,
+        tenantId: params.tenantId,
+        deletedAt: null,
+      },
       include: {
         customer: true,
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },

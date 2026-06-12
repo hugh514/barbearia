@@ -70,7 +70,7 @@ export class AiService {
     limit: number,
   ): Promise<Message[]> {
     const messages = await this.prisma.message.findMany({
-      where: { tenantId, conversationId },
+      where: { tenantId, conversationId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
