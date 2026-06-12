@@ -55,11 +55,16 @@ import {
   upsertCustomerSchema,
 } from '@modules/customers/dto/upsert-customer.dto';
 import { CustomersService } from '@modules/customers/customers.service';
+import { PaginatedPaymentsResponseDto } from '@modules/payments/dto/payment-response.dto';
+import { PaymentsService } from '@modules/payments/payments.service';
 
 @ApiTags('customers')
 @Controller('customers')
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) {}
+  constructor(
+    private readonly customersService: CustomersService,
+    private readonly paymentsService: PaymentsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -137,6 +142,28 @@ export class CustomersController {
     @Body(new ZodValidationPipe(updateCustomerSchema)) body: UpdateCustomerDto,
   ): Promise<CustomerResponseDto> {
     return this.customersService.update(tenantId, id, body);
+  }
+
+  @Get(':id/payments')
+  @Roles(UserRole.ADMIN, UserRole.GERENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Histórico financeiro do cliente' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'perPage', required: false, type: Number })
+  @ApiResponse({ status: 200, type: PaginatedPaymentsResponseDto })
+  async getPayments(
+    @CurrentTenant() tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query(new ZodValidationPipe(paginationQuerySchema))
+    query: { page: number; perPage: number },
+  ): Promise<PaginatedPaymentsResponseDto> {
+    return this.paymentsService.findByCustomer(
+      tenantId,
+      id,
+      query.page,
+      query.perPage,
+    );
   }
 
   @Get(':id/history')
