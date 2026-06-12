@@ -20,6 +20,8 @@ model Tenant {
   conversations Conversation[]
   messages      Message[]
   appointments  Appointment[]
+  plans         Plan[]
+  subscriptions Subscription[]
 
   @@map("tenants")
 }
@@ -36,6 +38,8 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  customerId            String?  @map("customer_id")
+  customer              Customer? @relation(fields: [customerId], references: [id])
   assignedConversations Conversation[]
   appointments          Appointment[]
 
@@ -68,6 +72,8 @@ model Customer {
 
   conversations Conversation[]
   appointments  Appointment[]
+  subscriptions Subscription[]
+  linkedUsers   User[]
 
   @@unique([tenantId, phone])
   @@index([tenantId])
@@ -173,5 +179,51 @@ enum AppointmentStatus {
   AGUARDANDO
   EM_ATENDIMENTO
   FINALIZADO
+  CANCELADO
+}
+
+model Plan {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  name         String
+  description  String?
+  priceCents   Int      @map("price_cents")
+  intervalDays Int      @default(30) @map("interval_days")
+  benefits     String[]
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  subscriptions Subscription[]
+
+  @@index([tenantId])
+  @@map("plans")
+}
+
+model Subscription {
+  id            String             @id @default(uuid())
+  tenantId      String             @map("tenant_id")
+  tenant        Tenant             @relation(fields: [tenantId], references: [id])
+  customerId    String             @map("customer_id")
+  customer      Customer           @relation(fields: [customerId], references: [id])
+  planId        String             @map("plan_id")
+  plan          Plan               @relation(fields: [planId], references: [id])
+  status        SubscriptionStatus @default(PENDENTE)
+  startedAt     DateTime?          @map("started_at")
+  nextBillingAt DateTime?          @map("next_billing_at")
+  cancelledAt   DateTime?          @map("cancelled_at")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  PENDENTE
+  ATIVO
+  SUSPENSO
   CANCELADO
 }
