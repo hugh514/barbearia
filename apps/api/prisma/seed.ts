@@ -4,6 +4,8 @@ import {
   ConversationStatus,
   CustomerOrigin,
   MessageDirection,
+  PaymentMethod,
+  PaymentStatus,
   PlanStatus,
   PrismaClient,
   SubscriptionStatus,
@@ -350,9 +352,66 @@ async function main(): Promise<void> {
     data: { planStatus: PlanStatus.PENDING },
   });
 
+  const joaoPayment = await prisma.payment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000701' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000701',
+      tenantId: tenant.id,
+      subscriptionId: joaoSubscription.id,
+      customerId: joao.id,
+      externalId: 'mp-seed-joao-approved',
+      method: PaymentMethod.PIX,
+      amountCents: planMensal.priceCents,
+      status: PaymentStatus.APROVADO,
+      paymentUrl: 'https://pay.mock/mp-seed-joao-approved',
+      paidAt: startedAt,
+      gatewayData: { mock: true, seed: true },
+    },
+  });
+
+  const mariaPayment = await prisma.payment.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000702' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000702',
+      tenantId: tenant.id,
+      subscriptionId: mariaSubscription.id,
+      customerId: maria.id,
+      externalId: 'mp-seed-maria-pending',
+      method: PaymentMethod.PIX,
+      amountCents: planQuinzenal.priceCents,
+      status: PaymentStatus.PENDENTE,
+      paymentUrl: 'https://pay.mock/mp-seed-maria-pending',
+      qrCode: '00020126PIXSEEDMARIA',
+      gatewayData: { mock: true, seed: true },
+    },
+  });
+
+  const cancelledAt = new Date();
+  cancelledAt.setDate(cancelledAt.getDate() - 5);
+
+  const carlosSubscription = await prisma.subscription.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000613' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000613',
+      tenantId: tenant.id,
+      customerId: carlos.id,
+      planId: planQuinzenal.id,
+      status: SubscriptionStatus.CANCELADO,
+      startedAt: new Date(cancelledAt.getTime() - 30 * 24 * 60 * 60 * 1000),
+      cancelledAt,
+    },
+  });
+
+  await prisma.customer.update({
+    where: { id: carlos.id },
+    data: { planStatus: PlanStatus.CANCELLED },
+  });
 
   console.log(
-    `Seed completed: tenant + users + customers + conversations/messages + appointments (waiting: ${waitingAppointment.id}) + plans/subscriptions`,
+    `Seed completed: tenant + users + customers + conversations/messages + appointments + plans/subscriptions/payments`,
   );
 }
 

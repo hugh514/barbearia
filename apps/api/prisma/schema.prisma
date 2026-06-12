@@ -22,6 +22,7 @@ model Tenant {
   appointments  Appointment[]
   plans         Plan[]
   subscriptions Subscription[]
+  payments      Payment[]
 
   @@map("tenants")
 }
@@ -73,6 +74,7 @@ model Customer {
   conversations Conversation[]
   appointments  Appointment[]
   subscriptions Subscription[]
+  payments      Payment[]
   linkedUsers   User[]
 
   @@unique([tenantId, phone])
@@ -216,6 +218,8 @@ model Subscription {
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
 
+  payments Payment[]
+
   @@index([tenantId, status])
   @@index([tenantId, customerId])
   @@map("subscriptions")
@@ -226,4 +230,44 @@ enum SubscriptionStatus {
   ATIVO
   SUSPENSO
   CANCELADO
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  tenantId       String        @map("tenant_id")
+  tenant         Tenant        @relation(fields: [tenantId], references: [id])
+  subscriptionId String        @map("subscription_id")
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+  customerId     String        @map("customer_id")
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  externalId     String?       @unique @map("external_id")
+  method         PaymentMethod
+  amountCents    Int           @map("amount_cents")
+  status         PaymentStatus @default(PENDENTE)
+  paymentUrl     String?       @map("payment_url")
+  qrCode         String?       @map("qr_code")
+  gatewayData    Json?         @map("gateway_data")
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@index([tenantId, status])
+  @@index([tenantId, subscriptionId])
+  @@index([tenantId, customerId])
+  @@index([externalId])
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  PIX
+  CARD
+  BOLETO
+}
+
+enum PaymentStatus {
+  PENDENTE
+  APROVADO
+  RECUSADO
+  EXPIRADO
+  REEMBOLSADO
 }
