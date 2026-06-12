@@ -4,7 +4,9 @@ import {
   ConversationStatus,
   CustomerOrigin,
   MessageDirection,
+  PlanStatus,
   PrismaClient,
+  SubscriptionStatus,
   UserRole,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -263,8 +265,94 @@ async function main(): Promise<void> {
     data: { lastVisit: finishedAt },
   });
 
+  const planMensal = await prisma.plan.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000601' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000601',
+      tenantId: tenant.id,
+      name: 'Plano Mensal 4 Cortes',
+      description: '4 cortes por mês com desconto',
+      priceCents: 12000,
+      intervalDays: 30,
+      benefits: ['4 cortes/mês', '10% desconto em produtos'],
+      active: true,
+    },
+  });
+
+  const planQuinzenal = await prisma.plan.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000602' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000602',
+      tenantId: tenant.id,
+      name: 'Plano Quinzenal',
+      description: '2 cortes a cada 15 dias',
+      priceCents: 7000,
+      intervalDays: 15,
+      benefits: ['2 cortes/quinzena'],
+      active: true,
+    },
+  });
+
+  await prisma.plan.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000603' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000603',
+      tenantId: tenant.id,
+      name: 'Plano Legado',
+      description: 'Plano descontinuado',
+      priceCents: 5000,
+      intervalDays: 30,
+      benefits: ['1 corte/mês'],
+      active: false,
+    },
+  });
+
+  const startedAt = new Date();
+  const nextBillingAt = new Date();
+  nextBillingAt.setDate(nextBillingAt.getDate() + planMensal.intervalDays);
+
+  const joaoSubscription = await prisma.subscription.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000611' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000611',
+      tenantId: tenant.id,
+      customerId: joao.id,
+      planId: planMensal.id,
+      status: SubscriptionStatus.ATIVO,
+      startedAt,
+      nextBillingAt,
+    },
+  });
+
+  await prisma.customer.update({
+    where: { id: joao.id },
+    data: { planStatus: PlanStatus.ACTIVE },
+  });
+
+  const mariaSubscription = await prisma.subscription.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000612' },
+    update: {},
+    create: {
+      id: '00000000-0000-4000-8000-000000000612',
+      tenantId: tenant.id,
+      customerId: maria.id,
+      planId: planQuinzenal.id,
+      status: SubscriptionStatus.PENDENTE,
+    },
+  });
+
+  await prisma.customer.update({
+    where: { id: maria.id },
+    data: { planStatus: PlanStatus.PENDING },
+  });
+
+
   console.log(
-    `Seed completed: tenant + users + customers + conversations/messages + appointments (waiting: ${waitingAppointment.id})`,
+    `Seed completed: tenant + users + customers + conversations/messages + appointments (waiting: ${waitingAppointment.id}) + plans/subscriptions`,
   );
 }
 

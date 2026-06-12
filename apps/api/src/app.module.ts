@@ -21,6 +21,8 @@ import { UsersModule } from '@modules/users/users.module';
 import { CustomersModule } from '@modules/customers/customers.module';
 import { ConversationsModule } from '@modules/conversations/conversations.module';
 import { MessagesModule } from '@modules/messages/messages.module';
+import { PlansModule } from '@modules/plans/plans.module';
+import { SubscriptionsModule } from '@modules/subscriptions/subscriptions.module';
 import { AppointmentsModule } from '@modules/appointments/appointments.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
