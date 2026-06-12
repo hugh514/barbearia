@@ -152,7 +152,7 @@ O humano só executa itens **manual** (parar postgres/redis, hot reload, Sentry 
 
 - Mensagens em **inglês**, [Conventional Commits](https://www.conventionalcommits.org/)
 - Um commit lógico por mudança
-- Sem trailers de atribuição a IA (`Co-Authored-By: Cursor`, etc.) — ver `CONTRIBUTING.md`
+- Sem trailers de atribuição a IA em commits **e** PRs (`Co-Authored-By: Cursor`, etc.) — ver `CONTRIBUTING.md`
 - Hooks locais: `git config core.hooksPath .githooks`
 
 ---

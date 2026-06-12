@@ -8,13 +8,13 @@
 
 ## Tool attribution (forbidden)
 
-Do **not** add trailers that attribute commits to AI tools or Paperclip, including:
+Do **not** add trailers that attribute work to AI tools or Paperclip — in **commits** or **pull request titles/descriptions** — including:
 
 - `Co-Authored-By: Cursor` (any email variant)
 - `Co-Authored-By: Paperclip` (any email variant)
 - `Made-with: Cursor`
 
-Human authors only in the commit body and standard `Signed-off-by` if your team uses it.
+Human authors only in commit messages, PR text, and standard `Signed-off-by` if your team uses it.
 
 ## Local validation
 
@@ -22,10 +22,12 @@ Enable project hooks once per clone:
 
 ```bash
 git config core.hooksPath .githooks
-chmod +x .githooks/commit-msg scripts/validate-commit-msg.sh
+chmod +x .githooks/commit-msg scripts/validate-attribution.sh scripts/validate-commit-msg.sh scripts/validate-pr-content.sh
 ```
 
 The `commit-msg` hook runs `scripts/validate-commit-msg.sh` on every commit.
+
+CI runs the same attribution checks on every pull request title, description, and commit in the PR (`scripts/validate-pr-content.sh` and `scripts/validate-commit-msg.sh`).
 
 ## Agents
 
