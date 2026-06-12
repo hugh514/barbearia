@@ -15,6 +15,11 @@ import { MessageResponseDto } from '@modules/messages/dto/message-response.dto';
 
 export const CONVERSATIONS_NAMESPACE = '/conversations';
 
+const _allowedOrigins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 export function tenantRoom(tenantId: string): string {
   return `tenant:${tenantId}`;
 }
@@ -22,7 +27,7 @@ export function tenantRoom(tenantId: string): string {
 @Injectable()
 @WebSocketGateway({
   namespace: CONVERSATIONS_NAMESPACE,
-  cors: { origin: '*' },
+  cors: { origin: _allowedOrigins },
 })
 export class ConversationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect

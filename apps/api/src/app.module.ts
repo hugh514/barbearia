@@ -22,12 +22,17 @@ import { UsersModule } from '@modules/users/users.module';
 import { CustomersModule } from '@modules/customers/customers.module';
 import { ConversationsModule } from '@modules/conversations/conversations.module';
 import { MessagesModule } from '@modules/messages/messages.module';
+import { AppointmentsModule } from '@modules/appointments/appointments.module';
 import { PlansModule } from '@modules/plans/plans.module';
 import { SubscriptionsModule } from '@modules/subscriptions/subscriptions.module';
 import { PaymentsModule } from '@modules/payments/payments.module';
 import { QueuesAdminModule } from '@modules/queues-admin/queues-admin.module';
 import { DashboardModule } from '@modules/dashboard/dashboard.module';
-import { AppointmentsModule } from '@modules/appointments/appointments.module';
+import { ChannelConfigModule } from '@modules/channel-config/channel-config.module';
+import { AiModule } from '@modules/ai/ai.module';
+import { WhatsAppModule } from '@modules/whatsapp/whatsapp.module';
+import { InstagramModule } from '@modules/instagram/instagram.module';
+import { ChannelsModule } from '@modules/channels/channels.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
 @Module({
@@ -62,6 +67,10 @@ import { PrismaModule } from '@prisma/prisma.module';
                 'req.body.refreshToken',
                 'req.body.accessToken',
                 'req.body.passwordHash',
+                'req.headers.authorization',
+                'req.headers["x-internal-key"]',
+                'req.headers.apikey',
+                'req.query.token',
               ],
               censor: '[REDACTED]',
             },
@@ -91,9 +100,9 @@ import { PrismaModule } from '@prisma/prisma.module';
       }),
     }),
     EventsModule,
-    QueueModule,
     PrismaModule,
     RedisModule,
+    QueueModule,
     HealthModule,
     TenantsModule,
     AuthModule,
@@ -102,6 +111,16 @@ import { PrismaModule } from '@prisma/prisma.module';
     ConversationsModule,
     MessagesModule,
     AppointmentsModule,
+    PlansModule,
+    SubscriptionsModule,
+    PaymentsModule,
+    QueuesAdminModule,
+    DashboardModule,
+    ChannelConfigModule,
+    AiModule,
+    WhatsAppModule,
+    InstagramModule,
+    ChannelsModule,
   ],
   providers: [
     {

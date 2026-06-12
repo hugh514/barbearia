@@ -46,6 +46,13 @@ export const envSchema = z
       .min(8)
       .default('dev-mp-webhook-secret'),
     MERCADO_PAGO_NOTIFICATION_URL: z.string().optional().default(''),
+    EVOLUTION_API_URL: z.string().default('http://localhost:8080'),
+    EVOLUTION_API_KEY: z.string().default(''),
+    INSTAGRAM_VERIFY_TOKEN: z.string().default('dev-instagram-verify-token'),
+    INSTAGRAM_APP_SECRET: z.string().default('dev-instagram-app-secret'),
+    INSTAGRAM_PAGE_ACCESS_TOKEN: z.string().default(''),
+    OPENAI_API_KEY: z.string().default(''),
+    OPENAI_MODEL: z.string().default('gpt-4o'),
     ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
   })
   .superRefine((data, ctx) => {
@@ -70,6 +77,10 @@ export const envSchema = z
       {
         field: 'MERCADO_PAGO_WEBHOOK_SECRET',
         defaultVal: 'dev-mp-webhook-secret',
+      },
+      {
+        field: 'INSTAGRAM_APP_SECRET',
+        defaultVal: 'dev-instagram-app-secret',
       },
       { field: 'SWAGGER_PASS', defaultVal: 'secret' },
     ];

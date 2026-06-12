@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Customer, Prisma } from '@prisma/client';
+import { Customer, CustomerOrigin, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import {
   CLIENTE_CADASTRADO,
@@ -125,6 +125,48 @@ export class CustomersService {
     });
 
     return toCustomerResponse(customer);
+  }
+
+  async upsertFromInstagram(
+    tenantId: string,
+    dto: { instagramId: string; name?: string },
+  ): Promise<UpsertCustomerResponseDto> {
+    const existing = await this.prisma.customer.findFirst({
+      where: { tenantId, instagramId: dto.instagramId },
+    });
+
+    if (existing) {
+      return {
+        ...toCustomerResponse(existing),
+        created: false,
+      };
+    }
+
+    const phone = `ig_${dto.instagramId}`;
+    const customer = await this.prisma.customer.create({
+      data: {
+        tenantId,
+        phone,
+        name: dto.name ?? `Instagram ${dto.instagramId}`,
+        instagramId: dto.instagramId,
+        origin: CustomerOrigin.INSTAGRAM,
+      },
+    });
+
+    const payload: ClienteCadastradoPayload = {
+      customerId: customer.id,
+      tenantId: customer.tenantId,
+      phone: customer.phone,
+      name: customer.name,
+      origin: customer.origin,
+    };
+
+    this.eventEmitter.emit(CLIENTE_CADASTRADO, payload);
+
+    return {
+      ...toCustomerResponse(customer),
+      created: true,
+    };
   }
 
   async upsert(
