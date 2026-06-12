@@ -30,7 +30,29 @@ export interface FailedJobDto {
   attemptsMade: number;
   timestamp: number | null;
   finishedOn: number | null;
-  data: unknown;
+  data: Record<string, unknown>;
+}
+
+const SENSITIVE_KEYS = new Set([
+  'phone',
+  'email',
+  'name',
+  'text',
+  'message',
+  'body',
+]);
+
+function redactJobData(raw: unknown): Record<string, unknown> {
+  if (typeof raw !== 'object' || raw === null) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(raw as Record<string, unknown>).map(([key, value]) => [
+      key,
+      SENSITIVE_KEYS.has(key) ? '[REDACTED]' : value,
+    ]),
+  );
 }
 
 @Injectable()
@@ -92,7 +114,7 @@ export class QueuesAdminService {
       attemptsMade: job.attemptsMade,
       timestamp: job.timestamp ?? null,
       finishedOn: job.finishedOn ?? null,
-      data: job.data,
+      data: redactJobData(job.data),
     }));
   }
 
