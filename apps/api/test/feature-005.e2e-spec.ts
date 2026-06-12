@@ -1,10 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  AppointmentStatus,
-  CustomerOrigin,
-} from '@prisma/client';
+import { AppointmentStatus, CustomerOrigin } from '@prisma/client';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import {
@@ -94,6 +91,26 @@ describe('Feature 005 — Appointments (e2e)', () => {
 
     return res.body.id as string;
   }
+
+  async function clearActiveAppointmentsForBarber(
+    barberId: string,
+  ): Promise<void> {
+    await prisma.appointment.updateMany({
+      where: {
+        tenantId,
+        barberId,
+        status: AppointmentStatus.EM_ATENDIMENTO,
+      },
+      data: {
+        status: AppointmentStatus.FINALIZADO,
+        finishedAt: new Date(),
+      },
+    });
+  }
+
+  beforeEach(async () => {
+    await clearActiveAppointmentsForBarber(adminUserId);
+  });
 
   describe('T005-05 T005-06 T005-07 T005-08 CRUD and queue', () => {
     it('registers walk-in with AGUARDANDO status', async () => {
@@ -347,7 +364,10 @@ describe('Feature 005 — Appointments (e2e)', () => {
   describe('T005-15 T005-23 Customer history integration', () => {
     it('returns real appointments in customer history', async () => {
       const customerId = await createCustomer();
-      const appointmentId = await createAppointment(customerId, ['Corte', 'Barba']);
+      const appointmentId = await createAppointment(customerId, [
+        'Corte',
+        'Barba',
+      ]);
 
       await request(app.getHttpServer())
         .patch(`/appointments/${appointmentId}/start`)
