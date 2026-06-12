@@ -26,6 +26,7 @@ import { PlansModule } from '@modules/plans/plans.module';
 import { SubscriptionsModule } from '@modules/subscriptions/subscriptions.module';
 import { PaymentsModule } from '@modules/payments/payments.module';
 import { QueuesAdminModule } from '@modules/queues-admin/queues-admin.module';
+import { DashboardModule } from '@modules/dashboard/dashboard.module';
 import { AppointmentsModule } from '@modules/appointments/appointments.module';
 import { PrismaModule } from '@prisma/prisma.module';
 
