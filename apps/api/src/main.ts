@@ -1,20 +1,36 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/nestjs';
 import basicAuth from 'express-basic-auth';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { Env } from '@common/config/env.schema';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
+    rawBody: true,
   });
 
   const configService = app.get(ConfigService<Env, true>);
   const logger = app.get(Logger);
   app.useLogger(logger);
+
+  app.use(helmet());
+
+  const allowedOrigins = configService
+    .get('ALLOWED_ORIGINS', { infer: true })
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  app.enableCors({ origin: allowedOrigins, credentials: true });
+
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
+  app.useBodyParser('json', { limit: '2mb' });
 
   const sentryDsn = configService.get('SENTRY_DSN', { infer: true });
   if (sentryDsn) {

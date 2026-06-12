@@ -43,10 +43,12 @@ export class AuthController {
   async login(
     @Body(new ZodValidationPipe(loginSchema)) body: LoginDto,
   ): Promise<TokenResponseDto> {
-    return this.authService.login(body.email, body.password);
+    return this.authService.login(body.email, body.password, body.tenantSlug);
   }
 
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ login: { limit: 10, ttl: 60000 } })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Renovar tokens (rotação)' })

@@ -46,16 +46,35 @@ export class AuthService {
     });
   }
 
-  async login(email: string, password: string): Promise<TokenPair> {
-    const user = await this.prisma.user.findFirst({
+  async login(
+    email: string,
+    password: string,
+    tenantSlug?: string,
+  ): Promise<TokenPair> {
+    const candidates = await this.prisma.user.findMany({
       where: {
         email: email.toLowerCase(),
         active: true,
       },
+      take: 2,
+      include: { tenant: { select: { slug: true } } },
     });
 
-    if (!user) {
+    let user: (typeof candidates)[number] | undefined;
+
+    if (candidates.length === 0) {
       throw new UnauthorizedException('Invalid credentials');
+    } else if (candidates.length === 1) {
+      user = candidates[0];
+    } else {
+      // Multiple tenants share this email — require tenantSlug to disambiguate
+      if (!tenantSlug) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      user = candidates.find((u) => u.tenant.slug === tenantSlug);
+      if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
     }
 
     const passwordValid = await bcrypt.compare(password, user.passwordHash);

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { createHash, timingSafeEqual } from 'crypto';
 import { Env } from '@common/config/env.schema';
 
 export const INTERNAL_API_KEY_HEADER = 'x-internal-key';
@@ -26,7 +27,10 @@ export class InternalApiKeyGuard implements CanActivate {
       infer: true,
     });
 
-    if (providedKey !== expectedKey) {
+    const providedHash = createHash('sha256').update(providedKey).digest();
+    const expectedHash = createHash('sha256').update(expectedKey).digest();
+
+    if (!timingSafeEqual(providedHash, expectedHash)) {
       throw new UnauthorizedException('Invalid internal API key');
     }
 
