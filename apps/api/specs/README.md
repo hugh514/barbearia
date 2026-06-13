@@ -7,7 +7,7 @@
 
 1. Leia `specs/000-development-workflow/workflow.md` — ciclo Composer, branches e sessões de fix
 2. Comece lendo `.specify/memory/constitution.md` — são os princípios inegociáveis
-3. Para cada feature (001→010), leia na ordem: `spec.md` → `plan.md` → `tasks.md`
+3. Para cada feature (001→011), leia na ordem: `spec.md` → `plan.md` → `tasks.md`
 4. Implemente as tasks na ordem listada
 5. Peça ao agente **criar** `validation.md`, `scripts/smoke-NNN.sh` e `test/feature-NNN.e2e-spec.ts`, depois **rodar** `npm run smoke:NNN` e `npm run test:e2e`
 6. Só passe para a próxima feature quando smoke + e2e passarem e os itens manuais estiverem OK
@@ -26,6 +26,7 @@
 | 008 | Events & Queues | `feat/008-event-system-queues` | 005, 007 | Ready |
 | 009 | Dashboard | `feat/009-dashboard-backoffice` | 008 | Ready |
 | 010 | WhatsApp & Instagram | `feat/010-whatsapp-instagram-channels` | 004, 008 | Ready |
+| 011 | QR Check-in | `feature/011-qr-checkin` | 005, 010 | Implemented |
 
 ## Stack
 
