@@ -85,7 +85,7 @@ async function bootstrap(): Promise<void> {
   }
 
   const port = configService.get('PORT', { infer: true });
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Application running on port ${port}`);
 }
 
