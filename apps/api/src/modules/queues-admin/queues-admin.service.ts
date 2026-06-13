@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import {
+  QUEUE_CHECKIN,
   QUEUE_NAMES,
   QUEUE_NOTIFICATIONS,
   QUEUE_POST_ATTENDANCE,
@@ -68,12 +69,15 @@ export class QueuesAdminService {
     private readonly postRegistrationQueue: Queue,
     @InjectQueue(QUEUE_NOTIFICATIONS)
     private readonly notificationsQueue: Queue,
+    @InjectQueue(QUEUE_CHECKIN)
+    private readonly checkinQueue: Queue,
   ) {
     this.queueMap = new Map<string, Queue>([
       [QUEUE_POST_ATTENDANCE, this.postAttendanceQueue],
       [QUEUE_POST_PAYMENT, this.postPaymentQueue],
       [QUEUE_POST_REGISTRATION, this.postRegistrationQueue],
       [QUEUE_NOTIFICATIONS, this.notificationsQueue],
+      [QUEUE_CHECKIN, this.checkinQueue],
     ]);
   }
 
