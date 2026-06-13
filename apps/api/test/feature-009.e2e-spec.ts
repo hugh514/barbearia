@@ -2,8 +2,10 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentStatus, CustomerOrigin, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import Redis from 'ioredis';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { REDIS_CLIENT } from '../src/common/redis/redis.module';
 import { BCRYPT_ROUNDS } from '../src/modules/auth/auth.constants';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -16,6 +18,7 @@ describe('Feature 009 — Dashboard & Backoffice Metrics (e2e)', () => {
   let barberAccessToken: string;
   let barberId: string;
   let loginIpCounter = 0;
+  let redis: Redis;
 
   const adminEmail = 'admin@barbearia.example';
   const adminPassword = 'admin123';
@@ -28,6 +31,7 @@ describe('Feature 009 — Dashboard & Backoffice Metrics (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     prisma = app.get(PrismaService);
+    redis = app.get<Redis>(REDIS_CLIENT);
     await app.init();
 
     const tenant = await prisma.tenant.findFirst({
@@ -86,11 +90,20 @@ describe('Feature 009 — Dashboard & Backoffice Metrics (e2e)', () => {
 
     const barberLogin = await login(barberEmail, adminPassword);
     barberAccessToken = barberLogin.accessToken;
+
+    await clearMetricCache(tenantId);
   });
 
   afterAll(async () => {
     await app.close();
   });
+
+  async function clearMetricCache(cachedTenantId: string): Promise<void> {
+    const keys = await redis.keys(`metric:${cachedTenantId}:*`);
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
+  }
 
   async function login(
     email: string,
@@ -168,10 +181,7 @@ describe('Feature 009 — Dashboard & Backoffice Metrics (e2e)', () => {
 
   describe('T009-13 tenant isolation in aggregations', () => {
     it('does not include other tenant customers in metrics', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/dashboard/customers?period=month')
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .expect(200);
+      await clearMetricCache(tenantId);
 
       const otherTenantCustomers = await prisma.customer.count({
         where: { tenantId: otherTenantId, active: true },
@@ -180,6 +190,11 @@ describe('Feature 009 — Dashboard & Backoffice Metrics (e2e)', () => {
       const fkCustomers = await prisma.customer.count({
         where: { tenantId, active: true },
       });
+
+      const res = await request(app.getHttpServer())
+        .get('/dashboard/customers?period=month')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(200);
 
       expect(res.body.totalCustomers).toBe(fkCustomers);
       expect(res.body.totalCustomers).not.toBe(

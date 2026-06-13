@@ -18,6 +18,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
 
   const adminEmail = 'admin@barbearia.example';
   const adminPassword = 'admin123';
+  const validUserPassword = 'Password123';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -89,7 +90,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
       expect(tenant).toBeTruthy();
 
       const inactiveEmail = 'inactive@barbearia.example';
-      const passwordHash = await bcrypt.hash('inactive123', BCRYPT_ROUNDS);
+      const passwordHash = await bcrypt.hash(validUserPassword, BCRYPT_ROUNDS);
 
       await prisma.user.upsert({
         where: {
@@ -111,7 +112,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: inactiveEmail, password: 'inactive123' })
+        .send({ email: inactiveEmail, password: validUserPassword })
         .expect(401);
     });
   });
@@ -267,7 +268,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
         .send({
           name: 'New User',
           email: 'newuser@barbearia.example',
-          password: 'password123',
+          password: validUserPassword,
           role: UserRole.BARBEIRO,
         })
         .expect(403);
@@ -283,7 +284,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
         .send({
           name: 'First User',
           email: duplicateEmail,
-          password: 'password123',
+          password: validUserPassword,
           role: UserRole.BARBEIRO,
         })
         .expect(201);
@@ -294,7 +295,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
         .send({
           name: 'Second User',
           email: duplicateEmail,
-          password: 'password123',
+          password: validUserPassword,
           role: UserRole.BARBEIRO,
         })
         .expect(409);

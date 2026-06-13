@@ -5,8 +5,11 @@ import { AppointmentStatus, CustomerOrigin } from '@prisma/client';
 import { Queue, Worker } from 'bullmq';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { DEFAULT_JOB_OPTIONS } from '../src/queue/queue.constants';
-import { QUEUE_POST_ATTENDANCE } from '../src/queue/queue.constants';
+import {
+  DEFAULT_JOB_OPTIONS,
+  QUEUE_NAMES,
+  QUEUE_POST_ATTENDANCE,
+} from '../src/queue/queue.constants';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Feature 008 — Event System & Queues (e2e)', () => {
@@ -202,7 +205,7 @@ describe('Feature 008 — Event System & Queues (e2e)', () => {
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.length).toBe(4);
+      expect(res.body.length).toBe(QUEUE_NAMES.length);
 
       const postAttendance = res.body.find(
         (item: { name: string }) => item.name === QUEUE_POST_ATTENDANCE,
