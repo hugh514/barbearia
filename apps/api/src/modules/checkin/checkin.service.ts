@@ -118,33 +118,60 @@ export class CheckinService {
 
     const { startOfDay, endOfDay } = this.getTodayRange();
 
-    let appointment = await this.prisma.appointment.findFirst({
-      where: {
-        tenantId,
-        customerId: customer.id,
-        status: { in: QUEUE_STATUSES },
-        createdAt: { gte: startOfDay, lte: endOfDay },
-        deletedAt: null,
+    // Find-or-create atômico. O índice único parcial
+    // (uniq_active_appt_per_customer) garante, no banco, no máximo um
+    // atendimento ativo por cliente — check-ins concorrentes não duplicam.
+    const { appointment, reused } = await this.prisma.$transaction(
+      async (tx) => {
+        const existing = await tx.appointment.findFirst({
+          where: {
+            tenantId,
+            customerId: customer.id,
+            status: { in: QUEUE_STATUSES },
+            createdAt: { gte: startOfDay, lte: endOfDay },
+            deletedAt: null,
+          },
+          include: appointmentInclude,
+          orderBy: { createdAt: 'asc' },
+        });
+
+        if (existing) {
+          return { appointment: existing, reused: true };
+        }
+
+        try {
+          const created = await tx.appointment.create({
+            data: {
+              tenantId,
+              customerId: customer.id,
+              status: AppointmentStatus.AGUARDANDO,
+              services: [],
+            },
+            include: appointmentInclude,
+          });
+          return { appointment: created, reused: false };
+        } catch (err) {
+          // Corrida perdida: outro check-in criou o atendimento primeiro.
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === 'P2002'
+          ) {
+            const winner = await tx.appointment.findFirst({
+              where: {
+                tenantId,
+                customerId: customer.id,
+                status: { in: QUEUE_STATUSES },
+                deletedAt: null,
+              },
+              include: appointmentInclude,
+              orderBy: { createdAt: 'asc' },
+            });
+            if (winner) return { appointment: winner, reused: true };
+          }
+          throw err;
+        }
       },
-      include: appointmentInclude,
-      orderBy: { createdAt: 'asc' },
-    });
-
-    let reused = false;
-
-    if (appointment) {
-      reused = true;
-    } else {
-      appointment = await this.prisma.appointment.create({
-        data: {
-          tenantId,
-          customerId: customer.id,
-          status: AppointmentStatus.AGUARDANDO,
-          services: [],
-        },
-        include: appointmentInclude,
-      });
-    }
+    );
 
     const queuePosition = await this.prisma.appointment.count({
       where: {
