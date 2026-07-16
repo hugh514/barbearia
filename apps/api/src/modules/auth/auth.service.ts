@@ -1,20 +1,38 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { User, UserRole } from '@prisma/client';
+import { CustomerOrigin, User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import Redis from 'ioredis';
 import { randomUUID } from 'crypto';
 import { Env } from '@common/config/env.schema';
 import { REDIS_CLIENT } from '@common/redis/redis.module';
 import { PrismaService } from '@prisma/prisma.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   BCRYPT_ROUNDS,
   REFRESH_TOKEN_TTL_SECONDS,
+  PASSWORD_RESET_TTL_SECONDS,
   refreshTokenKey,
+  refreshTokenPattern,
+  passwordResetKey,
 } from '@modules/auth/auth.constants';
+import { SENHA_RECUPERACAO_SOLICITADA } from '../../events/event-names';
 import { JwtPayload, JwtRefreshPayload } from '@modules/auth/auth.types';
 import { SafeUser, withoutPasswordHash } from '@common/utils/user.util';
+
+// Decoy hash compared against when a login email has no matching user, so the
+// response time does not reveal whether the account exists.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  'timing-attack-guard',
+  BCRYPT_ROUNDS,
+);
 
 export interface TokenPair {
   accessToken: string;
@@ -33,6 +51,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<Env, true>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.jwtSecret = this.configService.get('JWT_SECRET', { infer: true });
     this.jwtExpiresIn = this.configService.get('JWT_EXPIRES_IN', {
@@ -62,25 +81,80 @@ export class AuthService {
 
     let user: (typeof candidates)[number] | undefined;
 
-    if (candidates.length === 0) {
-      throw new UnauthorizedException('Invalid credentials');
-    } else if (candidates.length === 1) {
+    if (candidates.length === 1) {
       user = candidates[0];
-    } else {
+    } else if (candidates.length > 1 && tenantSlug) {
       // Multiple tenants share this email — require tenantSlug to disambiguate
-      if (!tenantSlug) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
       user = candidates.find((u) => u.tenant.slug === tenantSlug);
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Always run a bcrypt comparison to keep response time constant whether or
+    // not the user exists — mitigates timing-based user enumeration.
+    const passwordHash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
+    const passwordValid = await bcrypt.compare(password, passwordHash);
+
+    if (!user || !passwordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.generateTokenPair(user);
+  }
+
+  /**
+   * Auto-cadastro público de cliente: cria Customer (origin MANUAL) + User
+   * (papel CLIENTE) vinculados, numa transação, e devolve um par de tokens.
+   */
+  async registerClient(dto: {
+    name: string;
+    phone: string;
+    email?: string;
+    password: string;
+    tenantSlug: string;
+  }): Promise<TokenPair> {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { slug: dto.tenantSlug },
+      select: { id: true },
+    });
+    if (!tenant) {
+      throw new NotFoundException('Barbearia não encontrada');
+    }
+
+    const email = dto.email?.toLowerCase();
+    if (email) {
+      const existing = await this.prisma.user.findFirst({
+        where: { tenantId: tenant.id, email },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new ConflictException('E-mail já cadastrado');
       }
     }
 
-    const passwordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+    // E-mail é opcional para clientes; quando ausente, geramos um placeholder
+    // único por tenant para satisfazer a unicidade (login será por e-mail real).
+    const loginEmail = email ?? `cliente_${randomUUID()}@no-email.local`;
+
+    const user = await this.prisma.$transaction(async (tx) => {
+      const customer = await tx.customer.create({
+        data: {
+          tenantId: tenant.id,
+          name: dto.name,
+          phone: dto.phone,
+          origin: CustomerOrigin.MANUAL,
+        },
+      });
+      return tx.user.create({
+        data: {
+          tenantId: tenant.id,
+          name: dto.name,
+          email: loginEmail,
+          passwordHash,
+          role: UserRole.CLIENTE,
+          customerId: customer.id,
+        },
+      });
+    });
 
     return this.generateTokenPair(user);
   }
@@ -101,13 +175,12 @@ export class AuthService {
     }
 
     const key = refreshTokenKey(payload.tenantId, payload.sub, payload.jti);
-    const exists = await this.redis.get(key);
+    // Atomic get+delete: prevents refresh-token replay under concurrent requests.
+    const exists = await this.redis.getdel(key);
 
     if (!exists) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-
-    await this.redis.del(key);
 
     const user = await this.prisma.user.findFirst({
       where: {
@@ -160,6 +233,94 @@ export class AuthService {
     }
 
     return withoutPasswordHash(user);
+  }
+
+  /**
+   * Inicia a recuperação de senha. Sempre retorna sem erro (resposta genérica)
+   * para não revelar se o e-mail existe. Gera token de uso único em Redis e emite
+   * evento para envio do e-mail (efeito colateral fora do handler).
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.prisma.user.findFirst({
+      where: { email: email.toLowerCase(), active: true },
+      include: { tenant: { select: { slug: true } } },
+    });
+
+    if (!user) return; // resposta genérica
+
+    const token = randomUUID();
+    await this.redis.set(
+      passwordResetKey(token),
+      JSON.stringify({ tenantId: user.tenantId, userId: user.id }),
+      'EX',
+      PASSWORD_RESET_TTL_SECONDS,
+    );
+
+    this.eventEmitter.emit(SENHA_RECUPERACAO_SOLICITADA, {
+      tenantId: user.tenantId,
+      userId: user.id,
+      email: user.email,
+      tenantSlug: user.tenant.slug,
+      token,
+    });
+  }
+
+  /**
+   * Redefine a senha a partir de um token válido (uso único, atômico via GETDEL).
+   * Revoga todos os refresh tokens do usuário ao concluir.
+   */
+  async resetPassword(token: string, password: string): Promise<void> {
+    const raw = await this.redis.getdel(passwordResetKey(token));
+    if (!raw) {
+      throw new UnauthorizedException('Token inválido ou expirado');
+    }
+
+    let payload: { tenantId: string; userId: string };
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      throw new UnauthorizedException('Token inválido ou expirado');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: payload.userId, tenantId: payload.tenantId, active: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Token inválido ou expirado');
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    await this.prisma.user.update({
+      where: { id: user.id, tenantId: user.tenantId },
+      data: { passwordHash },
+    });
+
+    await this.revokeAllRefreshTokens(user.tenantId, user.id);
+  }
+
+  /** Revoga todos os refresh tokens ativos de um usuário. */
+  private async revokeAllRefreshTokens(
+    tenantId: string,
+    userId: string,
+  ): Promise<void> {
+    const pattern = refreshTokenPattern(tenantId, userId);
+    const keys: string[] = [];
+    let cursor = '0';
+    do {
+      const [next, batch] = await this.redis.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        100,
+      );
+      cursor = next;
+      keys.push(...batch);
+    } while (cursor !== '0');
+
+    if (keys.length > 0) {
+      await this.redis.del(...keys);
+    }
   }
 
   private async generateTokenPair(user: User): Promise<TokenPair> {

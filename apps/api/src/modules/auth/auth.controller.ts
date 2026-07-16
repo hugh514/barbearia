@@ -24,6 +24,18 @@ import { LoginDto, loginSchema } from '@modules/auth/dto/login.dto';
 import { RefreshDto, refreshSchema } from '@modules/auth/dto/refresh.dto';
 import { LogoutDto, logoutSchema } from '@modules/auth/dto/logout.dto';
 import { TokenResponseDto } from '@modules/auth/dto/login-response.dto';
+import {
+  ForgotPasswordDto,
+  forgotPasswordSchema,
+} from '@modules/auth/dto/forgot-password.dto';
+import {
+  ResetPasswordDto,
+  resetPasswordSchema,
+} from '@modules/auth/dto/reset-password.dto';
+import {
+  RegisterClientDto,
+  registerClientSchema,
+} from '@modules/auth/dto/register-client.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -76,6 +88,52 @@ export class AuthController {
       user.userId,
       body.refreshToken,
     );
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ login: { limit: 5, ttl: 60000 } })
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: 'Solicitar recuperação de senha' })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiResponse({ status: 202, description: 'Solicitação recebida (genérico)' })
+  async forgotPassword(
+    @Body(new ZodValidationPipe(forgotPasswordSchema)) body: ForgotPasswordDto,
+  ): Promise<{ ok: true }> {
+    await this.authService.forgotPassword(body.email);
+    return { ok: true };
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ login: { limit: 5, ttl: 60000 } })
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Redefinir senha com token' })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({ status: 200, description: 'Senha redefinida' })
+  @ApiResponse({ status: 401, description: 'Token inválido ou expirado' })
+  async resetPassword(
+    @Body(new ZodValidationPipe(resetPasswordSchema)) body: ResetPasswordDto,
+  ): Promise<{ ok: true }> {
+    await this.authService.resetPassword(body.token, body.password);
+    return { ok: true };
+  }
+
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ login: { limit: 5, ttl: 60000 } })
+  @Post('register-client')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Auto-cadastro de cliente' })
+  @ApiBody({ type: RegisterClientDto })
+  @ApiResponse({ status: 201, type: TokenResponseDto })
+  @ApiResponse({ status: 409, description: 'E-mail já cadastrado' })
+  async registerClient(
+    @Body(new ZodValidationPipe(registerClientSchema)) body: RegisterClientDto,
+  ): Promise<TokenResponseDto> {
+    return this.authService.registerClient(body);
   }
 
   @Get('me')
