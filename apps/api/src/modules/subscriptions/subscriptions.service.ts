@@ -157,6 +157,32 @@ export class SubscriptionsService {
     );
   }
 
+  /** Assinaturas do próprio cliente (resolve customerId do usuário logado). */
+  async findMine(
+    userId: string,
+    tenantId: string,
+    query: SubscriptionQueryDto,
+  ): Promise<PaginatedResult<SubscriptionResponseDto>> {
+    const customerId = await this.resolveCustomerId(userId, tenantId);
+    return this.findAll(tenantId, { ...query, customerId });
+  }
+
+  private async resolveCustomerId(
+    userId: string,
+    tenantId: string,
+  ): Promise<string> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, tenantId, active: true },
+      select: { customerId: true },
+    });
+    if (!user?.customerId) {
+      throw new UnprocessableEntityException(
+        'Usuário sem cadastro de cliente vinculado',
+      );
+    }
+    return user.customerId;
+  }
+
   async findOne(
     tenantId: string,
     subscriptionId: string,

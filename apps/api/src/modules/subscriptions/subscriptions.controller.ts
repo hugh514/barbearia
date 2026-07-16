@@ -88,6 +88,20 @@ export class SubscriptionsController {
     return this.subscriptionsService.findAll(tenantId, query);
   }
 
+  @Get('me')
+  @Roles(UserRole.CLIENTE, UserRole.ADMIN, UserRole.GERENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Minhas assinaturas (cliente logado)' })
+  @ApiResponse({ status: 200, type: PaginatedSubscriptionsResponseDto })
+  async findMine(
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+    @Query(new ZodValidationPipe(subscriptionQuerySchema))
+    query: SubscriptionQueryDto,
+  ): Promise<PaginatedSubscriptionsResponseDto> {
+    return this.subscriptionsService.findMine(user.userId, tenantId, query);
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.CLIENTE)
   @ApiBearerAuth('access-token')
