@@ -161,6 +161,24 @@ export class AppointmentsService {
     );
   }
 
+  /** Histórico de atendimentos do próprio cliente (resolve customerId do usuário). */
+  async findMine(
+    userId: string,
+    tenantId: string,
+    query: AppointmentQueryDto,
+  ): Promise<PaginatedResult<AppointmentResponseDto>> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, tenantId, active: true },
+      select: { customerId: true },
+    });
+    if (!user?.customerId) {
+      throw new UnprocessableEntityException(
+        'Usuário sem cadastro de cliente vinculado',
+      );
+    }
+    return this.findAll(tenantId, { ...query, customerId: user.customerId });
+  }
+
   async start(
     tenantId: string,
     appointmentId: string,
@@ -192,15 +210,29 @@ export class AppointmentsService {
 
     const startedAt = new Date();
 
-    const updated = await this.prisma.appointment.update({
-      where: { id: appointmentId },
-      data: {
-        status: AppointmentStatus.EM_ATENDIMENTO,
-        barberId,
-        startedAt,
-      },
-      include: appointmentInclude,
-    });
+    // O índice único parcial (uniq_active_appt_per_barber) é a garantia real
+    // contra o TOCTOU acima: dois "start" simultâneos com o mesmo barbeiro fazem
+    // um deles violar a constraint (P2002) → traduzimos para 409.
+    let updated;
+    try {
+      updated = await this.prisma.appointment.update({
+        where: { id: appointmentId, tenantId },
+        data: {
+          status: AppointmentStatus.EM_ATENDIMENTO,
+          barberId,
+          startedAt,
+        },
+        include: appointmentInclude,
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        throw new ConflictException('Barbeiro já está em atendimento');
+      }
+      throw err;
+    }
 
     const payload: AtendimentoIniciadoPayload = {
       appointmentId: updated.id,
@@ -235,12 +267,13 @@ export class AppointmentsService {
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const result = await tx.appointment.update({
-        where: { id: appointmentId },
+        where: { id: appointmentId, tenantId },
         data: {
           status: AppointmentStatus.FINALIZADO,
           finishedAt,
           notes: dto.notes,
           totalPrice: dto.totalPrice,
+          ...(dto.services ? { services: dto.services } : {}),
         },
         include: appointmentInclude,
       });

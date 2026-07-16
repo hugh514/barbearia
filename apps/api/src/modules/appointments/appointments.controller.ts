@@ -101,6 +101,20 @@ export class AppointmentsController {
     return this.appointmentsService.findAll(tenantId, query);
   }
 
+  @Get('me')
+  @Roles(UserRole.CLIENTE, UserRole.ADMIN, UserRole.GERENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Meu histórico de atendimentos (cliente logado)' })
+  @ApiResponse({ status: 200, type: PaginatedAppointmentsResponseDto })
+  async findMine(
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+    @Query(new ZodValidationPipe(appointmentQuerySchema))
+    query: AppointmentQueryDto,
+  ): Promise<PaginatedAppointmentsResponseDto> {
+    return this.appointmentsService.findMine(user.userId, tenantId, query);
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.BARBEIRO)
   @ApiBearerAuth('access-token')
