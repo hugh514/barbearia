@@ -73,7 +73,7 @@ export class PlansService {
     await this.findPlanInTenant(planId, tenantId);
 
     const plan = await this.prisma.plan.update({
-      where: { id: planId },
+      where: { id: planId, tenantId },
       data: dto,
     });
 
@@ -87,7 +87,7 @@ export class PlansService {
     await this.findPlanInTenant(planId, tenantId);
 
     const plan = await this.prisma.plan.update({
-      where: { id: planId },
+      where: { id: planId, tenantId },
       data: { active: false },
     });
 
