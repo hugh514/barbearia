@@ -5,3 +5,20 @@ dist/
 .DS_Store
 coverage/
 prisma/migrations/*.sql.pending
+
+# Local tooling / agent bootstrap (not published)
+.claude/
+.specify/
+.githooks/
+.github/workflows/commit-policy.yml
+barber-specs/
+CLAUDE.md
+CLAUDE-CODE-PROMPT.md
+CURSOR-COMPOSER-PROMPT.md
+PROMPT.md
+LEIA-ME.md
+CONTRIBUTING.md
+bootstrap.sh
+scripts/validate-attribution.sh
+scripts/validate-commit-msg.sh
+scripts/validate-pr-content.sh

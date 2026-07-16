@@ -94,7 +94,7 @@ specs/              # specs SDD (spec.md, plan.md, tasks.md)
 test/               # e2e por feature (feature-NNN.e2e-spec.ts)
 ```
 
-Desenvolvimento orientado a specs (SDD). Features numeradas de `001` a `011` em `specs/`. Detalhes de arquitetura e regras de negócio estão em `.specify/memory/constitution.md`.
+Desenvolvimento orientado a specs (SDD). Features numeradas de `001` a `011` em `specs/`.
 
 ## Integrações (opcionais em dev)
 
@@ -107,18 +107,6 @@ Desenvolvimento orientado a specs (SDD). Features numeradas de `001` a `011` em 
 | `SENTRY_DSN` | Observabilidade |
 
 Valores padrão de desenvolvimento estão em `.env.example`.
-
-## Contribuindo
-
-- Commits em **inglês**, [Conventional Commits](https://www.conventionalcommits.org/)
-- Um commit lógico por mudança; PRs pequenos por feature
-- Sem trailers de atribuição a IA em commits ou PRs
-
-```bash
-git config core.hooksPath .githooks
-```
-
-Veja [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Licença
 
