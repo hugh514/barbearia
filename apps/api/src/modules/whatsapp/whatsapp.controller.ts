@@ -45,9 +45,9 @@ export class WhatsAppController {
     @Headers('apikey') headerApiKey: string | undefined,
     @Body() payload: EvolutionWebhookPayload,
   ): Promise<{ ok: true }> {
-    // Accept apikey from header (Evolution API) or fallback to payload.apikey
-    const apiKey = headerApiKey ?? payload.apikey;
-    if (!this.whatsAppService.verifyWebhook(apiKey)) {
+    // Only trust the header apikey (Evolution API). Never fall back to the
+    // request body, which is fully attacker-controlled and would allow forgery.
+    if (!this.whatsAppService.verifyWebhook(headerApiKey)) {
       throw new UnauthorizedException('Webhook not accepted');
     }
     await this.whatsAppService.handleWebhook(payload);
