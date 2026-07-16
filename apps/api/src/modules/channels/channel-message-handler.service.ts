@@ -94,11 +94,20 @@ export class ChannelMessageHandlerService {
       throw new NotFoundException('Channel config not found for tenant');
     }
 
+    const recentMessages = await this.prisma.message.findMany({
+      where: {
+        tenantId: params.tenantId,
+        conversationId: conversation.id,
+        deletedAt: null,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+
     const aiResult = await this.aiService.processMessage({
       config,
       customer,
-      tenantId: params.tenantId,
-      conversationId: conversation.id,
+      history: recentMessages.reverse(),
       newMessage: params.content,
     });
 
