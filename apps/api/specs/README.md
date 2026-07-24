@@ -1,7 +1,7 @@
-# Barber API — Spec-Driven Development Package
+# Specs — api-barbearia
 
-> Pacote completo de especificações para desenvolvimento da API central da plataforma de barbearia.
-> Siga a ordem numérica. Cada feature depende da anterior.
+Especificações da API central da plataforma de barbearia.
+Siga a ordem numérica. Cada feature depende da anterior.
 
 ## Como usar com IA
 

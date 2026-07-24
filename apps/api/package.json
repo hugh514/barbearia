@@ -1,7 +1,7 @@
 {
   "name": "api-barbearia",
   "version": "0.0.1",
-  "description": "",
+  "description": "API NestJS da plataforma de barbearia",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
