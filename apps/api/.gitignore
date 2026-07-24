@@ -10,6 +10,9 @@ prisma/migrations/*.sql.pending
 .claude/
 .githooks/
 .github/workflows/commit-policy.yml
+.specify/*
+!.specify/memory/
+!.specify/memory/**
 barber-specs/
 CLAUDE-CODE-PROMPT.md
 CURSOR-COMPOSER-PROMPT.md
