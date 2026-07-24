@@ -6,18 +6,18 @@ dist/
 coverage/
 prisma/migrations/*.sql.pending
 
-# Local tooling / agent bootstrap (not published)
+# Local tooling / bootstrap de agente (não publicar)
 .claude/
-.specify/
 .githooks/
 .github/workflows/commit-policy.yml
+.specify/*
+!.specify/memory/
+!.specify/memory/**
 barber-specs/
-CLAUDE.md
 CLAUDE-CODE-PROMPT.md
 CURSOR-COMPOSER-PROMPT.md
 PROMPT.md
 LEIA-ME.md
-CONTRIBUTING.md
 bootstrap.sh
 scripts/validate-attribution.sh
 scripts/validate-commit-msg.sh
