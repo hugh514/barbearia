@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
+import { Env } from '@common/config/env.schema';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventsModule } from './events/events.module';
@@ -91,16 +93,6 @@ import { PrismaModule } from '@prisma/prisma.module';
           { name: 'checkin', ttl: 60000, limit: 30 },
         ],
         storage,
-        getTracker: (req: {
-          ip: string;
-          headers: Record<string, string | string[] | undefined>;
-        }) => {
-          const forwarded = req.headers['x-forwarded-for'];
-          if (typeof forwarded === 'string' && forwarded.length > 0) {
-            return forwarded.split(',')[0].trim();
-          }
-          return req.ip;
-        },
       }),
     }),
     EventsModule,
@@ -150,4 +142,17 @@ import { PrismaModule } from '@prisma/prisma.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  // O rate limit usa req.ip. X-Forwarded-For só vale com TRUST_PROXY (padrão:
+  // não confiar), senão qualquer cliente forjaria o próprio IP.
+  constructor(
+    private readonly adapterHost: HttpAdapterHost,
+    private readonly config: ConfigService<Env, true>,
+  ) {}
+
+  onModuleInit(): void {
+    this.adapterHost.httpAdapter
+      .getInstance()
+      .set('trust proxy', this.config.get('TRUST_PROXY', { infer: true }));
+  }
+}
