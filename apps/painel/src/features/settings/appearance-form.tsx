@@ -10,14 +10,21 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
 import { BRAND_PRESETS, normalizeHex, themeFrom, type ThemeMode } from '@/lib/theme';
 import { cn } from '@/lib/utils';
-import { saveAppearance, type Appearance } from './appearance-services';
+import { NO_CONFIG_MESSAGE, saveAppearance, type Appearance } from './appearance-services';
 
 const MODES: { value: ThemeMode; label: string }[] = [
   { value: 'light', label: 'Claro' },
   { value: 'dark', label: 'Escuro' },
 ];
 
-export function AppearanceForm({ initial }: { initial: Appearance }) {
+export function AppearanceForm({
+  initial,
+  configExists = true,
+}: {
+  initial: Appearance;
+  /** Sem configuração da barbearia a API não aceita o PATCH. */
+  configExists?: boolean;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [hex, setHex] = useState(initial.brandColor.toUpperCase());
@@ -49,7 +56,7 @@ export function AppearanceForm({ initial }: { initial: Appearance }) {
           className="grid gap-6 lg:grid-cols-[1fr_18rem]"
           onSubmit={(e) => {
             e.preventDefault();
-            if (valid) save.mutate({ brandColor: hex.trim(), themeMode: mode });
+            if (valid && configExists) save.mutate({ brandColor: valid, themeMode: mode });
           }}
         >
           <div className="space-y-5">
@@ -130,7 +137,10 @@ export function AppearanceForm({ initial }: { initial: Appearance }) {
               </div>
             </fieldset>
 
-            <Button type="submit" disabled={!valid || save.isPending}>
+            {!configExists && (
+              <p className="text-sm text-muted-foreground">{NO_CONFIG_MESSAGE}</p>
+            )}
+            <Button type="submit" disabled={!valid || !configExists || save.isPending}>
               {save.isPending ? 'Salvando…' : 'Salvar aparência'}
             </Button>
           </div>

@@ -89,6 +89,64 @@ test('sidebar mostra navegação do papel ADMIN', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Financeiro' })).toBeVisible();
 });
 
+test('gaveta do celular abre a navegação, tem alvos de 44px e fecha com Esc', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/fila');
+  const menu = page.getByRole('button', { name: 'Abrir menu' });
+  await menu.click();
+
+  const drawer = page.getByRole('dialog');
+  await expect(drawer).toBeVisible();
+  const box = await drawer.getByRole('link', { name: 'Clientes' }).boundingBox();
+  expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await expect(drawer.getByRole('link', { name: 'Fila de hoje' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+
+  await page.keyboard.press('Escape');
+  await expect(drawer).toBeHidden();
+  await expect(menu).toBeFocused();
+
+  await menu.click();
+  await page.getByRole('dialog').getByRole('link', { name: 'Clientes' }).click();
+  await expect(page).toHaveURL(/\/clientes/);
+  await expect(page.getByRole('dialog')).toBeHidden();
+});
+
+test('gaveta fecha sozinha ao passar para o desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/fila');
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.getByRole('dialog')).toBeHidden();
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+});
+
+test('aparência: trocar a cor, salvar e ver o tema aplicado no html', async ({ page }) => {
+  const brand = () =>
+    page.evaluate(() => document.documentElement.style.getPropertyValue('--brand'));
+
+  await page.goto('/configuracoes');
+  const salvar = page.getByRole('button', { name: 'Salvar aparência' });
+  await expect(salvar).toBeEnabled();
+
+  await page.getByText('Bordô', { exact: true }).click();
+  await salvar.click();
+  await expect(page.getByText('Aparência salva.')).toBeVisible();
+  await page.reload();
+  expect(await brand()).toBe('#6e1f2a');
+
+  // Volta ao padrão para não afetar os outros testes.
+  await page.getByText('Cobalto', { exact: true }).click();
+  await page.getByRole('button', { name: 'Salvar aparência' }).click();
+  await expect(page.getByText('Aparência salva.')).toBeVisible();
+  await page.reload();
+  expect(await brand()).toBe('#1f4fb8');
+});
+
 test('logout volta para login', async ({ page }) => {
   await page.goto('/dashboard');
   await page.getByRole('button', { name: /sair/i }).click();

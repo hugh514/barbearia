@@ -51,10 +51,15 @@ export default function ConfiguracoesPage() {
       )}
 
       {isAdmin &&
-        (appearance.isLoading ? (
+        (appearance.isLoading || isLoading ? (
           <Skeleton className="h-64 w-full" />
+        ) : appearance.isError ? (
+          <p role="alert" className="text-sm text-destructive">
+            Não foi possível carregar a aparência. Recarregue a página.
+          </p>
         ) : (
           <AppearanceForm
+            configExists={Boolean(data)}
             initial={{
               brandColor: appearance.data?.brandColor ?? DEFAULT_BRAND,
               themeMode: appearance.data?.themeMode ?? 'light',
