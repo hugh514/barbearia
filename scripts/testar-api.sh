@@ -4,7 +4,8 @@
 # Precisa de curl e node. Cria dados novos a cada execução (telefone e e-mail únicos).
 # O login aceita 5 tentativas por minuto; o script faz 3, então espere um minuto
 # entre duas execuções seguidas.
-set -euo pipefail
+# Sem -e de propósito: um 401 ou 429 não pode matar o script antes de contar a falha.
+set -uo pipefail
 
 API="${API_URL:-http://127.0.0.1:3000}"
 RUN="$(date +%s)"
@@ -14,7 +15,7 @@ trap 'rm -f "$STATUS_FILE"' EXIT
 
 # Avalia uma expressão sobre o JSON da entrada padrão: json 'meta.total'
 json() {
-  node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o=JSON.parse(s);console.log(new Function('o','with(o){return '+process.argv[1]+'}')(o))})" "$1"
+  node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const o=JSON.parse(s);console.log(new Function('o','with(o){return '+process.argv[1]+'}')(o))}catch{console.log('')}})" "$1"
 }
 
 # req METODO ROTA [TOKEN] [CORPO]: imprime o corpo e grava o status HTTP em
