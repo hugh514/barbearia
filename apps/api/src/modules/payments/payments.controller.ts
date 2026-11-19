@@ -68,6 +68,28 @@ export class PaymentsController {
     return this.paymentsService.create(tenantId, user, body);
   }
 
+  @Post(':id/mock-approve')
+  @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.CLIENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary:
+      'Aprovar pagamento fictício (só com PAYMENTS_PROVIDER=mock e fora de produção)',
+  })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, type: PaymentResponseDto })
+  @ApiResponse({
+    status: 404,
+    description: 'Pagamento inexistente ou provedor real',
+  })
+  async mockApprove(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<PaymentResponseDto> {
+    return this.paymentsService.mockApprove(tenantId, id, user);
+  }
+
   @Post('webhook')
   @Public()
   @UseGuards(ThrottlerGuard)
