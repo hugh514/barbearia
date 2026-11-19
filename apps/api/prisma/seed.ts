@@ -17,6 +17,9 @@ import { seedBarbearias } from './seed-barbearias';
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Seed de demonstração não roda com NODE_ENV=production');
+  }
   const tenant = await prisma.tenant.upsert({
     where: { slug: 'barbearia-modelo' },
     update: {},
@@ -68,30 +71,30 @@ async function main(): Promise<void> {
   const demoCustomers = [
     {
       name: 'João Silva',
-      phone: '11999998888',
-      instagramUser: '@joaosilva',
+      phone: '11000000001',
+      instagramUser: '@cliente.demo1',
       origin: CustomerOrigin.MANUAL,
     },
     {
       name: 'Maria Santos',
-      phone: '11988887777',
-      instagramUser: '@mariasantos',
+      phone: '11000000002',
+      instagramUser: '@cliente.demo2',
       origin: CustomerOrigin.WHATSAPP,
     },
     {
       name: 'Pedro Oliveira',
-      phone: '11977776666',
+      phone: '11000000003',
       origin: CustomerOrigin.INSTAGRAM,
     },
     {
       name: 'Carlos Mendes',
-      phone: '11966665555',
+      phone: '11000000004',
       origin: CustomerOrigin.MANUAL,
     },
     {
       name: 'Ana Costa',
-      phone: '11955554444',
-      instagramUser: '@anacosta',
+      phone: '11000000005',
+      instagramUser: '@cliente.demo3',
       origin: CustomerOrigin.WHATSAPP,
     },
   ];
@@ -283,8 +286,8 @@ async function main(): Promise<void> {
     },
   });
 
-  await prisma.customer.update({
-    where: { id: joao.id },
+  await prisma.customer.updateMany({
+    where: { id: joao.id, lastVisit: null },
     data: { lastVisit: finishedAt },
   });
 
@@ -465,8 +468,8 @@ async function main(): Promise<void> {
         { name: 'Corte + Barba', price: 'R$ 65,00' },
         { name: 'Sobrancelha', price: 'R$ 15,00' },
       ],
-      address: 'Rua das Flores, 123 — Centro, São Paulo - SP',
-      phone: '11999990000',
+      address: 'Rua das Flores, 123, Centro, São Paulo - SP',
+      phone: '11000000000',
       workingHours: 'Segunda a Sábado, das 9h às 19h',
       rules:
         'Aceitamos cartão e PIX. Atendimento por ordem de chegada, sem agendamento.',
