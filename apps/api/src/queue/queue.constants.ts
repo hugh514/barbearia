@@ -3,6 +3,11 @@ export const QUEUE_POST_PAYMENT = 'post-payment';
 export const QUEUE_POST_REGISTRATION = 'post-registration';
 export const QUEUE_NOTIFICATIONS = 'notifications';
 export const QUEUE_CHECKIN = 'checkin';
+export const QUEUE_EMAIL = 'email';
+
+export const EMAIL_JOB_NAMES = {
+  PASSWORD_RESET: 'password-reset',
+} as const;
 
 export const CHECKIN_JOB_NAMES = {
   REALIZADO: 'checkin.realizado',
@@ -14,6 +19,7 @@ export const QUEUE_NAMES = [
   QUEUE_POST_REGISTRATION,
   QUEUE_NOTIFICATIONS,
   QUEUE_CHECKIN,
+  QUEUE_EMAIL,
 ] as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[number];

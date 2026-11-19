@@ -261,6 +261,7 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       tenantSlug: user.tenant.slug,
+      role: user.role,
       token,
     });
   }

@@ -7,6 +7,7 @@ import {
 import { Queue } from 'bullmq';
 import {
   QUEUE_CHECKIN,
+  QUEUE_EMAIL,
   QUEUE_NAMES,
   QUEUE_NOTIFICATIONS,
   QUEUE_POST_ATTENDANCE,
@@ -37,6 +38,7 @@ export interface FailedJobDto {
 const SENSITIVE_KEYS = new Set([
   'phone',
   'email',
+  'token',
   'name',
   'text',
   'message',
@@ -71,6 +73,8 @@ export class QueuesAdminService {
     private readonly notificationsQueue: Queue,
     @InjectQueue(QUEUE_CHECKIN)
     private readonly checkinQueue: Queue,
+    @InjectQueue(QUEUE_EMAIL)
+    private readonly emailQueue: Queue,
   ) {
     this.queueMap = new Map<string, Queue>([
       [QUEUE_POST_ATTENDANCE, this.postAttendanceQueue],
@@ -78,6 +82,7 @@ export class QueuesAdminService {
       [QUEUE_POST_REGISTRATION, this.postRegistrationQueue],
       [QUEUE_NOTIFICATIONS, this.notificationsQueue],
       [QUEUE_CHECKIN, this.checkinQueue],
+      [QUEUE_EMAIL, this.emailQueue],
     ]);
   }
 
