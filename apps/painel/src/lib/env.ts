@@ -13,9 +13,13 @@ export const env = {
   cookies: {
     access: process.env.SESSION_COOKIE_ACCESS ?? 'bb_at',
     refresh: process.env.SESSION_COOKIE_REFRESH ?? 'bb_rt',
+    // Última aparência da barbearia (cor, modo, nome). Não é sensível.
+    theme: 'vez_theme',
   },
-  // Cookie Secure: ligado por padrão em produção. COOKIE_SECURE=false só para http local (compose).
-  cookieSecure: process.env.COOKIE_SECURE
-    ? process.env.COOKIE_SECURE === 'true'
-    : process.env.NODE_ENV === 'production',
+  // Cookie Secure em produção. Só COOKIE_SECURE=false, explícito, desliga (http local
+  // do compose); qualquer outro valor mantém o padrão.
+  cookieSecure:
+    process.env.COOKIE_SECURE === 'false'
+      ? false
+      : process.env.NODE_ENV === 'production',
 } as const;

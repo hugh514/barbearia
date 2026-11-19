@@ -1,17 +1,19 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { getServerSession } from '@/lib/auth/session';
+import { getTenantTheme } from '@/lib/tenant-theme';
 import { AppSidebar, MobileTopbar } from '@/components/layout/app-sidebar';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getServerSession();
   if (!session) redirect('/login');
+  const tenantName = (await getTenantTheme()).businessName ?? 'Barbearia';
 
   return (
     <div className="min-h-dvh bg-background md:flex">
-      <AppSidebar />
+      <AppSidebar tenantName={tenantName} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileTopbar />
+        <MobileTopbar tenantName={tenantName} />
         <main className="mx-auto w-full max-w-[1280px] flex-1 overflow-x-hidden p-4 md:p-8">
           {children}
         </main>

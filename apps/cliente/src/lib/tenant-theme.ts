@@ -1,32 +1,90 @@
 import 'server-only';
+import { cache } from 'react';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
+import { env } from '@/lib/env';
 import { readAccessToken } from '@/lib/auth/cookies';
 import { apiFetch } from '@/lib/http/server-fetch';
 import { themeFrom, type TenantTheme } from '@/lib/theme';
 
-const settingsSchema = z.object({
+/** Cookie não sensível com a última aparência conhecida (fallback do layout). */
+export const THEME_COOKIE = env.cookies.theme;
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+const appearanceSchema = z.object({
+  businessName: z.string().nullish(),
   brandColor: z.string().nullish(),
   themeMode: z.string().nullish(),
 });
+export type Appearance = z.infer<typeof appearanceSchema>;
 
-/**
- * Tema da barbearia do usuário logado (GET /settings). Sem sessão, sem
- * endpoint ou com qualquer falha, devolve o padrão.
- * Só lê o access token atual: o layout raiz não pode gravar cookie, então
- * não dispara refresh aqui (isso fica com o proxy e as rotas).
- */
-export async function getTenantTheme(): Promise<TenantTheme> {
-  const token = await readAccessToken();
-  if (!token) return themeFrom(null);
+export type TenantAppearance = TenantTheme & { businessName: string | null };
+
+function build(a: Appearance | null): TenantAppearance {
+  const name = a?.businessName?.trim();
+  return { ...themeFrom(a), businessName: name ? name.slice(0, 80) : null };
+}
+
+/** Lê o cookie de tema; qualquer coisa fora do formato vira null. */
+export function parseThemeCookie(raw: string | undefined): Appearance | null {
+  if (!raw) return null;
   try {
-    const res = await apiFetch('/settings', {
-      accessToken: token,
-      signal: AbortSignal.timeout(2000),
-    });
-    if (!res.ok) return themeFrom(null);
-    const parsed = settingsSchema.safeParse(await res.json());
-    return themeFrom(parsed.success ? parsed.data : null);
+    const parsed = appearanceSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
   } catch {
-    return themeFrom(null);
+    return null;
   }
 }
+
+/** Aparência da barbearia na API; null em qualquer falha (401, rede, formato). */
+export async function fetchAppearance(accessToken: string): Promise<Appearance | null> {
+  try {
+    const res = await apiFetch('/channels/config/appearance', {
+      accessToken,
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!res.ok) return null;
+    const parsed = appearanceSchema.safeParse(await res.json());
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Grava o cookie de tema. Só em Route Handler ou Server Action (layout não
+ * pode gravar cookie). Guarda só cor, modo e nome: nada sensível.
+ */
+export async function rememberAppearance(input: unknown): Promise<void> {
+  const parsed = appearanceSchema.safeParse(input);
+  if (!parsed.success) return;
+  const a = parsed.data;
+  const value: Appearance = {
+    businessName: a.businessName ?? null,
+    brandColor: a.brandColor ?? null,
+    themeMode: a.themeMode ?? null,
+  };
+  (await cookies()).set(THEME_COOKIE, JSON.stringify(value), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: env.cookieSecure,
+    path: '/',
+    maxAge: THEME_COOKIE_MAX_AGE,
+  });
+}
+
+/**
+ * Tema e nome da barbearia do usuário logado, para o layout. Tenta a API com o
+ * access token atual (sem refresh: o layout não grava cookie); se não houver
+ * token ou a API falhar, usa o cookie vez_theme; sem ele, o padrão.
+ * `cache` evita chamar a API duas vezes no mesmo request (layout raiz e do app).
+ */
+export const getTenantTheme = cache(async (): Promise<TenantAppearance> => {
+  const token = await readAccessToken();
+  if (token) {
+    const fromApi = await fetchAppearance(token);
+    if (fromApi) return build(fromApi);
+  }
+  const store = await cookies();
+  return build(parseThemeCookie(store.get(THEME_COOKIE)?.value));
+});

@@ -38,6 +38,7 @@ export async function clearSessionCookies(): Promise<void> {
   const store = await cookies();
   store.delete(env.cookies.access);
   store.delete(env.cookies.refresh);
+  store.delete(env.cookies.theme);
 }
 
 export async function readAccessToken(): Promise<string | undefined> {

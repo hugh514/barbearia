@@ -1,11 +1,29 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
 import { ensureAccessToken, performRefresh } from '@/lib/auth/refresh-flow';
+import { rememberAppearance } from '@/lib/tenant-theme';
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
 // Cabeçalhos do cliente que repassamos à API (nunca cookies/host).
 const FORWARD_HEADERS = ['content-type', 'accept', 'idempotency-key'];
+
+// Leitura ou gravação da aparência atualiza o cookie de tema (fallback do layout).
+async function rememberThemeFrom(
+  method: string,
+  path: string,
+  ok: boolean,
+  body: string,
+): Promise<void> {
+  const isRead = method === 'GET' && path === 'channels/config/appearance';
+  const isWrite = (method === 'PATCH' || method === 'POST') && path === 'channels/config';
+  if (!ok || !(isRead || isWrite)) return;
+  try {
+    await rememberAppearance(JSON.parse(body));
+  } catch {
+    // Corpo inesperado: o cookie fica como estava.
+  }
+}
 
 async function forward(request: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { path } = await ctx.params;
@@ -50,6 +68,7 @@ async function forward(request: NextRequest, ctx: Ctx): Promise<NextResponse> {
   }
 
   const resBody = await apiRes.text();
+  await rememberThemeFrom(request.method, path.join('/'), apiRes.ok, resBody);
   const contentType = apiRes.headers.get('content-type') ?? 'application/json';
   return new NextResponse(resBody, {
     status: apiRes.status,

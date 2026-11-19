@@ -39,6 +39,10 @@ Na primeira vez demora alguns minutos para montar as imagens. O compose sobe Pos
 
 Para parar: `docker compose down`. Para zerar o banco também: `docker compose down -v`.
 
+### Cookie de sessão em http
+
+Em produção os fronts marcam os cookies de sessão como `Secure`, e o navegador só os aceita em https. O compose roda em http, então os serviços `painel` e `cliente` recebem `COOKIE_SECURE=false`. Só o valor `false`, escrito assim, desliga o `Secure`; sem a variável ou com qualquer outro valor, vale o padrão (ligado em produção). Nunca use `COOKIE_SECURE=false` num ambiente com https.
+
 ## Login de teste
 
 Essas senhas existem só no seed, para ambiente local. Não use em produção.
@@ -100,5 +104,6 @@ Cada app tem o próprio `package.json` e `package-lock.json`. Não há workspace
 - **Check-in por QR Code de vida curta.** O cliente gera um token opaco que vale 60 segundos e é guardado no Redis; a equipe lê e o cliente entra na fila. Gerar um novo invalida o anterior.
 - **Pagamento pelo gateway.** A API cria a cobrança no Mercado Pago e confirma por webhook com assinatura validada e processamento idempotente. Cartão nunca passa pela API.
 - **Sessão em cookie httpOnly nos fronts.** O navegador fala só com as rotas `/api/*` do próprio Next, que repassam para a API. O token não fica exposto ao JavaScript da página.
+- **Tema por barbearia.** Cada barbearia escolhe uma cor e o modo claro ou escuro (Configurações, Aparência). O layout de cada front lê `GET /channels/config/appearance` e guarda a última aparência num cookie `vez_theme` (só cor, modo e nome), usado quando o token expira ou a API não responde.
 
 Os detalhes estão em `docs/constituicao/` e nas specs de cada app.

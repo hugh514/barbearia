@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiFetch } from '@/lib/http/server-fetch';
 import { setSessionCookies } from '@/lib/auth/cookies';
 import { sessionFromToken } from '@/lib/auth/jwt';
+import { fetchAppearance, rememberAppearance } from '@/lib/tenant-theme';
 import { loginSchema, tokenPairSchema } from '@/features/auth/schemas';
 
 export async function POST(request: Request) {
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
   }
 
   await setSessionCookies(tokens.data.accessToken, tokens.data.refreshToken);
+  // Guarda o tema da barbearia para o layout usar quando o token expirar.
+  const appearance = await fetchAppearance(tokens.data.accessToken);
+  if (appearance) await rememberAppearance(appearance);
   const session = sessionFromToken(tokens.data.accessToken);
   return NextResponse.json({ user: session?.user ?? null }, { status: 200 });
 }

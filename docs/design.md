@@ -46,7 +46,7 @@ Na fila: esperando é neutro, na cadeira usa a marca, feitos em muted, cancelado
 
 ### Modo
 
-Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /settings`) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (login, cadastro) vale o padrão.
+Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /channels/config/appearance`; se o token expirou ou a API falhou, usa o cookie `vez_theme` gravado no login e ao salvar a aparência) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (login, cadastro) vale o padrão.
 
 ## Marca
 
