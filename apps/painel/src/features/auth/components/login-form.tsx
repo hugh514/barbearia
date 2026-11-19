@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -103,12 +104,12 @@ export function LoginForm() {
       </Button>
 
       <div className="text-center">
-        <a
+        <Link
           href="/forgot-password"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           Esqueci minha senha
-        </a>
+        </Link>
       </div>
     </form>
   );

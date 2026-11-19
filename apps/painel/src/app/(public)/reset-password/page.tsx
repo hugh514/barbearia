@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -17,7 +18,7 @@ export default async function ResetPasswordPage({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Definir nova senha</CardTitle>
+        <CardTitle className="text-xl font-bold">Definir nova senha</CardTitle>
         <CardDescription>Escolha uma senha forte para sua conta</CardDescription>
       </CardHeader>
       <CardContent>
@@ -26,9 +27,9 @@ export default async function ResetPasswordPage({
         ) : (
           <p className="text-sm text-destructive">
             Link inválido ou expirado. Solicite um novo em{' '}
-            <a href="/forgot-password" className="underline">
+            <Link href="/forgot-password" className="underline">
               recuperar senha
-            </a>
+            </Link>
             .
           </p>
         )}

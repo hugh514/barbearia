@@ -1,19 +1,20 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { getServerSession } from '@/lib/auth/session';
-import { AppSidebar } from '@/components/layout/app-sidebar';
-import { AppHeader } from '@/components/layout/app-header';
+import { AppSidebar, MobileTopbar } from '@/components/layout/app-sidebar';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getServerSession();
   if (!session) redirect('/login');
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-dvh bg-background md:flex">
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader />
-        <main className="flex-1 overflow-x-hidden p-6">{children}</main>
+        <MobileTopbar />
+        <main className="mx-auto w-full max-w-[1280px] flex-1 overflow-x-hidden p-4 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

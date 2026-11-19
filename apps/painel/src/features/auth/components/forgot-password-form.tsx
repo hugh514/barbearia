@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -58,9 +59,9 @@ export function ForgotPasswordForm() {
         {isSubmitting ? 'Enviando…' : 'Enviar link'}
       </Button>
       <div className="text-center">
-        <a href="/login" className="text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
           Voltar ao login
-        </a>
+        </Link>
       </div>
     </form>
   );

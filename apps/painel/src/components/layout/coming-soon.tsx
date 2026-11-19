@@ -13,7 +13,7 @@ export function ComingSoon({
       <PageHeader title={title} description={description} />
       <Card>
         <CardContent className="flex min-h-40 items-center justify-center p-10 text-sm text-muted-foreground">
-          Módulo em construção.
+          Esta parte ainda não está pronta.
         </CardContent>
       </Card>
     </div>
