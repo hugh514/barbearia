@@ -9,5 +9,8 @@ export const env = {
     access: process.env.SESSION_COOKIE_ACCESS ?? 'bc_at',
     refresh: process.env.SESSION_COOKIE_REFRESH ?? 'bc_rt',
   },
-  isProd: process.env.NODE_ENV === 'production',
+  // Cookie Secure: ligado por padrão em produção. COOKIE_SECURE=false só para http local (compose).
+  cookieSecure: process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === 'true'
+    : process.env.NODE_ENV === 'production',
 } as const;

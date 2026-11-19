@@ -7,7 +7,7 @@ const REFRESH_MAX_AGE = 60 * 60 * 24 * 30; // 30 dias
 
 const baseCookie = {
   httpOnly: true,
-  secure: env.isProd,
+  secure: env.cookieSecure,
   sameSite: 'lax' as const,
   path: '/',
 };

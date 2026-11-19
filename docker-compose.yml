@@ -67,6 +67,8 @@ services:
     environment:
       API_BASE_URL: http://api:3000
       API_PUBLIC_URL: http://127.0.0.1:${API_PORT:-3000}
+      # Compose roda em http; sem isto o navegador descarta o cookie Secure.
+      COOKIE_SECURE: 'false'
     ports:
       - '${PAINEL_PORT:-3001}:3001'
     depends_on:
@@ -77,6 +79,7 @@ services:
     build: ./apps/cliente
     environment:
       API_BASE_URL: http://api:3000
+      COOKIE_SECURE: 'false'
     ports:
       - '${CLIENTE_PORT:-3002}:3002'
     depends_on:
