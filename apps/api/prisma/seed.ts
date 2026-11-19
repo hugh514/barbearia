@@ -118,6 +118,26 @@ async function main(): Promise<void> {
   }
 
   const joao = customers[0];
+
+  // Login do app do cliente (papel CLIENTE), vinculado ao João. Só para ambiente local.
+  await prisma.user.upsert({
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: 'cliente@barbearia.example',
+      },
+    },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: 'João Silva',
+      email: 'cliente@barbearia.example',
+      passwordHash: await bcrypt.hash('Cliente123', 12),
+      role: UserRole.CLIENTE,
+      customerId: joao.id,
+      active: true,
+    },
+  });
   const maria = customers[1];
 
   const whatsappConversation = await prisma.conversation.upsert({
