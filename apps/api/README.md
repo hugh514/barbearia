@@ -22,6 +22,8 @@ npm run test:e2e    # um arquivo por feature em test/, precisa de Postgres e Red
 npm run lint
 ```
 
+O seed usa telefones fixos para os clientes de demonstração. Em um banco criado por versão anterior do seed, rodar o seed de novo duplica esses clientes: suba do zero com `docker compose down -v`.
+
 ## Onde está cada coisa
 
 - `src/modules`: um módulo por assunto (auth, customers, appointments, plans, subscriptions, payments, conversations, whatsapp, instagram, ai, checkin, dashboard).
@@ -36,17 +38,22 @@ Variáveis novas (todas opcionais em dev):
 | Variável | Padrão | Para que serve |
 |---|---|---|
 | `PAYMENTS_PROVIDER` | `mock` com o token falso do `.env.example`, senão `mercadopago` | `mock` devolve PIX fictício e habilita `mock-approve`. Recusado com `NODE_ENV=production`. |
-| `PAINEL_PUBLIC_URL` | `http://localhost:3001` | Base dos links de e-mail para a equipe. |
-| `CLIENTE_PUBLIC_URL` | `http://localhost:3002` | Base dos links de e-mail para clientes. |
+| `PAINEL_PUBLIC_URL` | `http://localhost:3001` | Base dos links de e-mail para a equipe. Em produção é obrigatória, https e não local. |
+| `CLIENTE_PUBLIC_URL` | `http://localhost:3002` | Base dos links de e-mail para clientes. Mesmas regras. |
+| `EMAIL_PROVIDER` | `log` | `log` (dev e teste) ou `smtp`. Produção recusa `log`. O `smtp` ainda não está implementado e faz a API falhar no boot: produção só sobe depois que `EmailSender` for implementado. |
+| `TRUST_PROXY` | `false` | O rate limit usa `req.ip`. Só com proxy confiável à frente (ex.: `1` salto) o `X-Forwarded-For` passa a valer. Os e2e usam `true`. |
 
-Em produção a API também recusa subir com `INSTAGRAM_VERIFY_TOKEN` e token do Mercado Pago de desenvolvimento, `DATABASE_URL` com `barber:barber` e `ALLOWED_ORIGINS` só com localhost, 127.0.0.1 ou `*`.
+Em produção a API também recusa subir com `INSTAGRAM_VERIFY_TOKEN` e token do Mercado Pago de desenvolvimento, `DATABASE_URL` com `barber:barber` e `ALLOWED_ORIGINS` com qualquer origem localhost, 127.0.0.1 ou `*`.
 
 Endpoints:
 
 - `GET /appointments/queue` (ADMIN, GERENTE, BARBEIRO): sem parâmetro, só AGUARDANDO e EM_ATENDIMENTO de hoje. Com `?include=finished`, soma FINALIZADO e CANCELADO de hoje. Todo item traz `enteredAt` (igual a `createdAt`, hora de entrada), `startedAt` e `finishedAt`.
 - `GET /appointments/me/queue` (CLIENTE): `{ position, ahead, status, enteredAt }`. `position` 1 é o próximo, 0 é quem está em atendimento, `ahead` conta quem aguarda na frente. Fora da fila hoje, os quatro campos vêm `null`. 422 se o usuário não tem cliente vinculado.
 - `POST /payments/:id/mock-approve` (ADMIN, GERENTE, CLIENTE dono): só com provedor mock e fora de produção; aprova pelo mesmo caminho do webhook e a assinatura é ativada pela fila. Fora disso responde 404.
-- `GET /channels/config` (qualquer usuário autenticado do tenant) e `PATCH /channels/config` (só ADMIN) ganham `brandColor` (`#RRGGBB`, padrão `#1F4FB8`) e `themeMode` (`light` ou `dark`, padrão `light`). Cliente lê sem `whatsappInstance` e `instagramPageId`.
+- `GET /channels/config` (equipe e CLIENTE) e `PATCH /channels/config` (só ADMIN) ganham `brandColor` (`#RRGGBB`, padrão `#1F4FB8`) e `themeMode` (`light` ou `dark`, padrão `light`). O CLIENTE recebe só `{ businessName, address, workingHours, services, brandColor, themeMode }` e, sem config no tenant, os padrões. Para a equipe, tenant sem config segue 404 (o painel depende disso para criar a config).
+- `GET /channels/config/appearance` (qualquer papel autenticado): `{ businessName, brandColor, themeMode }` do próprio tenant, com `businessName: null` e os padrões quando não há config. É o endpoint para o layout dos fronts.
+- `GET /queues/:name/failed` (ADMIN) só lista jobs falhados cujo `data.tenantId` é o do token. Os contadores de `/queues/stats` continuam globais.
+- `POST /auth/forgot-password` aceita `tenantSlug` opcional. Sem ele, cada usuário ativo com o e-mail (um por tenant) recebe o próprio link; com ele, só o do tenant informado. A resposta é sempre 202 genérica.
 - Erro 429 do throttle: `{ statusCode: 429, message: "Muitas requisições. Tente novamente em instantes.", error: "Too Many Requests", ... }`.
 
-Recuperação de senha: `POST /auth/forgot-password` emite `SENHA_RECUPERACAO_SOLICITADA`; o listener põe o job na fila `email` e o processor envia o link `<PAINEL|CLIENTE>_PUBLIC_URL/reset-password?token=...&tenant=<slug>` pelo provedor de e-mail (interface `EmailSender` em `src/modules/email`). Em dev e teste o provedor é o de log, que registra só o assunto e o link. SMTP real não foi ligado porque não há biblioteca de e-mail instalada: para produção, implemente `EmailSender` e troque o `useExisting` do `EmailModule`.
+Recuperação de senha: `POST /auth/forgot-password` emite `SENHA_RECUPERACAO_SOLICITADA`; o listener põe o job na fila `email` e o processor envia o link `<PAINEL|CLIENTE>_PUBLIC_URL/reset-password?token=...&tenant=<slug>` pelo provedor de e-mail (interface `EmailSender` em `src/modules/email`). Em dev e teste (`EMAIL_PROVIDER=log`) o provedor não envia nada e registra no log só o assunto, sem link, token nem destinatário. SMTP real não foi ligado porque não há biblioteca de e-mail instalada: para produção, implemente `EmailSender` e ligue em `createEmailSender` (`EmailModule`).

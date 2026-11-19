@@ -10,6 +10,9 @@ import {
 import * as bcrypt from 'bcrypt';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { getQueueToken } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { QUEUE_EMAIL } from '../src/queue/queue.constants';
 import { EMAIL_SENDER } from '../src/modules/email/email.interface';
 import { LogEmailProvider } from '../src/modules/email/log-email.provider';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -171,6 +174,34 @@ describe('Feature 014 — lacunas da API (e2e)', () => {
     let a2: string;
     let a3: string;
 
+    let clienteB: { token: string; customerId: string };
+
+    it('tenant B já tem fila própria (antes da de A)', async () => {
+      const outro = await mkUser(
+        otherTenantId,
+        UserRole.CLIENTE,
+        'ClienteO',
+        true,
+      );
+      const outro2 = await mkUser(
+        otherTenantId,
+        UserRole.CLIENTE,
+        'ClienteO2',
+        true,
+      );
+      for (const c of [outro, outro2]) {
+        await http()
+          .post('/appointments')
+          .set(auth(otherAdminToken))
+          .send({ customerId: c.customerId, services: ['Corte'] })
+          .expect(201);
+      }
+      clienteB = {
+        customerId: outro2.customerId,
+        token: (await login(outro2.email)).accessToken,
+      };
+    });
+
     it('põe três clientes na fila; o primeiro termina, o segundo é cancelado', async () => {
       const enter = async (customerId: string) =>
         (
@@ -295,19 +326,26 @@ describe('Feature 014 — lacunas da API (e2e)', () => {
       await http().get('/appointments/me/queue').expect(401);
     });
 
-    it('é isolado por tenant: cliente de outro tenant não vê a fila deste', async () => {
-      const outro = await mkUser(
-        otherTenantId,
-        UserRole.CLIENTE,
-        'ClienteO',
-        true,
-      );
-      const tk = (await login(outro.email)).accessToken;
-      const res = await http()
+    it('é isolado por tenant: a posição de B só conta B e A não vê a fila de B', async () => {
+      const b = await http()
         .get('/appointments/me/queue')
-        .set(auth(tk))
+        .set(auth(clienteB.token))
         .expect(200);
-      expect(res.body.position).toBeNull();
+      expect(b.body).toMatchObject({ position: 2, ahead: 1 });
+      const fila = await http()
+        .get('/appointments/queue?include=finished')
+        .set(auth(adminToken))
+        .expect(200);
+      expect(
+        fila.body.data.some(
+          (x: { customerId: string }) => x.customerId === clienteB.customerId,
+        ),
+      ).toBe(false);
+      const filaB = await http()
+        .get('/appointments/queue')
+        .set(auth(otherAdminToken))
+        .expect(200);
+      expect(filaB.body.data).toHaveLength(2);
     });
   });
 
@@ -442,6 +480,55 @@ describe('Feature 014 — lacunas da API (e2e)', () => {
       expect(
         sent.link!.startsWith('http://localhost:3001/reset-password?'),
       ).toBe(true);
+    });
+
+    it('mesmo e-mail em dois tenants: sem tenantSlug emite um token por tenant; com tenantSlug, só o daquele', async () => {
+      const shared = `compartilhado-${run}@t014.example`;
+      const hash = await bcrypt.hash(password, 4);
+      await prisma.user.create({
+        data: {
+          tenantId,
+          name: 'Comp A',
+          email: shared,
+          passwordHash: hash,
+          role: UserRole.BARBEIRO,
+        },
+      });
+      await prisma.user.create({
+        data: {
+          tenantId: otherTenantId,
+          name: 'Comp B',
+          email: shared,
+          passwordHash: hash,
+          role: UserRole.BARBEIRO,
+        },
+      });
+
+      ipCounter += 1;
+      await http()
+        .post('/auth/forgot-password')
+        .set('X-Forwarded-For', `${ipBase}.${ipCounter}.3`)
+        .send({ email: shared })
+        .expect(202);
+      await waitFor(() =>
+        email.sentTo(shared).length === 2 ? true : undefined,
+      );
+      const links = email.sentTo(shared).map((m) => m.link!);
+      expect(links.some((l) => l.includes(`tenant=${slug}`))).toBe(true);
+      expect(links.some((l) => l.includes(`tenant=${otherSlug}`))).toBe(true);
+
+      ipCounter += 1;
+      await http()
+        .post('/auth/forgot-password')
+        .set('X-Forwarded-For', `${ipBase}.${ipCounter}.3`)
+        .send({ email: shared, tenantSlug: otherSlug })
+        .expect(202);
+      await waitFor(() =>
+        email.sentTo(shared).length === 3 ? true : undefined,
+      );
+      expect(email.sentTo(shared)[2].link).toContain(`tenant=${otherSlug}`);
+      await new Promise((r) => setTimeout(r, 300));
+      expect(email.sentTo(shared)).toHaveLength(3);
     });
 
     it('e-mail inexistente responde 202 idêntico e não envia nada', async () => {
@@ -660,15 +747,61 @@ describe('Feature 014 — lacunas da API (e2e)', () => {
         .expect(403);
     });
 
-    it('CLIENTE lê a aparência, sem ids de integração', async () => {
+    it('CLIENTE lê só a lista permitida de campos', async () => {
       const res = await http()
         .get('/channels/config')
         .set(auth(cliente3Token))
         .expect(200);
+      expect(Object.keys(res.body).sort()).toEqual(
+        [
+          'address',
+          'brandColor',
+          'businessName',
+          'services',
+          'themeMode',
+          'workingHours',
+        ].sort(),
+      );
       expect(res.body.brandColor).toBe('#0a7c3e');
       expect(res.body.themeMode).toBe('dark');
-      expect(res.body.whatsappInstance).toBeNull();
-      expect(res.body.instagramPageId).toBeNull();
+    });
+
+    it('GET /channels/config/appearance serve qualquer papel com os dados do próprio tenant', async () => {
+      for (const t of [cliente3Token, barberToken, adminToken]) {
+        const res = await http()
+          .get('/channels/config/appearance')
+          .set(auth(t))
+          .expect(200);
+        expect(res.body).toEqual({
+          businessName: 'Barbearia 014',
+          brandColor: '#0a7c3e',
+          themeMode: 'dark',
+        });
+      }
+      await http().get('/channels/config/appearance').expect(401);
+    });
+
+    it('tenant sem config: appearance e a leitura do CLIENTE devolvem os padrões; a da equipe segue 404', async () => {
+      const t = await prisma.tenant.create({
+        data: { name: 'Sem Config', slug: `t014sc-${run}` },
+      });
+      const adm = await mkUser(t.id, UserRole.ADMIN, 'AdmSemConfig');
+      const cli = await mkUser(t.id, UserRole.CLIENTE, 'CliSemConfig', true);
+      const admTk = (await login(adm.email)).accessToken;
+      const cliTk = (await login(cli.email)).accessToken;
+      const padrao = { brandColor: '#1F4FB8', themeMode: 'light' };
+
+      const ap = await http()
+        .get('/channels/config/appearance')
+        .set(auth(admTk))
+        .expect(200);
+      expect(ap.body).toMatchObject(padrao);
+      const pub = await http()
+        .get('/channels/config')
+        .set(auth(cliTk))
+        .expect(200);
+      expect(pub.body).toMatchObject(padrao);
+      await http().get('/channels/config').set(auth(admTk)).expect(404);
     });
 
     it('CLIENTE não altera', async () => {
@@ -705,6 +838,37 @@ describe('Feature 014 — lacunas da API (e2e)', () => {
         .set(auth(adminToken))
         .send({ themeMode: 'azul' })
         .expect(400);
+    });
+  });
+
+  describe('Filas: jobs falhados filtrados por tenant', () => {
+    it('ADMIN só vê jobs falhados do próprio tenant', async () => {
+      const q = app.get<Queue>(getQueueToken(QUEUE_EMAIL));
+      const opts = { attempts: 1, removeOnFail: 50 };
+      const mine = await q.add(
+        'job-desconhecido',
+        { tenantId, marcador: `a-${run}` },
+        opts,
+      );
+      const theirs = await q.add(
+        'job-desconhecido',
+        { tenantId: otherTenantId, marcador: `b-${run}` },
+        opts,
+      );
+      await waitFor(async () => {
+        const f = await q.getFailed(0, 99);
+        const ids = f.map((j) => j.id);
+        return ids.includes(mine.id) && ids.includes(theirs.id)
+          ? true
+          : undefined;
+      });
+      const res = await http()
+        .get('/queues/email/failed')
+        .set(auth(adminToken))
+        .expect(200);
+      const ids = res.body.map((j: { id: string }) => j.id);
+      expect(ids).toContain(mine.id);
+      expect(ids).not.toContain(theirs.id);
     });
   });
 });
