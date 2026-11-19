@@ -1,7 +1,11 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
 import { Env } from '@common/config/env.schema';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import {
+  APP_FILTER,
+  APP_GUARD,
+  APP_INTERCEPTOR,
+  HttpAdapterHost,
+} from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventsModule } from './events/events.module';
 import { QueueModule } from './queue/queue.module';

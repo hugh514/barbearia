@@ -9,9 +9,10 @@ import {
   ChannelConfigResponseDto,
 } from './dto/config-response.dto';
 
+import { UpdateChannelConfigDto } from './dto/update-config.dto';
+
 const DEFAULT_BRAND_COLOR = '#1F4FB8';
 const DEFAULT_THEME_MODE = 'light' as const;
-import { UpdateChannelConfigDto } from './dto/update-config.dto';
 
 @Injectable()
 export class ChannelConfigService {
