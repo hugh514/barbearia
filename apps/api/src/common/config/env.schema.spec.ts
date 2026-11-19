@@ -12,6 +12,9 @@ const prodBase = {
   INSTAGRAM_VERIFY_TOKEN: 'prod-verify-token-unico',
   SWAGGER_PASS: 'prod-swagger-pass',
   ALLOWED_ORIGINS: 'https://painel.barbearia.example',
+  EMAIL_PROVIDER: 'smtp',
+  PAINEL_PUBLIC_URL: 'https://painel.barbearia.example',
+  CLIENTE_PUBLIC_URL: 'https://app.barbearia.example',
 };
 
 describe('validateEnv em produção', () => {
@@ -28,9 +31,23 @@ describe('validateEnv em produção', () => {
     ],
     ['ALLOWED_ORIGINS', 'http://localhost:3001,http://127.0.0.1:3002'],
     ['ALLOWED_ORIGINS', '*'],
+    [
+      'ALLOWED_ORIGINS',
+      'https://painel.barbearia.example,http://localhost:3001',
+    ],
+    ['EMAIL_PROVIDER', 'log'],
+    ['PAINEL_PUBLIC_URL', 'http://localhost:3001'],
+    ['PAINEL_PUBLIC_URL', 'http://painel.barbearia.example'],
+    ['CLIENTE_PUBLIC_URL', 'https://127.0.0.1:3002'],
     ['PAYMENTS_PROVIDER', 'mock'],
   ])('recusa %s com valor de desenvolvimento', (campo, valor) => {
     expect(() => validateEnv({ ...prodBase, [campo]: valor })).toThrow(campo);
+  });
+
+  it('exige as URLs públicas em produção', () => {
+    const semPainel: Record<string, string> = { ...prodBase };
+    delete semPainel.PAINEL_PUBLIC_URL;
+    expect(() => validateEnv(semPainel)).toThrow('PAINEL_PUBLIC_URL');
   });
 
   it('em desenvolvimento aceita os padrões', () => {
@@ -39,6 +56,8 @@ describe('validateEnv em produção', () => {
       DATABASE_URL: 'postgresql://barber:barber@127.0.0.1:5433/barber_db',
     });
     expect(env.PAYMENTS_PROVIDER).toBe('mock');
+    expect(env.EMAIL_PROVIDER).toBe('log');
+    expect(env.TRUST_PROXY).toBe(false);
   });
 
   it('com token real do Mercado Pago o padrão é mercadopago', () => {

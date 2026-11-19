@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+function isPublicHttps(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === 'https:' &&
+      !['localhost', '127.0.0.1', '::1', '[::1]', '0.0.0.0'].includes(
+        url.hostname,
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const envSchema = z
   .object({
     NODE_ENV: z
@@ -65,8 +80,21 @@ export const envSchema = z
       z.enum(['mock', 'mercadopago']).optional(),
     ),
     // URLs públicas dos fronts, usadas nos links de e-mail.
-    PAINEL_PUBLIC_URL: z.string().default('http://localhost:3001'),
-    CLIENTE_PUBLIC_URL: z.string().default('http://localhost:3002'),
+    PAINEL_PUBLIC_URL: z.string().optional(),
+    CLIENTE_PUBLIC_URL: z.string().optional(),
+    // Provedor de e-mail. Produção exige um provedor real (smtp).
+    EMAIL_PROVIDER: z.enum(['log', 'smtp']).default('log'),
+    // Proxy confiável à frente da API: false (padrão), true ou número de saltos.
+    TRUST_PROXY: z
+      .string()
+      .default('false')
+      .transform((v): boolean | number => {
+        const t = v.trim().toLowerCase();
+        if (t === '' || t === 'false' || t === '0') return false;
+        if (t === 'true') return true;
+        const n = Number(t);
+        return Number.isInteger(n) && n > 0 ? n : false;
+      }),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') return;
@@ -86,13 +114,16 @@ export const envSchema = z
         data.ALLOWED_ORIGINS.split(',')
           .map((o) => o.trim())
           .filter(Boolean)
-          .every(
+          .some(
             (o) =>
               o === '*' ||
               /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o),
           ),
       ],
       ['PAYMENTS_PROVIDER', data.PAYMENTS_PROVIDER === 'mock'],
+      ['EMAIL_PROVIDER', data.EMAIL_PROVIDER === 'log'],
+      ['PAINEL_PUBLIC_URL', !isPublicHttps(data.PAINEL_PUBLIC_URL)],
+      ['CLIENTE_PUBLIC_URL', !isPublicHttps(data.CLIENTE_PUBLIC_URL)],
     ];
     for (const [field, insecure] of devChecks) {
       if (insecure) {
