@@ -5,6 +5,11 @@
  */
 export const env = {
   apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000',
+  // URL da API vista pelo navegador (Socket.IO). No Docker difere de API_BASE_URL.
+  apiPublicUrl:
+    process.env.API_PUBLIC_URL ??
+    process.env.API_BASE_URL ??
+    'http://localhost:3000',
   cookies: {
     access: process.env.SESSION_COOKIE_ACCESS ?? 'bb_at',
     refresh: process.env.SESSION_COOKIE_REFRESH ?? 'bb_rt',

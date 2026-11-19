@@ -1,0 +1,86 @@
+# Sobe tudo: postgres, redis, api (com migrations e seed), painel e cliente.
+#   cp .env.example .env
+#   docker compose up --build
+name: barbearia
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-barber}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-barber}
+      POSTGRES_DB: ${POSTGRES_DB:-barber_db}
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-barber} -d ${POSTGRES_DB:-barber_db}']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./apps/api
+      target: development
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-barber}:${POSTGRES_PASSWORD:-barber}@postgres:5432/${POSTGRES_DB:-barber_db}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001,http://localhost:3002}
+    # Aplica migrations, roda o seed (idempotente, usa upsert) e sobe a API.
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run start"
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']
+      interval: 5s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
+
+  painel:
+    build: ./apps/painel
+    environment:
+      API_BASE_URL: http://api:3000
+      API_PUBLIC_URL: http://localhost:${API_PORT:-3000}
+    ports:
+      - '${PAINEL_PORT:-3001}:3001'
+    depends_on:
+      api:
+        condition: service_healthy
+
+  cliente:
+    build: ./apps/cliente
+    environment:
+      API_BASE_URL: http://api:3000
+    ports:
+      - '${CLIENTE_PORT:-3002}:3002'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

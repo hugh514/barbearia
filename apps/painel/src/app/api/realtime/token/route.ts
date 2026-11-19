@@ -16,5 +16,5 @@ export async function GET() {
       { status: 401 },
     );
   }
-  return NextResponse.json({ token, url: env.apiBaseUrl });
+  return NextResponse.json({ token, url: env.apiPublicUrl });
 }
