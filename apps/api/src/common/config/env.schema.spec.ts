@@ -13,6 +13,7 @@ const prodBase = {
   SWAGGER_PASS: 'prod-swagger-pass',
   ALLOWED_ORIGINS: 'https://painel.barbearia.example',
   EMAIL_PROVIDER: 'smtp',
+  TRUST_PROXY: '1',
   PAINEL_PUBLIC_URL: 'https://painel.barbearia.example',
   CLIENTE_PUBLIC_URL: 'https://app.barbearia.example',
 };
@@ -36,6 +37,9 @@ describe('validateEnv em produção', () => {
       'https://painel.barbearia.example,http://localhost:3001',
     ],
     ['EMAIL_PROVIDER', 'log'],
+    ['TRUST_PROXY', 'true'],
+    ['ALLOWED_ORIGINS', 'http://0.0.0.0:3000'],
+    ['ALLOWED_ORIGINS', 'http://[::1]:3000'],
     ['PAINEL_PUBLIC_URL', 'http://localhost:3001'],
     ['PAINEL_PUBLIC_URL', 'http://painel.barbearia.example'],
     ['CLIENTE_PUBLIC_URL', 'https://127.0.0.1:3002'],
@@ -48,6 +52,35 @@ describe('validateEnv em produção', () => {
     const semPainel: Record<string, string> = { ...prodBase };
     delete semPainel.PAINEL_PUBLIC_URL;
     expect(() => validateEnv(semPainel)).toThrow('PAINEL_PUBLIC_URL');
+  });
+
+  it('exige TRUST_PROXY explícito em produção', () => {
+    const semProxy: Record<string, string> = { ...prodBase };
+    delete semProxy.TRUST_PROXY;
+    expect(() => validateEnv(semProxy)).toThrow('TRUST_PROXY');
+    expect(validateEnv({ ...prodBase, TRUST_PROXY: 'false' }).TRUST_PROXY).toBe(
+      false,
+    );
+    expect(validateEnv({ ...prodBase, TRUST_PROXY: '2' }).TRUST_PROXY).toBe(2);
+  });
+
+  it.each(['yes', '-1', '0', '1.5', 'sim'])(
+    'TRUST_PROXY=%s é recusado em qualquer ambiente',
+    (valor) => {
+      for (const NODE_ENV of ['development', 'production']) {
+        expect(() =>
+          validateEnv({ ...prodBase, NODE_ENV, TRUST_PROXY: valor }),
+        ).toThrow('TRUST_PROXY');
+      }
+    },
+  );
+
+  it('TRUST_PROXY=true vale fora de produção', () => {
+    const env = validateEnv({
+      DATABASE_URL: 'postgresql://x:y@h/d',
+      TRUST_PROXY: 'true',
+    });
+    expect(env.TRUST_PROXY).toBe(true);
   });
 
   it('em desenvolvimento aceita os padrões', () => {

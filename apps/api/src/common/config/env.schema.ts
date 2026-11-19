@@ -1,18 +1,34 @@
 import { z } from 'zod';
 
-function isPublicHttps(value: string | undefined): boolean {
-  if (!value) return false;
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]', '0.0.0.0'];
+
+function parseUrl(value: string | undefined): URL | null {
+  if (!value) return null;
   try {
-    const url = new URL(value);
-    return (
-      url.protocol === 'https:' &&
-      !['localhost', '127.0.0.1', '::1', '[::1]', '0.0.0.0'].includes(
-        url.hostname,
-      )
-    );
+    return new URL(value);
   } catch {
-    return false;
+    return null;
   }
+}
+
+function isPublicHttps(value: string | undefined): boolean {
+  const url = parseUrl(value);
+  return (
+    !!url && url.protocol === 'https:' && !LOCAL_HOSTS.includes(url.hostname)
+  );
+}
+
+function isLocalOrigin(origin: string): boolean {
+  if (origin === '*') return true;
+  const url = parseUrl(origin);
+  return !!url && LOCAL_HOSTS.includes(url.hostname);
+}
+
+function parseTrustProxy(value: string | undefined): boolean | number {
+  const t = value?.toLowerCase();
+  if (t === undefined || t === 'false') return false;
+  if (t === 'true') return true;
+  return Number(t);
 }
 
 export const envSchema = z
@@ -84,20 +100,30 @@ export const envSchema = z
     CLIENTE_PUBLIC_URL: z.string().optional(),
     // Provedor de e-mail. Produção exige um provedor real (smtp).
     EMAIL_PROVIDER: z.enum(['log', 'smtp']).default('log'),
-    // Proxy confiável à frente da API: false (padrão), true ou número de saltos.
-    TRUST_PROXY: z
-      .string()
-      .default('false')
-      .transform((v): boolean | number => {
-        const t = v.trim().toLowerCase();
-        if (t === '' || t === 'false' || t === '0') return false;
-        if (t === 'true') return true;
-        const n = Number(t);
-        return Number.isInteger(n) && n > 0 ? n : false;
-      }),
+    // Proxy confiável à frente da API: false, true ou número de saltos (>= 1).
+    // Valor inválido é recusado; produção exige definir (false ou saltos).
+    TRUST_PROXY: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z
+        .string()
+        .regex(/^(true|false|[1-9]\d*)$/i, 'use false, true ou um número >= 1')
+        .optional(),
+    ),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') return;
+
+    if (
+      data.TRUST_PROXY === undefined ||
+      data.TRUST_PROXY.toLowerCase() === 'true'
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['TRUST_PROXY'],
+        message:
+          'TRUST_PROXY must be set in production to false or a hop count >= 1 (true is not allowed)',
+      });
+    }
 
     const devChecks: Array<[keyof typeof data, boolean]> = [
       [
@@ -114,11 +140,7 @@ export const envSchema = z
         data.ALLOWED_ORIGINS.split(',')
           .map((o) => o.trim())
           .filter(Boolean)
-          .some(
-            (o) =>
-              o === '*' ||
-              /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o),
-          ),
+          .some(isLocalOrigin),
       ],
       ['PAYMENTS_PROVIDER', data.PAYMENTS_PROVIDER === 'mock'],
       ['EMAIL_PROVIDER', data.EMAIL_PROVIDER === 'log'],
@@ -174,6 +196,7 @@ export const envSchema = z
   })
   .transform((data) => ({
     ...data,
+    TRUST_PROXY: parseTrustProxy(data.TRUST_PROXY),
     PAYMENTS_PROVIDER:
       data.PAYMENTS_PROVIDER ??
       (data.MERCADO_PAGO_ACCESS_TOKEN === 'TEST-dev-mercado-pago-access-token'

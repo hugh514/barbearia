@@ -41,7 +41,7 @@ Variáveis novas (todas opcionais em dev):
 | `PAINEL_PUBLIC_URL` | `http://localhost:3001` | Base dos links de e-mail para a equipe. Em produção é obrigatória, https e não local. |
 | `CLIENTE_PUBLIC_URL` | `http://localhost:3002` | Base dos links de e-mail para clientes. Mesmas regras. |
 | `EMAIL_PROVIDER` | `log` | `log` (dev e teste) ou `smtp`. Produção recusa `log`. O `smtp` ainda não está implementado e faz a API falhar no boot: produção só sobe depois que `EmailSender` for implementado. |
-| `TRUST_PROXY` | `false` | O rate limit usa `req.ip`. Só com proxy confiável à frente (ex.: `1` salto) o `X-Forwarded-For` passa a valer. Os e2e usam `true`. |
+| `TRUST_PROXY` | `false` | O rate limit usa `req.ip`. Só com proxy confiável à frente (ex.: `1` salto) o `X-Forwarded-For` passa a valer. Aceita `false`, `true` ou um número >= 1; outro valor é recusado. Em produção é obrigatório definir e `true` é recusado. Os e2e usam `true`. |
 
 Em produção a API também recusa subir com `INSTAGRAM_VERIFY_TOKEN` e token do Mercado Pago de desenvolvimento, `DATABASE_URL` com `barber:barber` e `ALLOWED_ORIGINS` com qualquer origem localhost, 127.0.0.1 ou `*`.
 
