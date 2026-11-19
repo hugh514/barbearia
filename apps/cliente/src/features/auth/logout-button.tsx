@@ -13,7 +13,7 @@ export function LogoutButton() {
     router.refresh();
   }
   return (
-    <Button variant="outline" className="w-full" onClick={handle}>
+    <Button variant="secondary" className="w-full" onClick={handle}>
       <LogOut className="size-4" />
       Sair
     </Button>

@@ -44,28 +44,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+      <div className="pointer-events-none fixed inset-x-4 bottom-4 z-[100] flex flex-col items-end gap-2 sm:left-auto">
         {toasts.map((t) => (
           <div
             key={t.id}
-            role="status"
+            role={t.tone === 'error' ? 'alert' : 'status'}
             className={cn(
-              'pointer-events-auto flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-lg',
-              t.tone === 'success'
-                ? 'border-[var(--success)]/40 bg-card text-foreground'
-                : 'border-destructive/40 bg-card text-foreground',
+              'pointer-events-auto flex animate-pop items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground shadow-float',
+              t.tone === 'error' && 'border-destructive',
             )}
           >
             {t.tone === 'success' ? (
-              <CheckCircle2 className="size-4 text-[var(--success)]" />
+              <CheckCircle2 className="size-4 shrink-0 text-success" />
             ) : (
-              <XCircle className="size-4 text-destructive" />
+              <XCircle className="size-4 shrink-0 text-destructive" />
             )}
             <span>{t.message}</span>
             <button
+              type="button"
               aria-label="Fechar"
               onClick={() => remove(t.id)}
-              className="ml-2 text-muted-foreground hover:text-foreground"
+              className="-my-1 -mr-2 ml-1 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
             >
               <X className="size-3.5" />
             </button>

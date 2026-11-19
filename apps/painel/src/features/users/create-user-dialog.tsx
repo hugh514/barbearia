@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input, fieldClass } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUserActions } from './use-users';
 import { createUserSchema, ROLE_LABEL, type CreateUserInput } from './schemas';
@@ -86,7 +86,7 @@ export function CreateUserDialog({
           <Label htmlFor="role">Papel</Label>
           <select
             id="role"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className={fieldClass}
             {...register('role')}
           >
             {roleOptions.map((r) => (
@@ -102,7 +102,7 @@ export function CreateUserDialog({
           </p>
         )}
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
           <Button type="submit" disabled={create.isPending}>

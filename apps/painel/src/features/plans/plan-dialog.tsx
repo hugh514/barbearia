@@ -116,7 +116,7 @@ export function PlanDialog({
         </div>
         {serverError && <p role="alert" className="text-sm text-destructive">{serverError}</p>}
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button type="submit" disabled={pending}>
             {pending ? 'Salvando…' : 'Salvar'}
           </Button>

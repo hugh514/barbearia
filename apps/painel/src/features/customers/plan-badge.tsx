@@ -3,7 +3,7 @@ import { PLAN_STATUS_LABEL, type PlanStatus } from './schemas';
 
 const TONE: Record<PlanStatus, BadgeTone> = {
   ACTIVE: 'success',
-  PENDING: 'amberSoft',
+  PENDING: 'warning',
   OVERDUE: 'danger',
   CANCELLED: 'neutral',
   NONE: 'neutral',

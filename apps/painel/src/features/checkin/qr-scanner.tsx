@@ -82,17 +82,17 @@ export function QrScanner({ onScan }: { onScan: (value: string) => void }) {
         <>
           <video
             ref={videoRef}
-            className="aspect-square w-full rounded-lg bg-black object-cover"
+            className="aspect-square w-full rounded-lg bg-media object-cover"
             muted
             playsInline
           />
-          <Button variant="outline" onClick={() => setActive(false)}>
+          <Button variant="secondary" onClick={() => setActive(false)}>
             <CameraOff className="size-4" />
             Parar câmera
           </Button>
         </>
       ) : (
-        <Button variant="outline" onClick={() => setActive(true)}>
+        <Button variant="secondary" onClick={() => setActive(true)}>
           <Camera className="size-4" />
           Escanear QR
         </Button>

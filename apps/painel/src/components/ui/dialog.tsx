@@ -1,9 +1,17 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from './button';
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Diálogo modal: role=dialog, aria-modal, foco preso dentro, Esc fecha e o
+ * foco volta para quem abriu. `placement="left"` vira gaveta lateral.
+ */
 export function Dialog({
   open,
   onClose,
@@ -11,6 +19,7 @@ export function Dialog({
   description,
   children,
   className,
+  placement = 'center',
 }: {
   open: boolean;
   onClose: () => void;
@@ -18,79 +27,107 @@ export function Dialog({
   description?: string;
   children: ReactNode;
   className?: string;
+  placement?: 'center' | 'left';
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  const titleId = useId();
+  const descId = useId();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
+    const panel = panelRef.current;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      // Focus trap simples: Tab cicla dentro do dialog.
-      if (e.key === 'Tab' && panelRef.current) {
-        const focusables = panelRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab' || !panel) return;
+      const items = panel.querySelectorAll<HTMLElement>(FOCUSABLE);
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const inside = panel.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+        e.preventDefault();
+        first.focus();
       }
     };
+
     document.addEventListener('keydown', onKey);
+    const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    // Autofocus no primeiro campo/botão.
-    const t = setTimeout(() => {
-      const target = panelRef.current?.querySelector<HTMLElement>(
-        'input, select, textarea, button:not([aria-label="Fechar"])',
-      );
-      target?.focus();
-    }, 20);
+    // Primeiro campo; sem campo, o primeiro controle que não é o Fechar.
+    const target =
+      panel?.querySelector<HTMLElement>('input, select, textarea') ??
+      panel?.querySelector<HTMLElement>(`${FOCUSABLE}:not([data-dialog-close])`) ??
+      panel;
+    target?.focus();
+
     return () => {
-      clearTimeout(t);
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
+      document.body.style.overflow = overflow;
+      opener?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className={cn(
+        'fixed inset-0 z-50 flex bg-overlay',
+        placement === 'center' ? 'items-center justify-center p-4' : 'items-stretch',
+      )}
       onMouseDown={onClose}
     >
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
+        aria-describedby={description ? descId : undefined}
+        tabIndex={-1}
         className={cn(
-          'max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg',
+          'overflow-y-auto border border-border bg-card text-card-foreground shadow-float outline-none',
+          placement === 'center'
+            ? 'max-h-[90dvh] w-full max-w-md animate-pop rounded-lg p-6'
+            : 'h-dvh w-72 max-w-[85vw] animate-slide-in border-y-0 border-l-0 p-4',
           className,
         )}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 flex items-start justify-between">
+        <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+            <h2 id={titleId} className="text-lg font-semibold text-foreground">
+              {title}
+            </h2>
             {description && (
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+              <p id={descId} className="mt-1 text-sm text-muted-foreground">
+                {description}
+              </p>
             )}
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             aria-label="Fechar"
-            className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            data-dialog-close
+            className="-mr-2 -mt-2 text-muted-foreground"
           >
-            <X className="size-4" />
-          </button>
+            <X />
+          </Button>
         </div>
         {children}
       </div>
@@ -98,7 +135,7 @@ export function Dialog({
   );
 }
 
-/** Diálogo de confirmação para ações destrutivas. */
+/** Confirmação de ação, com tom destrutivo opcional. */
 export function ConfirmDialog({
   open,
   onClose,
@@ -106,6 +143,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = 'Confirmar',
+  cancelLabel = 'Voltar',
   tone = 'default',
   loading,
 }: {
@@ -115,33 +153,23 @@ export function ConfirmDialog({
   title: string;
   description?: string;
   confirmLabel?: string;
+  cancelLabel?: string;
   tone?: 'default' | 'destructive';
   loading?: boolean;
 }) {
-  if (!open) return null;
   return (
     <Dialog open={open} onClose={onClose} title={title} description={description}>
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-10 items-center rounded-md border border-input px-4 text-sm hover:bg-secondary"
-        >
-          Cancelar
-        </button>
-        <button
-          type="button"
+        <Button variant="secondary" onClick={onClose}>
+          {cancelLabel}
+        </Button>
+        <Button
+          variant={tone === 'destructive' ? 'destructive' : 'primary'}
           disabled={loading}
           onClick={onConfirm}
-          className={cn(
-            'inline-flex h-10 items-center rounded-md px-4 text-sm font-medium text-white disabled:opacity-50',
-            tone === 'destructive'
-              ? 'bg-destructive hover:bg-destructive/90'
-              : 'bg-primary text-primary-foreground hover:bg-primary/90',
-          )}
         >
           {loading ? 'Processando…' : confirmLabel}
-        </button>
+        </Button>
       </div>
     </Dialog>
   );

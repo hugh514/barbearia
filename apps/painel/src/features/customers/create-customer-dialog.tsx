@@ -51,7 +51,7 @@ export function CreateCustomerDialog({
       open={open}
       onClose={onClose}
       title="Novo cliente"
-      description="Cadastre um cliente manualmente"
+      description="Para quem chegou sem o app."
     >
       <form
         onSubmit={handleSubmit((v) => {
@@ -95,7 +95,7 @@ export function CreateCustomerDialog({
           </p>
         )}
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
           <Button type="submit" disabled={mutation.isPending}>

@@ -91,7 +91,7 @@ export function CreatePlanDialog({
           </p>
         )}
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
           <Button type="submit" disabled={create.isPending}>
