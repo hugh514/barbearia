@@ -28,7 +28,7 @@ async function bootstrap(): Promise<void> {
     .filter(Boolean);
   app.enableCors({ origin: allowedOrigins, credentials: true });
 
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  // trust proxy é configurado no AppModule a partir de TRUST_PROXY.
 
   app.useBodyParser('json', { limit: '2mb' });
 

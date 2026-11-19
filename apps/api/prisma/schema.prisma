@@ -40,6 +40,8 @@ model ChannelConfig {
   rules            String?
   whatsappInstance String?  @map("whatsapp_instance")
   instagramPageId  String?  @map("instagram_page_id")
+  brandColor       String   @default("#1F4FB8") @map("brand_color")
+  themeMode        String   @default("light") @map("theme_mode")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 

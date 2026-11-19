@@ -1,5 +1,36 @@
 import { z } from 'zod';
 
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]', '0.0.0.0'];
+
+function parseUrl(value: string | undefined): URL | null {
+  if (!value) return null;
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+}
+
+function isPublicHttps(value: string | undefined): boolean {
+  const url = parseUrl(value);
+  return (
+    !!url && url.protocol === 'https:' && !LOCAL_HOSTS.includes(url.hostname)
+  );
+}
+
+function isLocalOrigin(origin: string): boolean {
+  if (origin === '*') return true;
+  const url = parseUrl(origin);
+  return !!url && LOCAL_HOSTS.includes(url.hostname);
+}
+
+function parseTrustProxy(value: string | undefined): boolean | number {
+  const t = value?.toLowerCase();
+  if (t === undefined || t === 'false') return false;
+  if (t === 'true') return true;
+  return Number(t);
+}
+
 export const envSchema = z
   .object({
     NODE_ENV: z
@@ -59,9 +90,72 @@ export const envSchema = z
     OPENAI_API_KEY: z.string().default(''),
     OPENAI_MODEL: z.string().default('gpt-4o'),
     ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
+    // Vazio = escolhe pelo token: o token falso do .env.example usa o mock.
+    PAYMENTS_PROVIDER: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z.enum(['mock', 'mercadopago']).optional(),
+    ),
+    // URLs públicas dos fronts, usadas nos links de e-mail.
+    PAINEL_PUBLIC_URL: z.string().optional(),
+    CLIENTE_PUBLIC_URL: z.string().optional(),
+    // Provedor de e-mail. Produção exige um provedor real (smtp).
+    EMAIL_PROVIDER: z.enum(['log', 'smtp']).default('log'),
+    // Proxy confiável à frente da API: false, true ou número de saltos (>= 1).
+    // Valor inválido é recusado; produção exige definir (false ou saltos).
+    TRUST_PROXY: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z
+        .string()
+        .regex(/^(true|false|[1-9]\d*)$/i, 'use false, true ou um número >= 1')
+        .optional(),
+    ),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') return;
+
+    if (
+      data.TRUST_PROXY === undefined ||
+      data.TRUST_PROXY.toLowerCase() === 'true'
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['TRUST_PROXY'],
+        message:
+          'TRUST_PROXY must be set in production to false or a hop count >= 1 (true is not allowed)',
+      });
+    }
+
+    const devChecks: Array<[keyof typeof data, boolean]> = [
+      [
+        'INSTAGRAM_VERIFY_TOKEN',
+        data.INSTAGRAM_VERIFY_TOKEN === 'dev-instagram-verify-token',
+      ],
+      [
+        'MERCADO_PAGO_ACCESS_TOKEN',
+        data.MERCADO_PAGO_ACCESS_TOKEN.startsWith('TEST-dev-'),
+      ],
+      ['DATABASE_URL', /\/\/barber:barber@/.test(data.DATABASE_URL)],
+      [
+        'ALLOWED_ORIGINS',
+        data.ALLOWED_ORIGINS.split(',')
+          .map((o) => o.trim())
+          .filter(Boolean)
+          .some(isLocalOrigin),
+      ],
+      ['PAYMENTS_PROVIDER', data.PAYMENTS_PROVIDER === 'mock'],
+      ['EMAIL_PROVIDER', data.EMAIL_PROVIDER === 'log'],
+      ['PAINEL_PUBLIC_URL', !isPublicHttps(data.PAINEL_PUBLIC_URL)],
+      ['CLIENTE_PUBLIC_URL', !isPublicHttps(data.CLIENTE_PUBLIC_URL)],
+    ];
+    for (const [field, insecure] of devChecks) {
+      if (insecure) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [field],
+          message: `${field} has a development value, not allowed in production`,
+        });
+      }
+    }
 
     const insecureDefaults: Array<{
       field: keyof typeof data;
@@ -99,7 +193,16 @@ export const envSchema = z
         });
       }
     }
-  });
+  })
+  .transform((data) => ({
+    ...data,
+    TRUST_PROXY: parseTrustProxy(data.TRUST_PROXY),
+    PAYMENTS_PROVIDER:
+      data.PAYMENTS_PROVIDER ??
+      (data.MERCADO_PAGO_ACCESS_TOKEN === 'TEST-dev-mercado-pago-access-token'
+        ? ('mock' as const)
+        : ('mercadopago' as const)),
+  }));
 
 export type Env = z.infer<typeof envSchema>;
 

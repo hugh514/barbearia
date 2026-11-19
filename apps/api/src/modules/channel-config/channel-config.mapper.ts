@@ -45,6 +45,8 @@ export function toChannelConfigResponse(
     rules: config.rules,
     whatsappInstance: config.whatsappInstance,
     instagramPageId: config.instagramPageId,
+    brandColor: config.brandColor,
+    themeMode: config.themeMode === 'dark' ? 'dark' : 'light',
     createdAt: config.createdAt.toISOString(),
     updatedAt: config.updatedAt.toISOString(),
   };

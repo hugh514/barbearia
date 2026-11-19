@@ -19,6 +19,16 @@ interface ErrorResponseBody {
   path: string;
 }
 
+function statusTitle(status: number): string {
+  const name = HttpStatus[status];
+  if (!name) return 'Error';
+  return name
+    .toLowerCase()
+    .split('_')
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
@@ -41,7 +51,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'string') {
+      // Exceção com corpo em string (ex.: ThrottlerException): o título vem do status.
+      error = statusTitle(statusCode);
+      if (statusCode === HttpStatus.TOO_MANY_REQUESTS) {
+        message = 'Muitas requisições. Tente novamente em instantes.';
+      } else if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
         const body = exceptionResponse as Record<string, unknown>;

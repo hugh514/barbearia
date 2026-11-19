@@ -58,6 +58,11 @@ export class AppointmentResponseDto {
   @ApiProperty()
   createdAt!: Date;
 
+  @ApiProperty({
+    description: 'Horário de entrada na fila (check-in), igual a createdAt',
+  })
+  enteredAt!: Date;
+
   @ApiProperty()
   updatedAt!: Date;
 
@@ -76,6 +81,23 @@ export class AppointmentResponseDto {
     description: 'Duração do atendimento em segundos (histórico)',
   })
   durationSeconds?: number | null;
+}
+
+export class MyQueuePositionResponseDto {
+  @ApiProperty({
+    nullable: true,
+    description: '1 = próximo; 0 = em atendimento',
+  })
+  position!: number | null;
+
+  @ApiProperty({ nullable: true, description: 'Pessoas aguardando na frente' })
+  ahead!: number | null;
+
+  @ApiProperty({ enum: AppointmentStatus, nullable: true })
+  status!: AppointmentStatus | null;
+
+  @ApiProperty({ nullable: true })
+  enteredAt!: Date | null;
 }
 
 export class PaginatedAppointmentsResponseDto {

@@ -7,3 +7,6 @@ coverage/
 dist/
 test-results/
 playwright-report/
+
+# Agentes (local)
+.claude/

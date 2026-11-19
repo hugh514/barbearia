@@ -3,8 +3,16 @@ import { ChannelConfig, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { toChannelConfigResponse } from './channel-config.mapper';
 import { CreateChannelConfigDto } from './dto/create-config.dto';
-import { ChannelConfigResponseDto } from './dto/config-response.dto';
+import {
+  ChannelAppearanceDto,
+  ChannelConfigPublicDto,
+  ChannelConfigResponseDto,
+} from './dto/config-response.dto';
+
 import { UpdateChannelConfigDto } from './dto/update-config.dto';
+
+const DEFAULT_BRAND_COLOR = '#1F4FB8';
+const DEFAULT_THEME_MODE = 'light' as const;
 
 @Injectable()
 export class ChannelConfigService {
@@ -41,6 +49,48 @@ export class ChannelConfigService {
     return toChannelConfigResponse(config);
   }
 
+  /** Visão do CLIENTE: só campos permitidos; sem config, devolve os padrões. */
+  async findPublic(tenantId: string): Promise<ChannelConfigPublicDto> {
+    const config = await this.findConfigEntity(tenantId);
+    if (!config) {
+      return {
+        businessName: '',
+        address: '',
+        workingHours: '',
+        services: [],
+        brandColor: DEFAULT_BRAND_COLOR,
+        themeMode: DEFAULT_THEME_MODE,
+      };
+    }
+    const full = toChannelConfigResponse(config);
+    return {
+      businessName: full.businessName,
+      address: full.address,
+      workingHours: full.workingHours,
+      services: full.services,
+      brandColor: full.brandColor,
+      themeMode: full.themeMode,
+    };
+  }
+
+  /** Aparência para o layout dos fronts, com padrões quando não há config. */
+  async findAppearance(tenantId: string): Promise<ChannelAppearanceDto> {
+    const config = await this.findConfigEntity(tenantId);
+    if (!config) {
+      return {
+        businessName: null,
+        brandColor: DEFAULT_BRAND_COLOR,
+        themeMode: DEFAULT_THEME_MODE,
+      };
+    }
+    const full = toChannelConfigResponse(config);
+    return {
+      businessName: full.businessName,
+      brandColor: full.brandColor,
+      themeMode: full.themeMode,
+    };
+  }
+
   async update(
     tenantId: string,
     dto: UpdateChannelConfigDto,
@@ -72,6 +122,13 @@ export class ChannelConfigService {
     }
     if (dto.instagramPageId !== undefined) {
       data.instagramPageId = dto.instagramPageId;
+    }
+
+    if (dto.brandColor !== undefined) {
+      data.brandColor = dto.brandColor;
+    }
+    if (dto.themeMode !== undefined) {
+      data.themeMode = dto.themeMode;
     }
 
     const config = await this.prisma.channelConfig.update({
@@ -124,6 +181,8 @@ export class ChannelConfigService {
       rules: dto.rules,
       whatsappInstance: dto.whatsappInstance,
       instagramPageId: dto.instagramPageId,
+      brandColor: dto.brandColor,
+      themeMode: dto.themeMode,
     };
   }
 }

@@ -20,7 +20,10 @@ import { PaginatedResult } from '@common/pagination/pagination.types';
 import { AppointmentQueryDto } from '@modules/appointments/dto/appointment-query.dto';
 import { CancelAppointmentDto } from '@modules/appointments/dto/cancel-appointment.dto';
 import { CreateAppointmentDto } from '@modules/appointments/dto/create-appointment.dto';
-import { AppointmentResponseDto } from '@modules/appointments/dto/appointment-response.dto';
+import {
+  AppointmentResponseDto,
+  MyQueuePositionResponseDto,
+} from '@modules/appointments/dto/appointment-response.dto';
 import { FinishAppointmentDto } from '@modules/appointments/dto/finish-appointment.dto';
 import { toAppointmentResponse } from '@modules/appointments/appointments.mapper';
 import { PrismaService } from '@prisma/prisma.service';
@@ -37,6 +40,12 @@ const appointmentInclude = {
 const QUEUE_STATUSES: AppointmentStatus[] = [
   AppointmentStatus.AGUARDANDO,
   AppointmentStatus.EM_ATENDIMENTO,
+];
+
+const DAY_STATUSES: AppointmentStatus[] = [
+  ...QUEUE_STATUSES,
+  AppointmentStatus.FINALIZADO,
+  AppointmentStatus.CANCELADO,
 ];
 
 @Injectable()
@@ -65,13 +74,17 @@ export class AppointmentsService {
     return toAppointmentResponse(appointment);
   }
 
-  async getQueue(tenantId: string): Promise<AppointmentResponseDto[]> {
+  async getQueue(
+    tenantId: string,
+    includeFinished = false,
+  ): Promise<AppointmentResponseDto[]> {
     const { startOfDay, endOfDay } = this.getTodayRange();
+    const statuses = includeFinished ? DAY_STATUSES : QUEUE_STATUSES;
 
     const appointments = await this.prisma.appointment.findMany({
       where: {
         tenantId,
-        status: { in: QUEUE_STATUSES },
+        status: { in: statuses },
         createdAt: {
           gte: startOfDay,
           lte: endOfDay,
@@ -167,6 +180,62 @@ export class AppointmentsService {
     tenantId: string,
     query: AppointmentQueryDto,
   ): Promise<PaginatedResult<AppointmentResponseDto>> {
+    const customerId = await this.resolveCustomerId(userId, tenantId);
+    return this.findAll(tenantId, { ...query, customerId });
+  }
+
+  /** Posição do cliente logado na fila de hoje (tudo null se não está nela). */
+  async myQueuePosition(
+    userId: string,
+    tenantId: string,
+  ): Promise<MyQueuePositionResponseDto> {
+    const customerId = await this.resolveCustomerId(userId, tenantId);
+    const { startOfDay, endOfDay } = this.getTodayRange();
+    const today = {
+      tenantId,
+      deletedAt: null,
+      createdAt: { gte: startOfDay, lte: endOfDay },
+    };
+
+    const mine = await this.prisma.appointment.findFirst({
+      where: { ...today, customerId, status: { in: QUEUE_STATUSES } },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, status: true, createdAt: true },
+    });
+    if (!mine) {
+      return { position: null, ahead: null, status: null, enteredAt: null };
+    }
+    if (mine.status === AppointmentStatus.EM_ATENDIMENTO) {
+      return {
+        position: 0,
+        ahead: 0,
+        status: mine.status,
+        enteredAt: mine.createdAt,
+      };
+    }
+
+    const ahead = await this.prisma.appointment.count({
+      where: {
+        ...today,
+        status: AppointmentStatus.AGUARDANDO,
+        OR: [
+          { createdAt: { lt: mine.createdAt } },
+          { createdAt: mine.createdAt, id: { lt: mine.id } },
+        ],
+      },
+    });
+    return {
+      position: ahead + 1,
+      ahead,
+      status: mine.status,
+      enteredAt: mine.createdAt,
+    };
+  }
+
+  private async resolveCustomerId(
+    userId: string,
+    tenantId: string,
+  ): Promise<string> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, tenantId, active: true },
       select: { customerId: true },
@@ -176,7 +245,7 @@ export class AppointmentsService {
         'Usuário sem cadastro de cliente vinculado',
       );
     }
-    return this.findAll(tenantId, { ...query, customerId: user.customerId });
+    return user.customerId;
   }
 
   async start(

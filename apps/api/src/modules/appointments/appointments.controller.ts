@@ -28,9 +28,12 @@ import { AuthenticatedUser } from '@modules/auth/auth.types';
 import {
   AppointmentQueryDto,
   appointmentQuerySchema,
+  QueueQueryDto,
+  queueQuerySchema,
 } from '@modules/appointments/dto/appointment-query.dto';
 import {
   AppointmentResponseDto,
+  MyQueuePositionResponseDto,
   PaginatedAppointmentsResponseDto,
   QueueAppointmentsResponseDto,
 } from '@modules/appointments/dto/appointment-response.dto';
@@ -72,12 +75,20 @@ export class AppointmentsController {
   @Get('queue')
   @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.BARBEIRO)
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Fila do dia (AGUARDANDO + EM_ATENDIMENTO)' })
+  @ApiOperation({
+    summary:
+      'Fila do dia (AGUARDANDO + EM_ATENDIMENTO; include=finished soma FINALIZADO e CANCELADO)',
+  })
+  @ApiQuery({ name: 'include', required: false, enum: ['finished'] })
   @ApiResponse({ status: 200, type: QueueAppointmentsResponseDto })
   async getQueue(
     @CurrentTenant() tenantId: string,
+    @Query(new ZodValidationPipe(queueQuerySchema)) query: QueueQueryDto,
   ): Promise<QueueAppointmentsResponseDto> {
-    const data = await this.appointmentsService.getQueue(tenantId);
+    const data = await this.appointmentsService.getQueue(
+      tenantId,
+      query.include === 'finished',
+    );
     return { data };
   }
 
@@ -99,6 +110,19 @@ export class AppointmentsController {
     query: AppointmentQueryDto,
   ): Promise<PaginatedAppointmentsResponseDto> {
     return this.appointmentsService.findAll(tenantId, query);
+  }
+
+  @Get('me/queue')
+  @Roles(UserRole.CLIENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Minha posição na fila de hoje (cliente logado)' })
+  @ApiResponse({ status: 200, type: MyQueuePositionResponseDto })
+  @ApiResponse({ status: 422, description: 'Usuário sem cliente vinculado' })
+  async myQueue(
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+  ): Promise<MyQueuePositionResponseDto> {
+    return this.appointmentsService.myQueuePosition(user.userId, tenantId);
   }
 
   @Get('me')

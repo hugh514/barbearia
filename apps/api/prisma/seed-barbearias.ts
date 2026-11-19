@@ -396,8 +396,8 @@ async function seedBarbearia(
       },
     });
     if (finishedAt) {
-      await prisma.customer.update({
-        where: { id: clientes[f.cliente].id },
+      await prisma.customer.updateMany({
+        where: { id: clientes[f.cliente].id, lastVisit: null },
         data: { lastVisit: finishedAt },
       });
     }
@@ -459,7 +459,7 @@ async function seedBarbearia(
         businessName: b.nome,
         services: b.servicos,
         address: 'Endereço fictício para demonstração',
-        phone: b.clientes[0].telefone.slice(0, 2) + '30000000',
+        phone: b.clientes[0].telefone.slice(0, 2) + '00000000',
         workingHours: 'Segunda a sábado, das 9h às 19h',
         rules: 'Atendimento por ordem de chegada, sem agendamento.',
       },
@@ -471,6 +471,9 @@ export async function seedBarbearias(
   prisma: PrismaClient,
   passwordHash: string,
 ): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Seed de demonstração não roda com NODE_ENV=production');
+  }
   for (const b of BARBEARIAS) {
     await seedBarbearia(prisma, b, passwordHash);
   }

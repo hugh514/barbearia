@@ -32,6 +32,8 @@ export interface GatewayPaymentStatus {
 }
 
 export interface PaymentGateway {
+  /** true no provedor fictício de dev (habilita o mock-approve). */
+  readonly isMock?: boolean;
   createPayment(data: CreateGatewayPayment): Promise<GatewayPaymentResult>;
   verifyWebhook(
     headers: Record<string, string | string[] | undefined>,

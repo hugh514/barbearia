@@ -202,7 +202,7 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
           sub: '00000000-0000-4000-8000-000000000001',
           tenantId: '00000000-0000-4000-8000-000000000002',
           role: UserRole.ADMIN,
-          email: 'expired@test.com',
+          email: 'expired@test.example',
         },
         jwtSecret,
         { expiresIn: '0s' },
@@ -319,14 +319,14 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
         where: {
           tenantId_email: {
             tenantId: otherTenant.id,
-            email: 'other@tenant.com',
+            email: 'other@tenant.example',
           },
         },
         update: { passwordHash, active: true },
         create: {
           tenantId: otherTenant.id,
           name: 'Other Tenant User',
-          email: 'other@tenant.com',
+          email: 'other@tenant.example',
           passwordHash,
           role: UserRole.BARBEIRO,
           active: true,
@@ -351,14 +351,14 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
         await request(app.getHttpServer())
           .post('/auth/login')
           .set('X-Forwarded-For', uniqueIp)
-          .send({ email: 'ratelimit@test.com', password: 'wrong' })
+          .send({ email: 'ratelimit@test.example', password: 'wrong' })
           .expect(401);
       }
 
       await request(app.getHttpServer())
         .post('/auth/login')
         .set('X-Forwarded-For', uniqueIp)
-        .send({ email: 'ratelimit@test.com', password: 'wrong' })
+        .send({ email: 'ratelimit@test.example', password: 'wrong' })
         .expect(429);
     });
   });

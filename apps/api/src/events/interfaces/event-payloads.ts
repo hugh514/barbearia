@@ -1,4 +1,4 @@
-import { CustomerOrigin } from '@prisma/client';
+import { CustomerOrigin, UserRole } from '@prisma/client';
 
 export interface AtendimentoFinalizadoPayload {
   tenantId: string;
@@ -31,4 +31,13 @@ export interface ClienteCadastradoPayload {
   phone: string;
   name: string;
   origin: CustomerOrigin | string;
+}
+
+export interface SenhaRecuperacaoSolicitadaPayload {
+  tenantId: string;
+  userId: string;
+  email: string;
+  tenantSlug: string;
+  role: UserRole;
+  token: string;
 }

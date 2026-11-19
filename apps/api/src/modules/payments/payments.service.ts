@@ -165,29 +165,47 @@ export class PaymentsService {
       return { received: true };
     }
 
+    await this.applyStatusChange(
+      payment.id,
+      mappedStatus,
+      gatewayStatus.gatewayData,
+    );
+
+    return { received: true };
+  }
+
+  /**
+   * Caminho único de mudança de status (webhook e mock-approve): atualização
+   * condicional atômica, idempotente, seguida do evento correspondente.
+   */
+  private async applyStatusChange(
+    paymentId: string,
+    mappedStatus: PaymentStatus,
+    gatewayData: unknown,
+  ): Promise<void> {
     // Atomic conditional update: only proceeds if payment is still non-terminal.
     // Protects against duplicate webhooks being processed concurrently (race window).
     const { count } = await this.prisma.payment.updateMany({
       where: {
-        id: payment.id,
+        id: paymentId,
         status: { notIn: TERMINAL_STATUSES },
       },
       data: {
         status: mappedStatus,
         paidAt: mappedStatus === PaymentStatus.APROVADO ? new Date() : null,
-        gatewayData: gatewayStatus.gatewayData as Prisma.InputJsonValue,
+        gatewayData: gatewayData as Prisma.InputJsonValue,
       },
     });
 
     // count === 0 means another concurrent webhook already moved it to a terminal
     // status — treat as already processed (idempotent, no duplicate events).
     if (count === 0) {
-      return { received: true };
+      return;
     }
 
     // Re-fetch to get full relations for event payload
     const updated = await this.prisma.payment.findUniqueOrThrow({
-      where: { id: payment.id },
+      where: { id: paymentId },
       include: paymentInclude,
     });
 
@@ -210,8 +228,36 @@ export class PaymentsService {
       };
       this.eventEmitter.emit(PAGAMENTO_RECUSADO, payload);
     }
+  }
 
-    return { received: true };
+  /** Só dev: aprova o pagamento pelo mesmo caminho do webhook. */
+  async mockApprove(
+    tenantId: string,
+    paymentId: string,
+    user: AuthenticatedUser,
+  ): Promise<PaymentResponseDto> {
+    if (
+      !this.paymentGateway.isMock ||
+      this.configService.get('NODE_ENV', { infer: true }) === 'production'
+    ) {
+      throw new NotFoundException('Not found');
+    }
+
+    const payment = await this.findPaymentInTenant(paymentId, tenantId);
+    if (user.role === UserRole.CLIENTE) {
+      await this.assertClienteOwnership(user, payment.customerId);
+    }
+
+    if (!TERMINAL_STATUSES.includes(payment.status)) {
+      await this.applyStatusChange(payment.id, PaymentStatus.APROVADO, {
+        mock: true,
+        approved: true,
+      });
+    }
+
+    return toPaymentResponse(
+      await this.findPaymentInTenant(paymentId, tenantId),
+    );
   }
 
   async findAll(

@@ -1,6 +1,10 @@
 import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
-import { channelServiceSchema } from './create-config.dto';
+import {
+  brandColorSchema,
+  channelServiceSchema,
+  themeModeSchema,
+} from './create-config.dto';
 
 export const updateChannelConfigSchema = z.object({
   businessName: z.string().min(1).optional(),
@@ -11,6 +15,8 @@ export const updateChannelConfigSchema = z.object({
   rules: z.string().nullable().optional(),
   whatsappInstance: z.string().nullable().optional(),
   instagramPageId: z.string().nullable().optional(),
+  brandColor: brandColorSchema.optional(),
+  themeMode: themeModeSchema.optional(),
 });
 
 export class UpdateChannelConfigDto extends createZodDto(

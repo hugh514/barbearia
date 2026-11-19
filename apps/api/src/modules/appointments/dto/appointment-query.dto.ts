@@ -11,4 +11,10 @@ export const appointmentQuerySchema = paginationQuerySchema.extend({
   dateTo: z.coerce.date().optional(),
 });
 
+export const queueQuerySchema = z.object({
+  include: z.enum(['finished']).optional(),
+});
+
+export class QueueQueryDto extends createZodDto(queueQuerySchema) {}
+
 export class AppointmentQueryDto extends createZodDto(appointmentQuerySchema) {}

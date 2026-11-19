@@ -28,7 +28,7 @@ Tudo sobe com `docker compose up --build` na raiz. Para mexer num app, entre na 
 4. Efeito colateral (mandar WhatsApp, pedir avaliação, cobrar) vai para fila BullMQ, nunca no handler HTTP.
 5. A IA nunca acessa o banco direto, só pela API.
 6. UUID v4 como chave primária; soft delete em entidade de negócio; TypeScript strict.
-7. Nos fronts, tokens ficam em cookie httpOnly e o navegador só fala com `/api/*` do próprio Next. `API_BASE_URL` é só do servidor, nunca `NEXT_PUBLIC_`.
+7. Nos fronts, tokens ficam em cookie httpOnly e o navegador fala com `/api/*` do próprio Next. Exceção: o tempo real do painel, em que `/api/realtime/token` entrega o access token ao JS e o navegador conecta direto na API (Socket.IO) em `API_PUBLIC_URL` (alcançável pelo navegador). `API_BASE_URL` é só do servidor, nunca `NEXT_PUBLIC_`.
 8. RBAC em duas camadas: `src/proxy.ts` no front e guardas na API (a API é a barreira final).
 
 ## Next.js 16
