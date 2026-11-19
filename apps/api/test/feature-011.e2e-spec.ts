@@ -72,7 +72,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
       data: {
         tenantId,
         name: 'User Cliente Check-in',
-        email: `cliente-checkin-${Date.now()}@test.com`,
+        email: `cliente-checkin-${Date.now()}@test.example`,
         passwordHash,
         role: UserRole.CLIENTE,
         customerId: customer.id,
@@ -83,7 +83,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
       data: {
         tenantId,
         name: 'Cliente Sem Vínculo',
-        email: `cliente-sem-vinculo-${Date.now()}@test.com`,
+        email: `cliente-sem-vinculo-${Date.now()}@test.example`,
         passwordHash,
         role: UserRole.CLIENTE,
         active: true,
@@ -104,14 +104,14 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
       where: {
         tenantId_email: {
           tenantId: otherTenant.id,
-          email: 'admin@other-011.com',
+          email: 'admin@other-011.example',
         },
       },
       update: {},
       create: {
         tenantId: otherTenant.id,
         name: 'Admin Other 011',
-        email: 'admin@other-011.com',
+        email: 'admin@other-011.example',
         passwordHash,
         role: UserRole.ADMIN,
         active: true,
@@ -123,7 +123,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
       .accessToken;
     barberToken = (await login(barberEmail)).accessToken;
     adminToken = (await login(adminEmail)).accessToken;
-    otherTenantBarberToken = (await login('admin@other-011.com')).accessToken;
+    otherTenantBarberToken = (await login('admin@other-011.example')).accessToken;
   });
 
   afterAll(async () => {
@@ -208,7 +208,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
         data: {
           tenantId,
           name: 'Cliente US2 AC1 User',
-          email: `us2ac1-${Date.now()}@test.com`,
+          email: `us2ac1-${Date.now()}@test.example`,
           passwordHash: await bcrypt.hash(password, 12),
           role: UserRole.CLIENTE,
           customerId: freshCustomer.id,
@@ -283,7 +283,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
         data: {
           tenantId,
           name: 'Cliente Idempotência User',
-          email: `idempotencia-${Date.now()}@test.com`,
+          email: `idempotencia-${Date.now()}@test.example`,
           passwordHash: await bcrypt.hash(password, 12),
           role: UserRole.CLIENTE,
           customerId: isolatedCustomer.id,
@@ -335,7 +335,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
         data: {
           tenantId,
           name: 'Cliente Finalizado User',
-          email: `finalizado-${Date.now()}@test.com`,
+          email: `finalizado-${Date.now()}@test.example`,
           passwordHash: await bcrypt.hash(password, 12),
           role: UserRole.CLIENTE,
           customerId: finishedCustomer.id,
@@ -380,7 +380,7 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
         data: {
           tenantId,
           name: 'Cliente Inativo User',
-          email: `inativo-${Date.now()}@test.com`,
+          email: `inativo-${Date.now()}@test.example`,
           passwordHash: await bcrypt.hash(password, 12),
           role: UserRole.CLIENTE,
           customerId: inactiveCustomer.id,

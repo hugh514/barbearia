@@ -62,14 +62,14 @@ describe('Feature 009 — Dashboard & Backoffice Metrics (e2e)', () => {
       where: {
         tenantId_email: {
           tenantId: otherTenantId,
-          email: 'admin@other-dashboard.com',
+          email: 'admin@other-dashboard.example',
         },
       },
       update: {},
       create: {
         tenantId: otherTenantId,
         name: 'Other Admin',
-        email: 'admin@other-dashboard.com',
+        email: 'admin@other-dashboard.example',
         passwordHash,
         role: UserRole.ADMIN,
         active: true,
