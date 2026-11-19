@@ -20,15 +20,21 @@ describe('Feature 015 — TRUST_PROXY desligado no throttle (e2e)', () => {
     }).compile();
     app = mod.createNestApplication();
     await app.init();
+    await clearThrottle();
   });
 
-  afterAll(async () => {
-    // Limpa os contadores do throttle (chaves sha256) para não afetar outras suites.
+  // Contadores do throttle (chaves sha256): suites anteriores sem XFF usam o
+  // mesmo IP de loopback, então zera antes e depois.
+  async function clearThrottle(): Promise<void> {
     const redis = app.get<Redis>(REDIS_CLIENT);
     const keys = (await redis.keys('*')).filter((k) =>
       /^[0-9a-f]{64}(:blocked)?$/.test(k),
     );
     if (keys.length) await redis.del(...keys);
+  }
+
+  afterAll(async () => {
+    await clearThrottle();
     await app.close();
   });
 
