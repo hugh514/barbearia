@@ -1,115 +1,136 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Design tokens — Backoffice Barbearia
-   Sidebar escura + accent âmbar, inspirado na referência Barbearia Modelo.
-   Suporta tema claro/escuro (classe .dark no <html>).
+   Tokens do Vez (docs/design.md). Toda cor do app mora aqui: componentes usam
+   só os utilitários do @theme (bg-primary, text-muted-foreground...), nunca hex
+   nem cor fixa do Tailwind.
+   --brand e derivados (--brand-fg, --brand-soft, --brand-text) chegam do
+   layout raiz no style do <html>, calculados por lib/theme.ts a partir da cor
+   da barbearia. Os valores abaixo são o padrão (Cobalto) caso faltem.
+   O modo escuro é escolha da barbearia: <html data-theme="dark">.
 --------------------------------------------------------------------------- */
 :root {
-  --background: #f7f7f8;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --card-foreground: #18181b;
-  --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --primary: #f59e0b;            /* amber-500 */
-  --primary-foreground: #1a1207;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #27272a;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #fef3c7;             /* amber-100 */
-  --accent-foreground: #92400e;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --success: #16a34a;
-  --warning: #d97706;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #f59e0b;
-  --radius: 0.65rem;
+  color-scheme: light;
 
-  --sidebar: #0b0b0d;
-  --sidebar-foreground: #a1a1aa;
-  --sidebar-active: #f59e0b;
-  --sidebar-active-foreground: #0b0b0d;
-  --sidebar-hover: #18181b;
-  --sidebar-border: #27272a;
+  --page: #f5f6f7;
+  --surface: #ffffff;
+  --subtle: #eef0f2;
+  --ink: #15181c;
+  --muted: #5b6470;
+  --line: #dde1e6;
+  --line-strong: #8a939e; /* borda de input: 3:1 sobre surface */
+
+  --success: #1c7a4e;
+  --success-soft: #e3f1ea;
+  --warning: #8a6414;
+  --warning-soft: #f4ecd8;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --danger-fg: #ffffff;
+
+  --brand: #1f4fb8;
+  --brand-fg: #ffffff;
+  --brand-soft: color-mix(in srgb, var(--brand) 10%, var(--surface));
+  --brand-text: #1f4fb8;
+
+  --overlay: rgb(10 12 15 / 0.5);
+  --media: #15181c; /* fundo do vídeo do scanner */
+  --float-shadow: 0 12px 32px rgb(10 12 15 / 0.18);
 }
 
-.dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #131316;
-  --card-foreground: #fafafa;
-  --popover: #131316;
-  --popover-foreground: #fafafa;
-  --primary: #f59e0b;
-  --primary-foreground: #1a1207;
-  --secondary: #1f1f23;
-  --secondary-foreground: #fafafa;
-  --muted: #1f1f23;
-  --muted-foreground: #a1a1aa;
-  --accent: #422006;
-  --accent-foreground: #fcd34d;
-  --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #f59e0b;
+[data-theme='dark'] {
+  color-scheme: dark;
 
-  --sidebar: #060608;
-  --sidebar-foreground: #a1a1aa;
-  --sidebar-active: #f59e0b;
-  --sidebar-active-foreground: #0b0b0d;
-  --sidebar-hover: #18181b;
-  --sidebar-border: #1f1f23;
+  --page: #121417;
+  --surface: #1b1e22;
+  --subtle: #24282d;
+  --ink: #e8ebee;
+  --muted: #9aa3ae;
+  --line: #2c3137;
+  --line-strong: #5f6873;
+
+  --success: #5cc795;
+  --success-soft: #1a2e25;
+  --warning: #e3b65c;
+  --warning-soft: #33291a;
+  --danger: #f28b80;
+  --danger-soft: #3a1f1c;
+  --danger-fg: #15181c;
+
+  --overlay: rgb(0 0 0 / 0.6);
+  --media: #000000;
+  --float-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-background: var(--page);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--brand);
+  --color-primary-hover: color-mix(in srgb, var(--brand) 85%, black);
+  --color-primary-foreground: var(--brand-fg);
+  --color-primary-text: var(--brand-text);
+  --color-secondary: var(--subtle);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--subtle);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--brand-soft);
+  --color-accent-foreground: var(--brand-text);
+  --color-destructive: var(--danger);
+  --color-destructive-hover: color-mix(in srgb, var(--danger) 85%, black);
+  --color-destructive-soft: var(--danger-soft);
+  --color-destructive-foreground: var(--danger-fg);
   --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-active: var(--sidebar-active);
-  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
-  --color-sidebar-hover: var(--sidebar-hover);
-  --color-sidebar-border: var(--sidebar-border);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-warning-soft: var(--warning-soft);
+  --color-border: var(--line);
+  --color-input: var(--line-strong);
+  --color-ring: var(--brand-text);
+  --color-overlay: var(--overlay);
+  --color-media: var(--media);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;  /* controles: botão, input, badge */
+  --radius-lg: 10px; /* painéis */
+  --shadow-float: var(--float-shadow);
+
+  --font-sans: var(--font-archivo);
+
+  /* Movimento só em resposta a ação (abrir diálogo, gaveta). */
+  --animate-pop: pop 140ms ease-out;
+  --animate-slide-in: slide-in 160ms ease-out;
+
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  }
+  @keyframes slide-in {
+    from { transform: translateX(-100%); }
+  }
 }
 
 * {
-  border-color: var(--border);
+  border-color: var(--line);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--page);
+  color: var(--ink);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

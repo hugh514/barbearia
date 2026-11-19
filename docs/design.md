@@ -8,21 +8,52 @@ A peça memorável é a **senha da fila**: o número da vez em tipografia conden
 
 ## Cor
 
-| Token | Hex | Uso |
+Base neutra fria, sem tom de marca, no padrão de SaaS sério de gestão. A única cor de marca é a da barbearia, escolhida por ela. Toda cor mora nos tokens de `globals.css` de cada front; componente nenhum usa hex ou cor fixa do Tailwind.
+
+### Base
+
+| Token | Claro | Escuro | Uso |
+|---|---|---|---|
+| `--page` | `#F5F6F7` | `#121417` | fundo da página |
+| `--surface` | `#FFFFFF` | `#1B1E22` | painéis, formulários, barra lateral |
+| `--ink` | `#15181C` | `#E8EBEE` | texto principal, títulos |
+| `--muted` | `#5B6470` | `#9AA3AE` | texto secundário (AA sobre page e surface) |
+| `--line` | `#DDE1E6` | `#2C3137` | bordas e divisores |
+
+### Marca da barbearia
+
+`--brand` é configurável por barbearia (Configurações, Aparência, só ADMIN). Padrão Cobalto `#1F4FB8`. Presets: Cobalto `#1F4FB8`, Grafite `#2B3036`, Bordô `#6E1F2A`, Verde-garrafa `#1F5A43`, Petróleo `#0A6A82`, Ameixa `#4B2A5E`. Também aceita hex livre; hex inválido cai no padrão.
+
+Derivados calculados em `lib/theme.ts` (função pura, com teste):
+
+- `--brand-fg`: branco ou ink, o que der mais contraste sobre a marca.
+- `--brand-soft`: marca misturada à surface (`color-mix`), para item ativo e seleção.
+- `--brand-text`: marca ajustada até 4.5:1 sobre a surface do modo atual (escurece no claro, clareia no escuro). Usada em texto e link na cor da marca.
+
+A marca aparece em uma ação por tela, não em todo botão: a ação secundária é contornada ou só texto.
+
+### Semânticas fixas
+
+Iguais para todas as barbearias.
+
+| Token | Claro | Escuro |
 |---|---|---|
-| `--ink` | `#16211C` | texto principal, títulos |
-| `--pine` | `#1F4D3A` | cor da marca, ação principal, "em atendimento" |
-| `--pine-soft` | `#E3ECE6` | fundo de item ativo, seleção |
-| `--paper` | `#F4F5F2` | fundo da página |
-| `--surface` | `#FFFFFF` | painéis, formulários |
-| `--line` | `#D9DED9` | bordas e divisores |
-| `--muted` | `#5D6B63` | texto secundário (contraste AA sobre paper e surface) |
-| `--brick` | `#A63D2A` | erro, cancelar, ação destrutiva |
-| `--ochre` | `#8A6414` | aviso e pendente (texto); fundo `#F4ECD8` |
+| `--success` | `#1C7A4E` | `#5CC795` |
+| `--warning` | `#8A6414` (fundo `#F4ECD8`) | `#E3B65C` (fundo `#33291A`) |
+| `--danger` | `#B3261E` | `#F28B80` |
 
-A cor de marca é verde-garrafa, como couro de cadeira antiga e frasco de loção. Nada de âmbar, dourado nem listras de poste de barbeiro. O verde aparece em uma ação por tela, não em todo botão: a ação secundária é contornada ou só texto.
+Na fila: esperando é neutro, na cadeira usa a marca, feitos em muted, cancelado em danger.
 
-Não há tema escuro nesta versão. O bloco `.dark` antigo sai do CSS.
+### Modo
+
+Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /settings`) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (login, cadastro) vale o padrão.
+
+## Marca
+
+- Símbolo: um V de duas lâminas de tesoura abertas que se cruzam num pino perto da base, dentro de um quadrado de raio 22% na cor da marca, lâminas em `--brand-fg`. Desenho em `components/layout/vez-logo.tsx` e `app/icon.svg`.
+- Logotipo: símbolo mais "Vez" em Archivo 700, não condensado.
+- Na barra lateral do painel e no header do cliente, o símbolo usa a cor da barbearia e o nome da barbearia vem ao lado. "Vez" fica só no rodapé, discreto.
+- Variações estudadas em `docs/prints/visual-vez/marca/` e comparadas em `docs/prints/visual-vez/marca.png`. A escolhida é a A.
 
 ## Tipografia
 
@@ -58,7 +89,7 @@ Painel:
 +---------+-------------------------------------------+
 ```
 
-- Navegação lateral clara (surface), não preta. No celular vira barra superior com botão de menu que abre a mesma lista em gaveta.
+- Navegação lateral em surface, não preta. No celular vira barra superior com botão de menu que abre a mesma lista em gaveta.
 - Tabelas de verdade (cabeçalho, linhas, `tabular-nums`) em clientes, pagamentos e assinaturas, não pilha de cartões.
 - Dashboard: um número principal (atendimentos de hoje) grande, os demais em linha menor, gráfico simples de barras por dia. Nada de quatro cartões iguais com ícone no canto.
 
@@ -95,4 +126,4 @@ Só em resposta a ação: abrir diálogo, confirmar check-in (a senha aparece co
 
 ## Proibido
 
-Cartões idênticos com sombra em grade, gradiente decorativo, ícone em quadradinho no canto, avatar de inicial em todo lugar, badge que repete o que a coluna já diz, rótulo em caixa alta espaçada, Geist, `#0b0b0d`, âmbar.
+Cartões idênticos com sombra em grade, gradiente decorativo, ícone em quadradinho no canto, avatar de inicial em todo lugar, badge que repete o que a coluna já diz, rótulo em caixa alta espaçada, Geist, `#0b0b0d`, âmbar, hex ou cor do Tailwind fora de `globals.css`.
