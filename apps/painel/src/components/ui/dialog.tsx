@@ -8,6 +8,9 @@ import { Button } from './button';
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+// Diálogos abertos, do mais antigo ao do topo: Esc e Tab só valem no topo.
+const openStack: HTMLElement[] = [];
+
 /**
  * Diálogo modal: role=dialog, aria-modal, foco preso dentro, Esc fecha e o
  * foco volta para quem abriu. `placement="left"` vira gaveta lateral.
@@ -44,12 +47,13 @@ export function Dialog({
     const panel = panelRef.current;
 
     const onKey = (e: KeyboardEvent) => {
+      if (!panel || openStack[openStack.length - 1] !== panel) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         onCloseRef.current();
         return;
       }
-      if (e.key !== 'Tab' || !panel) return;
+      if (e.key !== 'Tab') return;
       const items = panel.querySelectorAll<HTMLElement>(FOCUSABLE);
       if (items.length === 0) return;
       const first = items[0];
@@ -64,6 +68,7 @@ export function Dialog({
       }
     };
 
+    if (panel) openStack.push(panel);
     document.addEventListener('keydown', onKey);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -75,6 +80,7 @@ export function Dialog({
     target?.focus();
 
     return () => {
+      if (panel) openStack.splice(openStack.indexOf(panel), 1);
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = overflow;
       opener?.focus?.();
