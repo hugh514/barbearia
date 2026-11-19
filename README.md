@@ -20,7 +20,7 @@ App do cliente, tela inicial:
 
 ## Como rodar
 
-Precisa só de Docker com o Compose.
+Precisa só de Docker com o Compose 2.24 ou mais novo.
 
 ```bash
 git clone <url-deste-repositorio> barbearia && cd barbearia
@@ -45,11 +45,16 @@ Essas senhas existem só no seed, para ambiente local. Não use em produção.
 
 | Onde | E-mail | Senha |
 |---|---|---|
-| Painel, dono | admin@barbearia.example | admin123 |
-| Painel, barbeiro | barbeiro@barbearia.example | admin123 |
+| Painel, dono da Barbearia Modelo | admin@barbearia.example | admin123 |
+| Painel, gerente | gerente@barbearia.example | admin123 |
+| Painel, barbeiros | barbeiro@, rafael@ ou lucas@barbearia.example | admin123 |
+| Painel, dono da Barbearia do Centro | dono@centro.example | admin123 |
+| Painel, dono da Navalha Norte | dono@navalha.example | admin123 |
 | App do cliente | cliente@barbearia.example | Cliente123 |
 
-O seed cria a Barbearia Modelo (slug `barbearia-modelo`) com cinco clientes, fila com gente esperando e em atendimento, três planos, assinaturas em vários estados, pagamentos de exemplo e conversas de WhatsApp e Instagram.
+O seed roda sozinho no `docker compose up` e cria três barbearias, cada uma isolada da outra. A Barbearia Modelo é a mais completa: dono, gerente, três barbeiros, treze clientes, fila do dia com gente esperando, em atendimento, finalizada e cancelada, quatro planos, assinaturas ativas, pendentes, suspensas e canceladas, pagamentos PIX e cartão de teste e conversas de WhatsApp e Instagram. A Barbearia do Centro e a Navalha Norte têm equipe, clientes, planos, serviços e fila menores. Nomes, telefones e e-mails são inventados.
+
+A fila do dia fica com a data em que o banco foi criado. Para ter a fila de novo no dia de hoje, rode `docker compose down -v` e suba outra vez.
 
 ## Integrações externas ficam desligadas
 
@@ -57,7 +62,14 @@ O `.env.example` não tem nenhuma chave real.
 
 - **Mercado Pago**: vem com um token falso de teste. O painel mostra os pagamentos do seed, mas gerar uma cobrança PIX nova só funciona se você colocar um token de sandbox seu (`TEST-...`) em `MERCADO_PAGO_ACCESS_TOKEN`.
 - **WhatsApp** (Evolution API): sem `EVOLUTION_API_KEY` a API recusa os webhooks e não envia nada.
-- **Instagram** e **IA** (OpenAI): sem `INSTAGRAM_PAGE_ACCESS_TOKEN` e `OPENAI_API_KEY` ficam inativos.
+- **Instagram**: sem `INSTAGRAM_PAGE_ACCESS_TOKEN` nada é enviado.
+- **IA** (OpenAI): sem `OPENAI_API_KEY` fica desligada.
+
+Os segredos de webhook do `.env.example` (Mercado Pago e Instagram) são públicos e servem só para testar localmente. Em qualquer ambiente exposto, troque todos; a API recusa subir em produção com esses valores padrão.
+
+## Testes
+
+Com o compose no ar, `bash scripts/testar-api.sh` faz login, lista e cria clientes, põe alguém na fila, cadastra um barbeiro que inicia e finaliza o atendimento, mexe nos serviços, cria plano e assinatura e confere papéis e isolamento entre barbearias. Os testes de cada app ficam dentro dele; os comandos estão no `AGENTS.md`.
 
 ## Estrutura
 
@@ -70,6 +82,8 @@ barbearia/
   docs/
     constituicao/   princípios da API e do painel
     prints/         imagens deste README
+  scripts/
+    testar-api.sh   teste de fumaça da API
   docker-compose.yml
   .env.example
   AGENTS.md         regras para quem (pessoa ou agente) for mexer no código

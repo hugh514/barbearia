@@ -40,7 +40,7 @@ Esta versão tem mudanças que quebram o que você conhece (APIs, convenções, 
 ```bash
 # apps/api
 npm test            # jest, unitários
-npm run test:e2e    # precisa de Postgres e Redis no ar
+npm run test:e2e -- --runInBand --forceExit   # banco migrado e com seed, Redis no ar
 npm run lint
 
 # apps/painel
@@ -52,6 +52,8 @@ npm run typecheck
 npm run typecheck
 npm run lint
 ```
+
+Teste de fumaça da API inteira, com o compose no ar: `bash scripts/testar-api.sh`.
 
 ## Commits e PRs
 
