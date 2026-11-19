@@ -137,11 +137,14 @@ export default function PlanosPage() {
         </div>
       )}
 
+      {dialogOpen && (
       <PlanDialog
+        key={editing?.id ?? 'novo'}
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         plan={editing}
       />
+      )}
 
       <ConfirmDialog
         open={Boolean(toggling)}

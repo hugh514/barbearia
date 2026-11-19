@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,8 +32,9 @@ export function FinishDialog({
 }) {
   const { finish } = useQueueActions();
   const { toast } = useToast();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [price, setPrice] = useState('');
+  const [selected, setSelected] = useState<string[]>(appointment?.services ?? []);
+  // null = usar a soma dos serviços; string = valor digitado à mão.
+  const [manualPrice, setManualPrice] = useState<string | null>(null);
 
   const { data: config } = useQuery({
     queryKey: ['channel-config'],
@@ -43,21 +44,11 @@ export function FinishDialog({
 
   const services = useMemo(() => config?.services ?? [], [config]);
 
-  useEffect(() => {
-    if (open) {
-      setSelected(appointment?.services ?? []);
-      setPrice('');
-    }
-  }, [open, appointment]);
-
   // Soma automática dos preços dos serviços selecionados (quando parseáveis).
-  useEffect(() => {
-    if (!open) return;
-    const cents = services
-      .filter((s) => selected.includes(s.name))
-      .reduce((sum, s) => sum + priceToCents(s.price), 0);
-    if (cents > 0) setPrice(centsToMasked(cents));
-  }, [selected, services, open]);
+  const autoCents = services
+    .filter((s) => selected.includes(s.name))
+    .reduce((sum, s) => sum + priceToCents(s.price), 0);
+  const price = manualPrice ?? (autoCents > 0 ? centsToMasked(autoCents) : '');
 
   if (!appointment) return null;
 
@@ -65,6 +56,7 @@ export function FinishDialog({
     setSelected((cur) =>
       cur.includes(name) ? cur.filter((s) => s !== name) : [...cur, name],
     );
+    setManualPrice(null);
   }
 
   function submit() {
@@ -134,7 +126,7 @@ export function FinishDialog({
             inputMode="numeric"
             placeholder="R$ 0,00"
             value={price}
-            onChange={(e) => setPrice(maskCurrencyFromDigits(e.target.value))}
+            onChange={(e) => setManualPrice(maskCurrencyFromDigits(e.target.value))}
           />
         </div>
 

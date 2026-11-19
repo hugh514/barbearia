@@ -169,6 +169,7 @@ export function QueueBoard({ appointments }: { appointments: Appointment[] }) {
       </div>
 
       <FinishDialog
+        key={finishing?.id ?? 'nenhum'}
         appointment={finishing}
         open={Boolean(finishing)}
         onClose={() => setFinishing(null)}

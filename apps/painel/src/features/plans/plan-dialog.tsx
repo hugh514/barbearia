@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog } from '@/components/ui/dialog';
@@ -23,7 +23,7 @@ export function PlanDialog({
 }) {
   const { create, update } = usePlanActions();
   const { toast } = useToast();
-  const [price, setPrice] = useState('');
+  const [price, setPrice] = useState(plan ? centsToMasked(plan.priceCents) : '');
   const [serverError, setServerError] = useState<string | null>(null);
   const isEdit = Boolean(plan);
 
@@ -34,22 +34,14 @@ export function PlanDialog({
     formState: { errors },
   } = useForm<CreatePlanForm>({
     resolver: zodResolver(createPlanSchema),
-    defaultValues: { intervalDays: 30, benefits: [] },
+    defaultValues: {
+      name: plan?.name ?? '',
+      description: plan?.description ?? '',
+      priceReais: plan ? plan.priceCents / 100 : 0,
+      intervalDays: plan?.intervalDays ?? 30,
+      benefits: plan?.benefits ?? [],
+    },
   });
-
-  useEffect(() => {
-    if (open) {
-      reset({
-        name: plan?.name ?? '',
-        description: plan?.description ?? '',
-        priceReais: plan ? plan.priceCents / 100 : 0,
-        intervalDays: plan?.intervalDays ?? 30,
-        benefits: plan?.benefits ?? [],
-      });
-      setPrice(plan ? centsToMasked(plan.priceCents) : '');
-      setServerError(null);
-    }
-  }, [open, plan, reset]);
 
   function onSubmit(values: CreatePlanForm) {
     setServerError(null);

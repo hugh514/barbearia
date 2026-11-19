@@ -19,6 +19,8 @@ export function CustomersTable({
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
 
+  // useVirtualizer é incompatível com o React Compiler por design; o componente só não é memorizado.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: customers.length,
     getScrollElement: () => parentRef.current,
