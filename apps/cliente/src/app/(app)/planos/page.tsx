@@ -37,13 +37,13 @@ export default function PlanosPage() {
       queryClient.invalidateQueries({ queryKey: ['my-subscriptions'] });
     },
     onError: (e) =>
-      setError(e instanceof Error ? e.message : 'Erro ao assinar.'),
+      setError(e instanceof Error ? e.message : 'Não foi possível assinar. Tente de novo.'),
   });
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-foreground">Planos</h1>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      <h1 className="text-[28px] leading-tight font-bold text-foreground">Planos</h1>
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
@@ -60,8 +60,8 @@ export default function PlanosPage() {
                       <p className="text-lg font-bold text-foreground">
                         {plan.name}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatCents(plan.priceCents)} / {plan.intervalDays}d
+                      <p className="text-sm tabular-nums text-muted-foreground">
+                        {formatCents(plan.priceCents)} a cada {plan.intervalDays} dias
                       </p>
                     </div>
                   </div>
@@ -72,13 +72,14 @@ export default function PlanosPage() {
                           key={i}
                           className="flex items-center gap-2 text-sm text-muted-foreground"
                         >
-                          <Check className="size-4 text-primary" />
+                          <Check className="size-4 shrink-0 text-primary-text" aria-hidden />
                           {b}
                         </li>
                       ))}
                     </ul>
                   )}
                   <Button
+                    variant={current ? 'secondary' : 'primary'}
                     className="w-full"
                     disabled={current || sub.isPending}
                     onClick={() => {
@@ -86,7 +87,7 @@ export default function PlanosPage() {
                       sub.mutate(plan.id);
                     }}
                   >
-                    {current ? 'Plano atual' : 'Assinar'}
+                    {current ? 'Seu plano atual' : `Assinar plano ${plan.name}`}
                   </Button>
                 </CardContent>
               </Card>

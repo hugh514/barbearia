@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { myHistory } from '@/features/history/services';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatDateTime } from '@/lib/format';
@@ -23,7 +23,7 @@ export default function HistoricoPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-foreground">Histórico</h1>
+      <h1 className="text-[28px] leading-tight font-bold text-foreground">Histórico</h1>
 
       {isLoading ? (
         <div className="space-y-2">
@@ -33,30 +33,29 @@ export default function HistoricoPage() {
         </div>
       ) : (data?.data ?? []).length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Você ainda não tem atendimentos.
+          Nenhum atendimento ainda. Quando você passar pela barbearia, ele aparece aqui.
         </p>
       ) : (
-        <div className="space-y-2">
+        <Card className="divide-y divide-border">
           {data!.data.map((h) => (
-            <Card key={h.id}>
-              <CardContent className="flex items-center justify-between p-4">
+            <div key={h.id} className="flex items-center justify-between gap-3 p-4">
                 <div>
                   <p className="text-sm font-medium text-foreground">
                     {h.services.join(', ') || 'Atendimento'}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {h.barber?.name ?? 'Sem barbeiro'} · {formatDateTime(h.createdAt)}
+                    {h.barber?.name ? `${h.barber.name}, ` : ''}
+                    <span className="tabular-nums">{formatDateTime(h.createdAt)}</span>
                   </p>
                 </div>
-                <StatusBadge
-                  tone={h.status === 'FINALIZADO' ? 'success' : 'neutral'}
-                >
-                  {STATUS_LABEL[h.status] ?? h.status}
-                </StatusBadge>
-              </CardContent>
-            </Card>
+                {h.status !== 'FINALIZADO' && (
+                  <StatusBadge tone={h.status === 'CANCELADO' ? 'danger' : 'neutral'}>
+                    {STATUS_LABEL[h.status] ?? h.status}
+                  </StatusBadge>
+                )}
+            </div>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

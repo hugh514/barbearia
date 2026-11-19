@@ -1,15 +1,13 @@
 import type { ReactNode } from 'react';
+import { VezLogo } from '@/components/layout/vez-logo';
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-10">
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-primary-foreground">
-          BM
-        </div>
-        <h1 className="text-2xl font-bold text-foreground">Clube Modelo</h1>
-        <p className="text-sm text-muted-foreground">Clube de vantagens da barbearia</p>
-      </div>
+    <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col justify-center px-4 py-10">
+      <VezLogo className="mb-6" />
+      <p className="mb-8 text-base text-muted-foreground">
+        Entre na fila da barbearia pelo celular e acompanhe sua vez.
+      </p>
       {children}
     </div>
   );

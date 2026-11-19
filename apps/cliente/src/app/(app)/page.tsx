@@ -1,7 +1,7 @@
 'use client';
 
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Clock, Scissors } from 'lucide-react';
 import { useSession } from '@/features/auth/session-context';
 import { mySubscriptions } from '@/features/plans/services';
 import { myHistory } from '@/features/history/services';
@@ -40,92 +40,79 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm text-muted-foreground">Olá,</p>
-        <h1 className="text-2xl font-bold text-foreground">
-          {user?.email?.split('@')[0] ?? 'Membro'}
-        </h1>
-      </div>
+      <h1 className="text-[28px] leading-tight font-bold text-foreground">
+        Olá, {user?.email?.split('@')[0] ?? 'cliente'}
+      </h1>
 
       {/* Status na fila (após check-in) */}
       {inQueue && (
-        <Card className="border-primary/40">
-          <CardContent className="flex items-center gap-3 p-4">
-            {inQueue.status === 'EM_ATENDIMENTO' ? (
-              <Scissors className="size-5 text-primary" />
-            ) : (
-              <Clock className="size-5 text-primary" />
-            )}
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                {inQueue.status === 'EM_ATENDIMENTO'
-                  ? 'Você está sendo atendido'
-                  : 'Você está na fila'}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {inQueue.status === 'EM_ATENDIMENTO'
-                  ? inQueue.barber?.name ?? 'Aguarde, já é sua vez'
-                  : 'Aguarde ser chamado'}
-              </p>
-            </div>
+        <Card className="border-primary bg-accent" role="status">
+          <CardContent className="p-5">
+            <p className="text-4xl leading-none font-extrabold font-stretch-extra-condensed text-foreground">
+              {inQueue.status === 'EM_ATENDIMENTO' ? 'Sua vez' : 'Na fila'}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {inQueue.status === 'EM_ATENDIMENTO'
+                ? `Você está na cadeira${inQueue.barber?.name ? ` com ${inQueue.barber.name}` : ''}.`
+                : 'Fique por perto. A equipe chama pela ordem de chegada.'}
+            </p>
           </CardContent>
         </Card>
       )}
+
+      {!inQueue && <QrCheckin />}
 
       {/* Plano */}
       {isLoading ? (
         <Skeleton className="h-28 w-full" />
       ) : active ? (
-        <Card className="bg-primary text-primary-foreground">
+        <Card>
           <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wide opacity-80">
-                Plano ativo
-              </span>
-              <StatusBadge tone="neutral">Ativo</StatusBadge>
+            <p className="text-sm text-muted-foreground">Seu plano</p>
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <p className="text-lg font-bold text-foreground">
+                {active.plan?.name ?? 'Assinatura'}
+              </p>
+              <StatusBadge tone="success">Ativo</StatusBadge>
             </div>
-            <p className="mt-2 text-xl font-bold">{active.plan?.name ?? 'Assinatura'}</p>
             {active.plan && (
-              <p className="text-sm opacity-90">
-                {formatCents(active.plan.priceCents)} / {active.plan.intervalDays ?? 30}d
+              <p className="text-sm tabular-nums text-muted-foreground">
+                {formatCents(active.plan.priceCents)} a cada{' '}
+                {active.plan.intervalDays ?? 30} dias
               </p>
             )}
           </CardContent>
         </Card>
       ) : pending ? (
-        <Card className="border-primary/40">
+        <Card>
           <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                Plano
-              </span>
-              <StatusBadge tone="amberSoft">Aguardando ativação</StatusBadge>
+            <p className="text-sm text-muted-foreground">Seu plano</p>
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <p className="text-lg font-bold text-foreground">
+                {pending.plan?.name ?? 'Assinatura'}
+              </p>
+              <StatusBadge tone="warning">Aguardando ativação</StatusBadge>
             </div>
-            <p className="mt-2 text-lg font-bold text-foreground">
-              {pending.plan?.name ?? 'Assinatura'}
-            </p>
             <p className="text-sm text-muted-foreground">
-              Sua assinatura será ativada após a confirmação na barbearia.
+              Ativa assim que a barbearia confirmar o pagamento.
             </p>
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <CardContent className="p-5 text-center">
+          <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">
-              Você ainda não tem um plano ativo
+              Você ainda não tem plano.
             </p>
-            <a
+            <Link
               href="/planos"
-              className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+              className="mt-1 inline-flex min-h-11 items-center text-base font-semibold text-primary-text hover:underline"
             >
-              Conheça nossos planos
-            </a>
+              Ver planos da barbearia
+            </Link>
           </CardContent>
         </Card>
       )}
-
-      <QrCheckin />
     </div>
   );
 }

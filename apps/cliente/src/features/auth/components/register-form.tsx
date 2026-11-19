@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -62,7 +63,7 @@ export function RegisterForm() {
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         Já tem conta?{' '}
-        <a href="/login" className="text-primary hover:underline">Entrar</a>
+        <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-primary-text hover:underline">Entrar</Link>
       </p>
     </form>
   );
