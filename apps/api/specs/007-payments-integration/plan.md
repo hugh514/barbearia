@@ -1,4 +1,4 @@
-# Plano Técnico 007 — Integração com Pagamentos
+# Plano Técnico 007: Integração com Pagamentos
 
 **Input:** `specs/007-payments-integration/spec.md`
 

@@ -1,4 +1,4 @@
-# Plano Técnico 004 — Conversas e Mensagens (Omnichannel)
+# Plano Técnico 004: Conversas e Mensagens (Omnichannel)
 
 **Input:** `specs/004-conversations-messaging/spec.md`
 
@@ -8,11 +8,11 @@
 
 | Artigo | Status | Nota |
 |--------|--------|------|
-| I — API como Hub | ✅ | Mensagens registradas via API, nunca direto no banco |
-| II — Multi-tenancy | ✅ | Conversation e Message com tenant_id |
-| III — Stack canônica | ✅ | Socket.IO para real-time |
-| IV — Orientação a Eventos | ✅ | MENSAGEM_RECEBIDA emitido; Socket events para real-time |
-| V — Separação de módulos | ✅ | `conversations/` e `messages/` separados |
+| I, API como Hub | sim | Mensagens registradas via API, nunca direto no banco |
+| II, Multi-tenancy | sim | Conversation e Message com tenant_id |
+| III, Stack canônica | sim | Socket.IO para real-time |
+| IV, Orientação a Eventos | sim | MENSAGEM_RECEBIDA emitido; Socket events para real-time |
+| V, Separação de módulos | sim | `conversations/` e `messages/` separados |
 
 ---
 

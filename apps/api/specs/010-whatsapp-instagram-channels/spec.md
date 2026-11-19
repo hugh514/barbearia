@@ -1,4 +1,4 @@
-# Spec 010 — Canais WhatsApp e Instagram + IA
+# Spec 010: Canais WhatsApp e Instagram + IA
 
 **Branch:** `feat/010-whatsapp-instagram-channels`
 **Status:** Ready for Implementation
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-Este é o módulo que conecta a barbearia ao mundo externo. O bot atende clientes no WhatsApp (via Evolution API) e no Instagram (via Instagram Graph API), responde dúvidas com IA (OpenAI GPT-4o), captura dados para o CRM, e transfere para humano quando necessário. O bot NÃO agenda — ele informa, captura e direciona (Artigo X).
+Este é o módulo que conecta a barbearia ao mundo externo. O bot atende clientes no WhatsApp (via Evolution API) e no Instagram (via Instagram Graph API), responde dúvidas com IA (OpenAI GPT-4o), captura dados para o CRM, e transfere para humano quando necessário. O bot NÃO agenda, ele informa, captura e direciona (Artigo X).
 
 ---
 
 ## User Stories
 
-### US-010.1 — Receber Mensagem do WhatsApp (Priority: P0)
+### US-010.1: Receber Mensagem do WhatsApp (Priority: P0)
 
 **Como** sistema,
 **Quero** receber mensagens do WhatsApp via webhook da Evolution API,
@@ -30,7 +30,7 @@ Este é o módulo que conecta a barbearia ao mundo externo. O bot atende cliente
 - [ ] Envia para o motor de IA para gerar resposta
 - [ ] Resposta da IA é enviada de volta pelo WhatsApp e registrada como OUTBOUND
 
-### US-010.2 — Receber Mensagem do Instagram (Priority: P0)
+### US-010.2: Receber Mensagem do Instagram (Priority: P0)
 
 **Como** sistema,
 **Quero** receber DMs do Instagram via Graph API webhook,
@@ -45,7 +45,7 @@ Este é o módulo que conecta a barbearia ao mundo externo. O bot atende cliente
 - [ ] Registra mensagem e processa com IA
 - [ ] Resposta enviada via Instagram Send API
 
-### US-010.3 — Motor de IA (Priority: P0)
+### US-010.3: Motor de IA (Priority: P0)
 
 **Como** sistema,
 **Quero** que um motor de IA processe cada mensagem recebida e gere uma resposta contextualizada,
@@ -60,7 +60,7 @@ Este é o módulo que conecta a barbearia ao mundo externo. O bot atende cliente
 - [ ] Se IA detecta que cliente quer falar com humano → marca conversa como AGUARDANDO
 - [ ] Se IA detecta informação nova (nome completo) → atualiza via API
 
-### US-010.4 — Enviar Mensagem pelo WhatsApp (Priority: P0)
+### US-010.4: Enviar Mensagem pelo WhatsApp (Priority: P0)
 
 **Como** sistema,
 **Quero** enviar mensagens ativas pelo WhatsApp,
@@ -73,7 +73,7 @@ Este é o módulo que conecta a barbearia ao mundo externo. O bot atende cliente
 - [ ] Usado pelos processors da Feature 008 (post-attendance, etc)
 - [ ] Protegido por API key interna
 
-### US-010.5 — Configuração do Bot por Tenant (Priority: P1)
+### US-010.5: Configuração do Bot por Tenant (Priority: P1)
 
 **Como** admin,
 **Quero** configurar as informações que o bot usa para responder,
@@ -86,7 +86,7 @@ Este é o módulo que conecta a barbearia ao mundo externo. O bot atende cliente
 - [ ] Configuração é usada para montar o system prompt da IA
 - [ ] Apenas ADMIN pode editar
 
-### US-010.6 — Responder pelo Backoffice (Priority: P1)
+### US-010.6: Responder pelo Backoffice (Priority: P1)
 
 **Como** barbeiro ou gerente,
 **Quero** responder mensagens de clientes diretamente pelo backoffice,
@@ -197,7 +197,7 @@ Regras:
 
 ## Fora de Escopo
 
-- Mensagens com mídia (imagens, áudio, vídeo) — futuro
-- Chatbot com fluxos fixos (Typebot-style) — a IA é livre-forma
+- Mensagens com mídia (imagens, áudio, vídeo), futuro
+- Chatbot com fluxos fixos (Typebot-style), a IA é livre-forma
 - Múltiplas instâncias WhatsApp por tenant
 - Bot para Telegram, Facebook Messenger

@@ -1,4 +1,4 @@
-# Spec 005 — Atendimentos (Walk-in / Ordem de Chegada)
+# Spec 005: Atendimentos (Walk-in / Ordem de Chegada)
 
 **Branch:** `feat/005-appointments-attendance`
 **Status:** Ready for Implementation
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-A Barbearia Modelo opera por ordem de chegada — não há agendamento prévio. O cliente chega, é registrado na fila, e é atendido por um dos 3 barbeiros conforme disponibilidade. Este módulo registra cada atendimento para fins de histórico, métricas e pós-atendimento automatizado. Toda alteração de status fica registrada.
+A Barbearia Modelo opera por ordem de chegada, não há agendamento prévio. O cliente chega, é registrado na fila, e é atendido por um dos 3 barbeiros conforme disponibilidade. Este módulo registra cada atendimento para fins de histórico, métricas e pós-atendimento automatizado. Toda alteração de status fica registrada.
 
 ---
 
 ## User Stories
 
-### US-005.1 — Registrar Chegada do Cliente (Priority: P0)
+### US-005.1: Registrar Chegada do Cliente (Priority: P0)
 
 **Como** barbeiro ou gerente,
 **Quero** registrar que um cliente chegou à barbearia,
@@ -27,7 +27,7 @@ A Barbearia Modelo opera por ordem de chegada — não há agendamento prévio. 
 - [ ] Se cliente não existe, retorna 404 (cadastro é responsabilidade do módulo 003)
 - [ ] Registra `createdAt` como timestamp de chegada
 
-### US-005.2 — Iniciar Atendimento (Priority: P0)
+### US-005.2: Iniciar Atendimento (Priority: P0)
 
 **Como** barbeiro,
 **Quero** marcar que estou atendendo um cliente da fila,
@@ -40,7 +40,7 @@ A Barbearia Modelo opera por ordem de chegada — não há agendamento prévio. 
 - [ ] Só pode iniciar se status atual é `AGUARDANDO`
 - [ ] Barbeiro só pode ter 1 atendimento `EM_ATENDIMENTO` por vez
 
-### US-005.3 — Finalizar Atendimento (Priority: P0)
+### US-005.3: Finalizar Atendimento (Priority: P0)
 
 **Como** barbeiro,
 **Quero** marcar que terminei o atendimento,
@@ -54,7 +54,7 @@ A Barbearia Modelo opera por ordem de chegada — não há agendamento prévio. 
 - [ ] Emite evento `ATENDIMENTO_FINALIZADO` para a fila (Feature 008)
 - [ ] Só pode finalizar se status é `EM_ATENDIMENTO`
 
-### US-005.4 — Cancelar Atendimento (Priority: P1)
+### US-005.4: Cancelar Atendimento (Priority: P1)
 
 **Como** barbeiro ou gerente,
 **Quero** cancelar um atendimento (cliente desistiu),
@@ -66,7 +66,7 @@ A Barbearia Modelo opera por ordem de chegada — não há agendamento prévio. 
 - [ ] Pode cancelar se status é `AGUARDANDO` ou `EM_ATENDIMENTO`
 - [ ] `FINALIZADO` não pode ser cancelado
 
-### US-005.5 — Visualizar Fila Atual (Priority: P0)
+### US-005.5: Visualizar Fila Atual (Priority: P0)
 
 **Como** barbeiro ou gerente,
 **Quero** ver quem está na fila e quem está sendo atendido agora,
@@ -77,7 +77,7 @@ A Barbearia Modelo opera por ordem de chegada — não há agendamento prévio. 
 - [ ] Ordenado por `createdAt` (quem chegou primeiro aparece primeiro)
 - [ ] Inclui: cliente (nome, telefone), serviços, barbeiro (se em atendimento), tempo de espera
 
-### US-005.6 — Histórico de Atendimentos (Priority: P1)
+### US-005.6: Histórico de Atendimentos (Priority: P1)
 
 **Como** gerente ou admin,
 **Quero** ver o histórico de atendimentos com filtros,

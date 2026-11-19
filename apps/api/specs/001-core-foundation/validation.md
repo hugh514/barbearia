@@ -1,4 +1,4 @@
-# Validation 001 — Core Foundation
+# Validation 001: Core Foundation
 
 **Feature:** `specs/001-core-foundation/spec.md`  
 **Branch:** `feat/001-core-foundation`  
@@ -24,7 +24,7 @@ Ao finalizar as tasks (ou em sessão de validação dedicada):
    ```
 5. **Reporte** pass/fail por ID (`V001-01` …) e liste itens `manual` para o humano.
 
-Itens `manual` não entram no smoke — documente no relatório final.
+Itens `manual` não entram no smoke, documente no relatório final.
 
 ---
 
@@ -32,10 +32,10 @@ Itens `manual` não entram no smoke — documente no relatório final.
 
 | ID | Teste | Como verificar | Auto |
 |----|-------|----------------|------|
-| V001-01 | Build TypeScript strict | `npm run build` — compila sem erros | smoke |
+| V001-01 | Build TypeScript strict | `npm run build`, compila sem erros | smoke |
 | V001-02 | Lint | `npm run lint` | smoke |
 | V001-03 | Path aliases | Build passa com imports `@modules/*`, `@common/*`, `@prisma/*` | smoke |
-| V001-04 | Validação de env | Remova `DATABASE_URL` do `.env` e suba a API — deve falhar na inicialização com erro Zod | manual |
+| V001-04 | Validação de env | Remova `DATABASE_URL` do `.env` e suba a API, deve falhar na inicialização com erro Zod | manual |
 
 ---
 
@@ -43,11 +43,11 @@ Itens `manual` não entram no smoke — documente no relatório final.
 
 | ID | Teste | Como verificar | Auto |
 |----|-------|----------------|------|
-| V001-05 | Migration limpa | `npx prisma migrate deploy` — sem migrations pendentes | smoke |
-| V001-06 | Tabelas criadas | `npx prisma studio` ou `\dt` no psql — `tenants` e `users` existem | smoke |
+| V001-05 | Migration limpa | `npx prisma migrate deploy`, sem migrations pendentes | smoke |
+| V001-06 | Tabelas criadas | `npx prisma studio` ou `\dt` no psql, `tenants` e `users` existem | smoke |
 | V001-07 | UUID como PK | Colunas `id` são `uuid`, não `serial` | manual |
 | V001-08 | `tenant_id` em users | Coluna `tenant_id` NOT NULL com FK para `tenants` | manual |
-| V001-09 | Seed | `npx prisma db seed` — tenant "Barbearia Modelo" + ADMIN `admin@barbearia.example` | smoke |
+| V001-09 | Seed | `npx prisma db seed`, tenant "Barbearia Modelo" + ADMIN `admin@barbearia.example` | smoke |
 
 Conferir seed no banco:
 
@@ -63,10 +63,10 @@ docker compose exec postgres psql -U barber -d barber_db -c "SELECT name, slug F
 
 | ID | Teste | Como verificar | Auto |
 |----|-------|----------------|------|
-| V001-10 | Stack completa | `docker compose up --build` — api, postgres e redis sobem sem erro | manual |
+| V001-10 | Stack completa | `docker compose up --build`, api, postgres e redis sobem sem erro | manual |
 | V001-11 | Health via container | `curl http://localhost:3000/health` | smoke |
 | V001-12 | Hot reload | Altere um arquivo em `src/` e veja recompilação nos logs (`Found 0 errors. Watching...`) | manual |
-| V001-13 | Volumes persistentes | `docker compose down` → `docker compose up` — dados do postgres permanecem | manual |
+| V001-13 | Volumes persistentes | `docker compose down` → `docker compose up`, dados do postgres permanecem | manual |
 | V001-14 | `.env.example` | Todas as variáveis documentadas e copiáveis para `.env` | manual |
 
 ---
@@ -98,7 +98,7 @@ docker compose exec postgres psql -U barber -d barber_db -c "SELECT name, slug F
 
 ---
 
-## 6. Validação final — roteiro mínimo
+## 6. Validação final: roteiro mínimo
 
 Checklist rápido para considerar a spec **aprovada**:
 

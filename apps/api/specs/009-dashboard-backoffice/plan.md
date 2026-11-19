@@ -1,4 +1,4 @@
-# Plano Técnico 009 — Dashboard e Métricas
+# Plano Técnico 009: Dashboard e Métricas
 
 ---
 
@@ -27,7 +27,7 @@ src/modules/dashboard/
 async getSummary(tenantId: string, period: Period) { ... }
 
 // Redis key pattern: metric:{tenantId}:{endpoint}:{period}
-// Invalidação: não precisa — TTL curto é suficiente
+// Invalidação: não precisa, TTL curto é suficiente
 ```
 
 ## Period Enum e Date Ranges

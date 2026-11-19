@@ -1,4 +1,4 @@
-# Spec 003 — Gestão de Clientes e CRM Automático
+# Spec 003: Gestão de Clientes e CRM Automático
 
 **Branch:** `feat/003-customer-crm`
 **Status:** Ready for Implementation
@@ -14,7 +14,7 @@ Clientes são o coração do negócio. Esta feature cobre o cadastro manual (pel
 
 ## User Stories
 
-### US-003.1 — Cadastro Manual de Cliente (Priority: P0)
+### US-003.1: Cadastro Manual de Cliente (Priority: P0)
 
 **Como** barbeiro ou gerente,
 **Quero** cadastrar um cliente manualmente,
@@ -25,9 +25,9 @@ Clientes são o coração do negócio. Esta feature cobre o cadastro manual (pel
 - [ ] Retorna o cliente criado com ID
 - [ ] Telefone duplicado no mesmo tenant retorna 409
 - [ ] Campo `origin` aceita: `MANUAL`, `WHATSAPP`, `INSTAGRAM`
-- [ ] Campo `tenantId` inferido do JWT — nunca do body
+- [ ] Campo `tenantId` inferido do JWT, nunca do body
 
-### US-003.2 — CRM Automático (Upsert por Telefone) (Priority: P0)
+### US-003.2: CRM Automático (Upsert por Telefone) (Priority: P0)
 
 **Como** sistema (integração WhatsApp/Instagram),
 **Quero** criar um cliente automaticamente quando uma nova mensagem chega de número desconhecido,
@@ -40,7 +40,7 @@ Clientes são o coração do negócio. Esta feature cobre o cadastro manual (pel
 - [ ] Endpoint protegido por API key interna
 - [ ] Evento `CLIENTE_CADASTRADO` emitido apenas na criação
 
-### US-003.3 — Busca de Clientes (Priority: P0)
+### US-003.3: Busca de Clientes (Priority: P0)
 
 **Como** barbeiro, gerente ou admin,
 **Quero** buscar clientes por nome, telefone ou Instagram,
@@ -52,7 +52,7 @@ Clientes são o coração do negócio. Esta feature cobre o cadastro manual (pel
 - [ ] Busca funciona com telefone parcial
 - [ ] Resultados apenas do tenant do usuário autenticado
 
-### US-003.4 — Perfil do Cliente (Priority: P1)
+### US-003.4: Perfil do Cliente (Priority: P1)
 
 **Como** barbeiro ou gerente,
 **Quero** ver todos os dados de um cliente específico,
@@ -63,14 +63,14 @@ Clientes são o coração do negócio. Esta feature cobre o cadastro manual (pel
 - [ ] Inclui: dados pessoais, últimos 10 atendimentos, plano ativo, origem
 - [ ] Acesso a cliente de outro tenant retorna 404 (não 403)
 
-### US-003.5 — Atualização de Cliente (Priority: P1)
+### US-003.5: Atualização de Cliente (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `PATCH /customers/:id` aceita: nome, telefone, instagram
-- [ ] Partial update — apenas campos enviados
+- [ ] Partial update, apenas campos enviados
 - [ ] Telefone duplicado com outro cliente retorna 409
 
-### US-003.6 — Histórico do Cliente (Priority: P2)
+### US-003.6: Histórico do Cliente (Priority: P2)
 
 **Critérios de Aceite:**
 - [ ] `GET /customers/:id/history` retorna atendimentos paginados

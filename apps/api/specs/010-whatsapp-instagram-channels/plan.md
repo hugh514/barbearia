@@ -1,4 +1,4 @@
-# Plano Técnico 010 — Canais WhatsApp e Instagram + IA
+# Plano Técnico 010: Canais WhatsApp e Instagram + IA
 
 ---
 

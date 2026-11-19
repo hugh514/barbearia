@@ -1,4 +1,4 @@
-# Spec 004 — Conversas e Mensagens (Omnichannel)
+# Spec 004: Conversas e Mensagens (Omnichannel)
 
 **Branch:** `feat/004-conversations-messaging`
 **Status:** Ready for Implementation
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-Toda mensagem recebida — WhatsApp ou Instagram — deve ser registrada na API para construir o histórico de conversas. Este módulo implementa o CRM de mensagens: cada cliente tem um histórico contínuo de interações, com suporte a múltiplos canais.
+Toda mensagem recebida, WhatsApp ou Instagram, deve ser registrada na API para construir o histórico de conversas. Este módulo implementa o CRM de mensagens: cada cliente tem um histórico contínuo de interações, com suporte a múltiplos canais.
 
 ---
 
 ## User Stories
 
-### US-004.1 — Registrar Mensagem Recebida (Priority: P0)
+### US-004.1: Registrar Mensagem Recebida (Priority: P0)
 
 **Critérios de Aceite:**
 - [ ] `POST /conversations/:conversationId/messages` registra uma mensagem
@@ -23,7 +23,7 @@ Toda mensagem recebida — WhatsApp ou Instagram — deve ser registrada na API 
 - [ ] Evento `MENSAGEM_RECEBIDA` emitido após registro
 - [ ] Protegido por API key interna
 
-### US-004.2 — Abrir ou Reaproveitar Conversa (Priority: P0)
+### US-004.2: Abrir ou Reaproveitar Conversa (Priority: P0)
 
 **Critérios de Aceite:**
 - [ ] Uma conversa ABERTA por cliente por canal por vez
@@ -31,7 +31,7 @@ Toda mensagem recebida — WhatsApp ou Instagram — deve ser registrada na API 
 - [ ] Conversa FECHADA → nova mensagem cria nova conversa
 - [ ] `POST /conversations` cria conversa explicitamente
 
-### US-004.3 — Listar Conversas do Backoffice (Priority: P0)
+### US-004.3: Listar Conversas do Backoffice (Priority: P0)
 
 **Critérios de Aceite:**
 - [ ] `GET /conversations` paginado por tenant
@@ -40,14 +40,14 @@ Toda mensagem recebida — WhatsApp ou Instagram — deve ser registrada na API 
 - [ ] Ordenação: última mensagem mais recente primeiro
 - [ ] Socket.IO: evento `conversation.updated` emitido em tempo real
 
-### US-004.4 — Ver Mensagens (Priority: P0)
+### US-004.4: Ver Mensagens (Priority: P0)
 
 **Critérios de Aceite:**
 - [ ] `GET /conversations/:id/messages` paginado (mais recentes primeiro)
 - [ ] Cada mensagem: content, direction, channel, createdAt, externalId
 - [ ] Acesso a conversa de outro tenant retorna 404
 
-### US-004.5 — Transferir para Humano (Priority: P0)
+### US-004.5: Transferir para Humano (Priority: P0)
 
 **Critérios de Aceite:**
 - [ ] `PATCH /conversations/:id/status` aceita: AGUARDANDO, EM_ATENDIMENTO, FECHADA
@@ -55,7 +55,7 @@ Toda mensagem recebida — WhatsApp ou Instagram — deve ser registrada na API 
 - [ ] EM_ATENDIMENTO registra `assignedTo`
 - [ ] FECHADA só por BARBEIRO, GERENTE ou ADMIN
 
-### US-004.6 — Métricas de Conversas (Priority: P2)
+### US-004.6: Métricas de Conversas (Priority: P2)
 
 **Critérios de Aceite:**
 - [ ] `GET /conversations/stats` com totais por status

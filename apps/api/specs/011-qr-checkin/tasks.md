@@ -1,10 +1,10 @@
-# Tasks 011 — Check-in por QR Code
+# Tasks 011: Check-in por QR Code
 
 **Input:** `specs/011-qr-checkin/plan.md` · `specs/011-qr-checkin/spec.md`
 
 ---
 
-## Fase 1 — Setup do Módulo
+## Fase 1: Setup do Módulo
 
 **Objetivo**: Criar a estrutura base do módulo `checkin` e registrá-lo na aplicação.
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Fase 2 — Evento de Domínio
+## Fase 2: Evento de Domínio
 
 **Objetivo**: Definir o contrato do evento `CHECKIN_REALIZADO` antes do service que o emite.
 
@@ -21,7 +21,7 @@
 
 ---
 
-## Fase 3 — DTOs e Validação
+## Fase 3: DTOs e Validação
 
 **Objetivo**: Definir os contratos de entrada e saída com Zod, no padrão do projeto.
 
@@ -31,9 +31,9 @@
 
 ---
 
-## Fase 4 — US1: Geração de Token (CLIENTE)
+## Fase 4: US1: Geração de Token (CLIENTE)
 
-**Objetivo**: Implementar `POST /checkin/token` — cliente gera token efêmero; regeneração invalida o anterior.
+**Objetivo**: Implementar `POST /checkin/token`, cliente gera token efêmero; regeneração invalida o anterior.
 
 **Independent Test**: Autenticar como CLIENTE → `POST /checkin/token` → receber `{ token, expiresInSeconds: 60 }`; chamar novamente → novo token, anterior inválido.
 
@@ -54,9 +54,9 @@
 
 ---
 
-## Fase 5 — US2: Consumo Atômico de Token (BARBEIRO/GERENTE/ADMIN)
+## Fase 5: US2: Consumo Atômico de Token (BARBEIRO/GERENTE/ADMIN)
 
-**Objetivo**: Implementar `POST /checkin/consume` — consumo atômico, criação de atendimento walk-in, cálculo de posição na fila.
+**Objetivo**: Implementar `POST /checkin/consume`, consumo atômico, criação de atendimento walk-in, cálculo de posição na fila.
 
 **Independent Test**: Gerar token como CLIENTE → consumir como BARBEIRO → verificar atendimento criado com `status: AGUARDANDO` e `queuePosition` correto na resposta.
 
@@ -66,7 +66,7 @@
   - Buscar `Customer` via Prisma com `id = customerId AND tenantId = tenantId AND active = true`; não encontrado → lança `UnprocessableEntityException('Cliente não encontrado ou inativo')`
   - Buscar atendimento aberto do dia: `status IN [AGUARDANDO, EM_ATENDIMENTO] AND tenantId AND customerId AND createdAt >= startOfDay AND createdAt <= endOfDay`
   - Se encontrado: `reused = true`; se não: criar `Appointment` via `prisma.appointment.create({ data: { tenantId, customerId, status: AGUARDANDO } })`
-  - Calcular `queuePosition`: `prisma.appointment.count({ where: { tenantId, status: { in: QUEUE_STATUSES }, createdAt: { gte: startOfDay, lte: endOfDay, lte: appointment.createdAt } } })` — count de atendimentos na fila com `createdAt <= appointment.createdAt`
+  - Calcular `queuePosition`: `prisma.appointment.count({ where: { tenantId, status: { in: QUEUE_STATUSES }, createdAt: { gte: startOfDay, lte: endOfDay, lte: appointment.createdAt } } })`, count de atendimentos na fila com `createdAt <= appointment.createdAt`
   - Emitir `eventEmitter.emit(CHECKIN_REALIZADO, payload: CheckinRealizadoPayload)`
   - Retornar `{ appointment: toAppointmentResponse(appointment), queuePosition, reused }`
 - [x] T011-10 Adicionar endpoint `POST /checkin/consume` em `CheckinController`:
@@ -76,19 +76,19 @@
 
 ---
 
-## Fase 6 — US3: Idempotência de Fila (atendimento aberto)
+## Fase 6: US3: Idempotência de Fila (atendimento aberto)
 
 **Objetivo**: Garantir que consumo de token de cliente com atendimento aberto retorna o existente sem criar duplicata.
 
 **Independent Test**: Fazer check-in → verificar atendimento A; gerar novo token e consumir → resposta retorna o mesmo atendimento A com `reused: true`.
 
-> Esta fase não requer código novo — a lógica de idempotência já está embutida no método `consumeToken` (T011-09). Esta fase é de validação e teste.
+> Esta fase não requer código novo, a lógica de idempotência já está embutida no método `consumeToken` (T011-09). Esta fase é de validação e teste.
 
 - [x] T011-11 Validar (via testes e2e na Fase 7) o cenário de atendimento já aberto: dois check-ins do mesmo cliente no mesmo dia resultam em `reused: true` na segunda resposta e exatamente um `Appointment` no banco
 
 ---
 
-## Fase 7 — Listener e Processor BullMQ
+## Fase 7: Listener e Processor BullMQ
 
 **Objetivo**: Desacoplar efeitos colaterais do handler HTTP via BullMQ, no padrão da Feature 008.
 
@@ -103,7 +103,7 @@
 
 ---
 
-## Fase 8 — Testes E2E
+## Fase 8: Testes E2E
 
 **Objetivo**: Cobrir todos os Acceptance Scenarios da spec com testes e2e no arquivo `test/feature-011.e2e-spec.ts`.
 
@@ -123,7 +123,7 @@
 
 ---
 
-## Fase 9 — Swagger e Documentação
+## Fase 9: Swagger e Documentação
 
 **Objetivo**: Documentar os endpoints no Swagger e marcar a feature completa.
 
@@ -136,11 +136,11 @@
 
 ```
 T011-01 → T011-02                   (setup do módulo)
-T011-03                              (evento — independente, pode ser paralelo com T011-01)
-T011-04, T011-05, T011-06            (DTOs — paralelos entre si, dependem de T011-01)
+T011-03                              (evento, independente, pode ser paralelo com T011-01)
+T011-04, T011-05, T011-06            (DTOs, paralelos entre si, dependem de T011-01)
 T011-07 → T011-08                   (US1: service → controller)
 T011-09 → T011-10                   (US2: service → controller; depende de T011-07)
-T011-11                              (validação US3 — sem código novo; depende de T011-09)
+T011-11                              (validação US3, sem código novo; depende de T011-09)
 T011-12 → T011-13 → T011-14         (BullMQ; depende de T011-03 e T011-09)
 T011-15                              (e2e; depende de T011-08, T011-10, T011-14)
 T011-16 → T011-17                   (documentação e fechamento)

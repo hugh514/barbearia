@@ -1,4 +1,4 @@
-# Constituição do Projeto — Barber API
+# Constituição do Projeto: Barber API
 
 > Este documento define os princípios inegociáveis que governam todo o desenvolvimento da API.
 > Toda especificação, plano técnico e tarefa gerada deve estar em conformidade com esta constituição.
@@ -6,36 +6,36 @@
 
 ---
 
-## Artigo I — API como Hub Central
+## Artigo I: API como Hub Central
 
 **Princípio:** Nenhum sistema se comunica diretamente com outro. Toda comunicação passa pela API.
 
 **Implicações:**
-- WhatsApp, Instagram, Backoffice, App Mobile e IA são consumidores da API — nunca pares entre si.
+- WhatsApp, Instagram, Backoffice, App Mobile e IA são consumidores da API, nunca pares entre si.
 - A IA nunca acessa o banco de dados diretamente. Toda consulta passa pela API.
 - Webhooks externos (Evolution API, gateways de pagamento) chegam à API e só à API.
-- O banco de dados é privado da API — nenhum serviço externo tem acesso direto.
+- O banco de dados é privado da API, nenhum serviço externo tem acesso direto.
 
 **Verificação:** Qualquer spec que proponha comunicação direta entre dois sistemas não-API viola este artigo.
 
 ---
 
-## Artigo II — Multi-Tenancy desde o Início
+## Artigo II: Multi-Tenancy desde o Início
 
 **Princípio:** O sistema nasce preparado para múltiplas barbearias, sem refatoração futura.
 
 **Implicações:**
 - Toda tabela do banco deve conter `tenant_id UUID NOT NULL`.
-- Toda query deve filtrar por `tenant_id` — sem exceções.
+- Toda query deve filtrar por `tenant_id`, sem exceções.
 - Toda rota autenticada deve inferir o `tenant_id` pelo token JWT.
-- Nunca retornar dados de um tenant para outro — isso é uma falha de segurança crítica.
+- Nunca retornar dados de um tenant para outro, isso é uma falha de segurança crítica.
 - O modelo de dados deve suportar: 1 tenant = 1 barbearia; 1 tenant pode ter múltiplas unidades no futuro.
 
 **Verificação:** Qualquer entidade proposta sem `tenant_id` viola este artigo.
 
 ---
 
-## Artigo III — Stack Canônica
+## Artigo III: Stack Canônica
 
 **Princípio:** A stack é definida e não deve ser substituída sem decisão explícita documentada.
 
@@ -59,7 +59,7 @@
 
 ---
 
-## Artigo IV — Orientação a Eventos
+## Artigo IV: Orientação a Eventos
 
 **Princípio:** Ações que geram efeitos colaterais nunca devem bloquear a requisição principal.
 
@@ -76,7 +76,7 @@ PAGAMENTO_RECUSADO
 ```
 
 **Implicações:**
-- Quando um atendimento é finalizado, o job de envio de WhatsApp + pedido de avaliação + oferta de plano vai para a fila — nunca no handler HTTP.
+- Quando um atendimento é finalizado, o job de envio de WhatsApp + pedido de avaliação + oferta de plano vai para a fila, nunca no handler HTTP.
 - O sistema de eventos é interno à API via BullMQ.
 - Eventos podem ser re-processados em caso de falha (retries com backoff).
 
@@ -84,7 +84,7 @@ PAGAMENTO_RECUSADO
 
 ---
 
-## Artigo V — Separação de Responsabilidades por Módulo
+## Artigo V: Separação de Responsabilidades por Módulo
 
 **Princípio:** Cada módulo tem responsabilidade única e não acessa repositórios de outros módulos diretamente.
 
@@ -92,32 +92,32 @@ PAGAMENTO_RECUSADO
 ```
 src/
   modules/
-    auth/           — JWT, login, refresh, guards
-    users/          — usuários internos (barbeiros, admin, gerente)
-    tenants/        — gestão de barbearias/tenants
-    customers/      — clientes + CRM automático
-    conversations/  — histórico de conversas omnichannel
-    messages/       — mensagens individuais por conversa
-    whatsapp/       — webhook + integração Evolution API
-    instagram/      — webhook + DM Instagram
-    plans/          — definição de planos disponíveis
-    subscriptions/  — assinaturas de clientes
-    payments/       — integração com gateway
-    barbers/        — perfis de barbeiros
-    appointments/   — atendimentos walk-in (ordem de chegada)
-    dashboard/      — métricas agregadas
-    notifications/  — disparo de mensagens e eventos
-  common/           — guards, decorators, pipes, interceptors
-  prisma/           — PrismaService, PrismaModule
-  queue/            — configuração BullMQ, processors
-  events/           — EventEmitter interno
+    auth/          , JWT, login, refresh, guards
+    users/         , usuários internos (barbeiros, admin, gerente)
+    tenants/       , gestão de barbearias/tenants
+    customers/     , clientes + CRM automático
+    conversations/ , histórico de conversas omnichannel
+    messages/      , mensagens individuais por conversa
+    whatsapp/      , webhook + integração Evolution API
+    instagram/     , webhook + DM Instagram
+    plans/         , definição de planos disponíveis
+    subscriptions/ , assinaturas de clientes
+    payments/      , integração com gateway
+    barbers/       , perfis de barbeiros
+    appointments/  , atendimentos walk-in (ordem de chegada)
+    dashboard/     , métricas agregadas
+    notifications/ , disparo de mensagens e eventos
+  common/          , guards, decorators, pipes, interceptors
+  prisma/          , PrismaService, PrismaModule
+  queue/           , configuração BullMQ, processors
+  events/          , EventEmitter interno
 ```
 
-**Verificação:** Módulos não devem importar repositórios de outros módulos — use serviços ou eventos.
+**Verificação:** Módulos não devem importar repositórios de outros módulos, use serviços ou eventos.
 
 ---
 
-## Artigo VI — Segurança por Design
+## Artigo VI: Segurança por Design
 
 **Princípio:** Segurança é implementada na camada da API, não nos clientes.
 
@@ -139,7 +139,7 @@ src/
 
 ---
 
-## Artigo VII — Observabilidade desde o Início
+## Artigo VII: Observabilidade desde o Início
 
 **Princípio:** O sistema deve ser observável desde o primeiro deploy.
 
@@ -153,7 +153,7 @@ src/
 
 ---
 
-## Artigo VIII — Banco de Dados é Responsabilidade da API
+## Artigo VIII: Banco de Dados é Responsabilidade da API
 
 **Princípio:** Migrations, schema e integridade são gerenciados pela API via Prisma.
 
@@ -165,34 +165,34 @@ barbers, reviews, notifications
 ```
 
 **Implicações:**
-- Nunca rodar `prisma db push` em produção — apenas `prisma migrate deploy`.
+- Nunca rodar `prisma db push` em produção, apenas `prisma migrate deploy`.
 - Soft delete preferido em vez de hard delete para clientes, atendimentos e assinaturas.
 - Indexes obrigatórios em: `tenant_id`, `customer_id`, colunas de busca textual.
 - UUID v4 como PK padrão (não auto-increment).
 
 ---
 
-## Artigo IX — Desenvolvimento Iterativo por Features
+## Artigo IX: Desenvolvimento Iterativo por Features
 
 **Princípio:** O sistema é construído feature por feature, com cada feature completamente especificada antes da implementação.
 
 **Ordem de desenvolvimento:**
-1. `001-core-foundation` — Setup do projeto, Prisma, Docker, health check
-2. `002-auth-rbac` — JWT, refresh token, RBAC, guards
-3. `003-customer-crm` — CRUD clientes + CRM automático
-4. `004-conversations-messaging` — Conversas e mensagens omnichannel
-5. `005-appointments-attendance` — Atendimentos walk-in e controle de status
-6. `006-plans-subscriptions` — Planos e assinaturas
-7. `007-payments-integration` — Gateway de pagamento
-8. `008-event-system-queues` — BullMQ + eventos pós-atendimento
-9. `009-dashboard-backoffice` — Métricas e painel
-10. `010-whatsapp-instagram-channels` — Webhooks e integração IA
+1. `001-core-foundation`, Setup do projeto, Prisma, Docker, health check
+2. `002-auth-rbac`, JWT, refresh token, RBAC, guards
+3. `003-customer-crm`, CRUD clientes + CRM automático
+4. `004-conversations-messaging`, Conversas e mensagens omnichannel
+5. `005-appointments-attendance`, Atendimentos walk-in e controle de status
+6. `006-plans-subscriptions`, Planos e assinaturas
+7. `007-payments-integration`, Gateway de pagamento
+8. `008-event-system-queues`, BullMQ + eventos pós-atendimento
+9. `009-dashboard-backoffice`, Métricas e painel
+10. `010-whatsapp-instagram-channels`, Webhooks e integração IA
 
 **Verificação:** Nenhuma feature deve ser iniciada sem spec.md e plan.md aprovados.
 
 ---
 
-## Artigo X — Modelo de Atendimento: Ordem de Chegada
+## Artigo X: Modelo de Atendimento: Ordem de Chegada
 
 **Princípio:** A Barbearia Modelo opera por ordem de chegada (walk-in), não por agendamento prévio.
 
@@ -201,7 +201,7 @@ barbers, reviews, notifications
 - Atendimentos são registrados quando o cliente chega ou quando o barbeiro inicia o serviço.
 - A fila de espera é implícita: atendimentos com status `AGUARDANDO` ordenados por `created_at`.
 - O sistema registra o atendimento para métricas e histórico, não para reservar horário.
-- O bot não agenda — ele informa, captura dados e direciona.
+- O bot não agenda, ele informa, captura dados e direciona.
 
 **Verificação:** Qualquer spec que proponha lógica de agendamento (slots, calendário, disponibilidade) viola este artigo.
 

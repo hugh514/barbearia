@@ -1,8 +1,8 @@
-# Spec 001 — Core Foundation
+# Spec 001: Core Foundation
 
 **Branch:** `feat/001-core-foundation`
 **Status:** Ready for Implementation
-**Prioridade:** P0 — Bloqueante para todas as outras features
+**Prioridade:** P0, Bloqueante para todas as outras features
 
 ---
 
@@ -14,7 +14,7 @@ Antes de qualquer módulo de negócio existir, a API precisa de uma base sólida
 
 ## User Stories
 
-### US-001.1 — Setup do Projeto (Priority: P0)
+### US-001.1: Setup do Projeto (Priority: P0)
 
 **Como** desenvolvedor,
 **Quero** que o projeto NestJS esteja scaffolded com a estrutura de módulos canônica,
@@ -27,7 +27,7 @@ Antes de qualquer módulo de negócio existir, a API precisa de uma base sólida
 - [ ] Path aliases configurados (`@modules/*`, `@common/*`, `@prisma/*`)
 - [ ] Variáveis de ambiente via `@nestjs/config` com validação por schema Zod
 
-### US-001.2 — Banco de Dados e ORM (Priority: P0)
+### US-001.2: Banco de Dados e ORM (Priority: P0)
 
 **Como** desenvolvedor,
 **Quero** que o Prisma esteja configurado com o schema inicial,
@@ -42,7 +42,7 @@ Antes de qualquer módulo de negócio existir, a API precisa de uma base sólida
 - [ ] Migration inicial gerada e aplicável via `prisma migrate dev`
 - [ ] `prisma/seed.ts` com tenant e usuário ADMIN de exemplo
 
-### US-001.3 — Containerização (Priority: P0)
+### US-001.3: Containerização (Priority: P0)
 
 **Como** desenvolvedor,
 **Quero** subir o ambiente completo com um único comando,
@@ -55,7 +55,7 @@ Antes de qualquer módulo de negócio existir, a API precisa de uma base sólida
 - [ ] Hot reload funcionando no container de dev
 - [ ] `.env.example` documentado com todas as variáveis
 
-### US-001.4 — Health Check e Observabilidade (Priority: P0)
+### US-001.4: Health Check e Observabilidade (Priority: P0)
 
 **Como** operador de infraestrutura,
 **Quero** que a API exponha um endpoint de saúde,
@@ -68,7 +68,7 @@ Antes de qualquer módulo de negócio existir, a API precisa de uma base sólida
 - [ ] Sentry configurado e capturando exceções não tratadas
 - [ ] Global exception filter retornando respostas padronizadas
 
-### US-001.5 — Documentação OpenAPI (Priority: P1)
+### US-001.5: Documentação OpenAPI (Priority: P1)
 
 **Como** desenvolvedor ou consumidor da API,
 **Quero** documentação automática disponível,

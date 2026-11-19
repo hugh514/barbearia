@@ -1,4 +1,4 @@
-# Spec 006 — Planos e Assinaturas
+# Spec 006: Planos e Assinaturas
 
 **Branch:** `feat/006-plans-subscriptions`
 **Status:** Ready for Implementation
@@ -14,7 +14,7 @@ A barbearia oferece planos mensais de fidelização (ex: 4 cortes/mês). O admin
 
 ## User Stories
 
-### US-006.1 — Criar Plano (Priority: P0)
+### US-006.1: Criar Plano (Priority: P0)
 
 **Como** admin,
 **Quero** criar planos de assinatura com nome, preço e benefícios,
@@ -26,7 +26,7 @@ A barbearia oferece planos mensais de fidelização (ex: 4 cortes/mês). O admin
 - [ ] Preço em centavos (integer) para evitar problemas de decimal
 - [ ] Apenas ADMIN pode criar planos
 
-### US-006.2 — Listar e Editar Planos (Priority: P1)
+### US-006.2: Listar e Editar Planos (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /plans` retorna planos do tenant (filtro: active true/false)
@@ -34,7 +34,7 @@ A barbearia oferece planos mensais de fidelização (ex: 4 cortes/mês). O admin
 - [ ] `PATCH /plans/:id` atualiza campos (não afeta assinaturas existentes)
 - [ ] `DELETE /plans/:id` faz soft-disable (active = false)
 
-### US-006.3 — Assinar Plano (Priority: P0)
+### US-006.3: Assinar Plano (Priority: P0)
 
 **Como** cliente (via app) ou gerente (via backoffice),
 **Quero** assinar um plano para um cliente,
@@ -42,12 +42,12 @@ A barbearia oferece planos mensais de fidelização (ex: 4 cortes/mês). O admin
 
 **Critérios de Aceite:**
 - [ ] `POST /subscriptions` aceita: customerId, planId
-- [ ] Status inicial: `PENDENTE` (muda para `ATIVO` após pagamento — Feature 007)
+- [ ] Status inicial: `PENDENTE` (muda para `ATIVO` após pagamento, Feature 007)
 - [ ] Se assinatura via backoffice (role GERENTE/ADMIN): pode criar como `ATIVO` diretamente
 - [ ] Cliente pode ter apenas 1 assinatura ativa por vez no tenant
 - [ ] Emite evento `PLANO_ASSINADO`
 
-### US-006.4 — Ciclo de Vida da Assinatura (Priority: P0)
+### US-006.4: Ciclo de Vida da Assinatura (Priority: P0)
 
 **Critérios de Aceite:**
 - [ ] `PATCH /subscriptions/:id/activate` muda para ATIVO (chamado pelo módulo payments)
@@ -56,7 +56,7 @@ A barbearia oferece planos mensais de fidelização (ex: 4 cortes/mês). O admin
 - [ ] `PATCH /subscriptions/:id/renew` estende `nextBillingDate` por `intervalDays`
 - [ ] Status `CANCELADO` é terminal
 
-### US-006.5 — Listar Assinaturas (Priority: P1)
+### US-006.5: Listar Assinaturas (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /subscriptions` com filtros: status, customerId, planId

@@ -1,7 +1,7 @@
-# Plano Técnico 001 — Core Foundation
+# Plano Técnico 001: Core Foundation
 
 **Input:** `specs/001-core-foundation/spec.md`
-**Constituição:** `.specify/memory/constitution.md`
+**Constituição:** `docs/constituicao/api.md`
 
 ---
 
@@ -9,15 +9,15 @@
 
 | Artigo | Status | Nota |
 |--------|--------|------|
-| I — API como Hub | ✅ | Feature de infraestrutura |
-| II — Multi-tenancy | ✅ | Schema inicial já inclui tenant_id |
-| III — Stack canônica | ✅ | NestJS, Prisma, PostgreSQL, Redis, Pino, Sentry |
-| IV — Orientação a Eventos | N/A | Não há eventos nesta feature |
-| V — Separação de módulos | ✅ | Estrutura de pastas definida |
-| VI — Segurança | ✅ | Base para RBAC, sem rotas desprotegidas |
-| VII — Observabilidade | ✅ | Pino, Sentry, Correlation ID, Health Check |
-| VIII — DB é da API | ✅ | Migrations via Prisma |
-| IX — Dev iterativo | ✅ | Feature 001 é pré-requisito bloqueante |
+| I, API como Hub | sim | Feature de infraestrutura |
+| II, Multi-tenancy | sim | Schema inicial já inclui tenant_id |
+| III, Stack canônica | sim | NestJS, Prisma, PostgreSQL, Redis, Pino, Sentry |
+| IV, Orientação a Eventos | N/A | Não há eventos nesta feature |
+| V, Separação de módulos | sim | Estrutura de pastas definida |
+| VI, Segurança | sim | Base para RBAC, sem rotas desprotegidas |
+| VII, Observabilidade | sim | Pino, Sentry, Correlation ID, Health Check |
+| VIII, DB é da API | sim | Migrations via Prisma |
+| IX, Dev iterativo | sim | Feature 001 é pré-requisito bloqueante |
 
 ---
 

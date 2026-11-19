@@ -1,4 +1,4 @@
-# Spec 002 — Autenticação e Autorização (RBAC)
+# Spec 002: Autenticação e Autorização (RBAC)
 
 **Branch:** `feat/002-auth-rbac`
 **Status:** Ready for Implementation
@@ -14,7 +14,7 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 
 ## User Stories
 
-### US-002.1 — Login de Usuário Interno (Priority: P0)
+### US-002.1: Login de Usuário Interno (Priority: P0)
 
 **Como** barbeiro, gerente ou admin,
 **Quero** fazer login com email e senha,
@@ -27,7 +27,7 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 - [ ] Token contém: `sub` (userId), `tenantId`, `role`, `email`
 - [ ] Usuário inativo não consegue logar (retorna 401)
 
-### US-002.2 — Refresh de Token (Priority: P0)
+### US-002.2: Refresh de Token (Priority: P0)
 
 **Como** usuário autenticado,
 **Quero** renovar meu access token sem precisar logar novamente,
@@ -39,7 +39,7 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 - [ ] Refresh token inválido ou expirado retorna 401
 - [ ] Refresh token já utilizado retorna 401 (replay prevention)
 
-### US-002.3 — Logout (Priority: P1)
+### US-002.3: Logout (Priority: P1)
 
 **Como** usuário autenticado,
 **Quero** encerrar minha sessão,
@@ -50,7 +50,7 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 - [ ] Requer `accessToken` válido no header
 - [ ] Após logout, refresh token não pode ser usado
 
-### US-002.4 — Proteção de Rotas por Perfil (Priority: P0)
+### US-002.4: Proteção de Rotas por Perfil (Priority: P0)
 
 **Como** sistema,
 **Quero** que cada rota seja acessível apenas pelos perfis corretos,
@@ -62,7 +62,7 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 - [ ] Token expirado retorna 401
 - [ ] Token ausente retorna 401
 
-### US-002.5 — Isolamento por Tenant (Priority: P0)
+### US-002.5: Isolamento por Tenant (Priority: P0)
 
 **Como** sistema,
 **Quero** que usuários de um tenant não acessem dados de outro,
@@ -73,7 +73,7 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 - [ ] Tentativa de acessar dados de outro tenant retorna 403
 - [ ] Decorator `@CurrentTenant()` disponível em controllers
 
-### US-002.6 — Criação de Usuário Interno (Priority: P0)
+### US-002.6: Criação de Usuário Interno (Priority: P0)
 
 **Como** admin,
 **Quero** criar novos usuários no meu tenant,
@@ -98,6 +98,6 @@ Com a infraestrutura base pronta, o próximo passo é implementar autenticação
 
 ## Fora de Escopo
 
-- Autenticação de clientes (app mobile) — futuro
+- Autenticação de clientes (app mobile), futuro
 - OAuth / Login social
 - 2FA

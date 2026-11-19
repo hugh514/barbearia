@@ -1,4 +1,4 @@
-# Plano Técnico — 001 Foundation + Auth
+# Plano Técnico: 001 Foundation + Auth
 
 ## Stack
 Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind 4 · shadcn/Radix ·
@@ -31,9 +31,9 @@ src/
   types/
 ```
 
-## Auth — desenho
+## Auth: desenho
 1. **Login** (`POST /api/auth/login`): route handler valida body (Zod), chama `POST {API}/auth/login`, recebe `{ accessToken, refreshToken }`, seta 2 cookies httpOnly (`bb_at`, `bb_rt`) com `Secure`+`SameSite=Lax`+`Path=/`. `bb_at` expira junto do access; `bb_rt` com TTL do refresh.
-2. **Sessão no servidor** (`lib/auth/session.ts`): lê `bb_at`, decodifica com `jose` (sem verificar assinatura — a API é a autoridade; só extrai `sub/role/tenantId/email/exp`). `getServerSession()` retorna `Session | null`.
+2. **Sessão no servidor** (`lib/auth/session.ts`): lê `bb_at`, decodifica com `jose` (sem verificar assinatura, a API é a autoridade; só extrai `sub/role/tenantId/email/exp`). `getServerSession()` retorna `Session | null`.
 3. **Proxy** (`app/api/[...path]/route.ts`): encaminha `/api/*` → `{API}/*` com `Authorization: Bearer <bb_at>`. Em `401`: chama refresh interno uma vez; se ok, repete; senão, responde 401 e o cliente redireciona para login.
 4. **Refresh atômico** (`lib/auth/refresh.ts`): usa um lock em memória/promise única para coalescer refreshes concorrentes; chama `POST {API}/auth/refresh` com `bb_rt`, re-seta cookies.
 5. **Middleware** (`middleware.ts`): para rotas em `(app)`, se não há `bb_at` válido → redireciona `/login?from=`. Checa `route-access.ts` por papel → `/unauthorized`.

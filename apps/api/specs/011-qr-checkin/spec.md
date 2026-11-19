@@ -1,4 +1,4 @@
-# Spec 011 — Check-in por QR Code
+# Spec 011: Check-in por QR Code
 
 **Branch:** `feature/011-qr-checkin`
 **Status:** Implemented
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-O cliente chega à barbearia e precisa entrar na fila walk-in sem depender do balcão. O app mobile gera um QR code com token efêmero; a equipe escaneia no backoffice ou app do barbeiro e o cliente entra automaticamente na fila do dia. Não há agendamento — apenas ordem de chegada (Artigo X). Tokens vivem exclusivamente no Redis; nenhuma tabela nova no banco relacional.
+O cliente chega à barbearia e precisa entrar na fila walk-in sem depender do balcão. O app mobile gera um QR code com token efêmero; a equipe escaneia no backoffice ou app do barbeiro e o cliente entra automaticamente na fila do dia. Não há agendamento, apenas ordem de chegada (Artigo X). Tokens vivem exclusivamente no Redis; nenhuma tabela nova no banco relacional.
 
 ---
 
 ## User Stories
 
-### US-011.1 — Gerar Token de Check-in (Priority: P0)
+### US-011.1: Gerar Token de Check-in (Priority: P0)
 
 **Como** cliente com cadastro vinculado ao app,
 **Quero** gerar um token efêmero para exibir em QR code,
@@ -28,14 +28,14 @@ O cliente chega à barbearia e precisa entrar na fila walk-in sem depender do ba
 - [ ] Resposta: `{ token, expiresInSeconds: 60 }`
 - [ ] Sem `customerId` vinculado retorna 422 com mensagem clara
 
-### US-011.2 — Consumir Token e Entrar na Fila (Priority: P0)
+### US-011.2: Consumir Token e Entrar na Fila (Priority: P0)
 
 **Como** barbeiro, gerente ou admin,
 **Quero** escanear o QR e registrar o cliente na fila,
 **Para que** o atendimento walk-in comece sem digitação manual.
 
 **Critérios de Aceite:**
-- [ ] `POST /checkin/consume` aceita `{ token }` — roles `ADMIN`, `GERENTE`, `BARBEIRO`
+- [ ] `POST /checkin/consume` aceita `{ token }`, roles `ADMIN`, `GERENTE`, `BARBEIRO`
 - [ ] Consumo atômico via `GETDEL` no Redis (uso único)
 - [ ] Token inválido, expirado ou de outro tenant retorna 404 genérico
 - [ ] Cria `Appointment` com status `AGUARDANDO` se não houver atendimento aberto no dia
@@ -43,7 +43,7 @@ O cliente chega à barbearia e precisa entrar na fila walk-in sem depender do ba
 - [ ] Resposta inclui `appointment`, `queuePosition` e `reused`
 - [ ] Cliente inativo retorna 422
 
-### US-011.3 — Evento Assíncrono Pós Check-in (Priority: P1)
+### US-011.3: Evento Assíncrono Pós Check-in (Priority: P1)
 
 **Como** sistema,
 **Quero** publicar evento de domínio após check-in bem-sucedido,

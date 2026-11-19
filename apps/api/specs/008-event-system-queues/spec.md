@@ -1,4 +1,4 @@
-# Spec 008 — Sistema de Eventos e Filas (BullMQ)
+# Spec 008: Sistema de Eventos e Filas (BullMQ)
 
 **Branch:** `feat/008-event-system-queues`
 **Status:** Ready for Implementation
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-Este módulo implementa o sistema de filas assíncronas e processadores de eventos. Quando um atendimento é finalizado, ações como solicitar avaliação no Google, oferecer plano mensal e registrar métricas acontecem de forma assíncrona — nunca no handler HTTP (Artigo IV da constituição). BullMQ + Redis é a stack definida.
+Este módulo implementa o sistema de filas assíncronas e processadores de eventos. Quando um atendimento é finalizado, ações como solicitar avaliação no Google, oferecer plano mensal e registrar métricas acontecem de forma assíncrona, nunca no handler HTTP (Artigo IV da constituição). BullMQ + Redis é a stack definida.
 
 ---
 
 ## User Stories
 
-### US-008.1 — Processamento Pós-Atendimento (Priority: P0)
+### US-008.1: Processamento Pós-Atendimento (Priority: P0)
 
 **Como** sistema,
 **Quero** que ao finalizar um atendimento, ações automáticas sejam disparadas de forma assíncrona,
@@ -26,7 +26,7 @@ Este módulo implementa o sistema de filas assíncronas e processadores de event
 - [ ] Job tem retry: 3 tentativas com backoff exponencial (1min, 5min, 15min)
 - [ ] Falha de uma ação não impede as demais (cada ação é um sub-job independente)
 
-### US-008.2 — Processamento Pós-Pagamento (Priority: P0)
+### US-008.2: Processamento Pós-Pagamento (Priority: P0)
 
 **Como** sistema,
 **Quero** que ao confirmar um pagamento, a assinatura e o cliente sejam atualizados assincronamente,
@@ -37,7 +37,7 @@ Este módulo implementa o sistema de filas assíncronas e processadores de event
 - [ ] Job ativa subscription, atualiza customer.planStatus, envia confirmação no WhatsApp
 - [ ] Evento `PAGAMENTO_RECUSADO` dispara job que notifica gerente no backoffice
 
-### US-008.3 — Processamento Pós-Cadastro (Priority: P1)
+### US-008.3: Processamento Pós-Cadastro (Priority: P1)
 
 **Como** sistema,
 **Quero** que ao cadastrar novo cliente automaticamente, uma mensagem de boas-vindas possa ser enviada,
@@ -47,7 +47,7 @@ Este módulo implementa o sistema de filas assíncronas e processadores de event
 - [ ] Evento `CLIENTE_CADASTRADO` dispara job na fila `post-registration`
 - [ ] Job registra métrica de conversão (novo lead capturado)
 
-### US-008.4 — Monitoramento de Filas (Priority: P1)
+### US-008.4: Monitoramento de Filas (Priority: P1)
 
 **Como** admin,
 **Quero** ver o status das filas de processamento,
@@ -65,10 +65,10 @@ Este módulo implementa o sistema de filas assíncronas e processadores de event
 ### Filas
 
 ```
-post-attendance   — ações após finalizar atendimento
-post-payment      — ações após pagamento confirmado/recusado
-post-registration — ações após cadastro de cliente
-notifications     — fila genérica de envio de mensagens (WhatsApp, push)
+post-attendance  , ações após finalizar atendimento
+post-payment     , ações após pagamento confirmado/recusado
+post-registration, ações após cadastro de cliente
+notifications    , fila genérica de envio de mensagens (WhatsApp, push)
 ```
 
 ### Fluxo
@@ -121,5 +121,5 @@ EventLog:
 ## Fora de Escopo
 
 - Cron jobs para cobranças recorrentes (futuro)
-- Dead letter queue com dashboard visual (futuro — usar Bull Board)
-- Envio efetivo de mensagens (isso é Feature 010 — aqui só enfileira)
+- Dead letter queue com dashboard visual (futuro, usar Bull Board)
+- Envio efetivo de mensagens (isso é Feature 010, aqui só enfileira)

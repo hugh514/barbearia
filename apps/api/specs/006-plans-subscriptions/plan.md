@@ -1,4 +1,4 @@
-# Plano Técnico 006 — Planos e Assinaturas
+# Plano Técnico 006: Planos e Assinaturas
 
 **Input:** `specs/006-plans-subscriptions/spec.md`
 

@@ -1,4 +1,4 @@
-# Plano Técnico 008 — Sistema de Eventos e Filas
+# Plano Técnico 008: Sistema de Eventos e Filas
 
 ---
 

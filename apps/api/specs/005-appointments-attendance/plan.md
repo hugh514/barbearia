@@ -1,4 +1,4 @@
-# Plano Técnico 005 — Atendimentos (Walk-in)
+# Plano Técnico 005: Atendimentos (Walk-in)
 
 **Input:** `specs/005-appointments-attendance/spec.md`
 
@@ -8,10 +8,10 @@
 
 | Artigo | Status | Nota |
 |--------|--------|------|
-| I — API como Hub | ✅ | Atendimentos gerenciados pela API |
-| II — Multi-tenancy | ✅ | tenant_id em Appointment |
-| IV — Orientação a Eventos | ✅ | ATENDIMENTO_FINALIZADO vai para fila |
-| X — Ordem de chegada | ✅ | Sem slots, sem agenda — só fila por createdAt |
+| I, API como Hub | sim | Atendimentos gerenciados pela API |
+| II, Multi-tenancy | sim | tenant_id em Appointment |
+| IV, Orientação a Eventos | sim | ATENDIMENTO_FINALIZADO vai para fila |
+| X, Ordem de chegada | sim | Sem slots, sem agenda, só fila por createdAt |
 
 ---
 

@@ -1,13 +1,13 @@
-# Tasks 006 — Planos e Assinaturas
+# Tasks 006: Planos e Assinaturas
 
 ---
 
-## Fase 1 — Schema
+## Fase 1: Schema
 
 - [x] T006-01 Adicionar models Plan e Subscription ao Prisma
 - [x] T006-02 Rodar migration
 
-## Fase 2 — Plans CRUD
+## Fase 2: Plans CRUD
 
 - [x] T006-03 Criar PlansModule, PlansService, PlansController
 - [x] T006-04 Implementar POST /plans (ADMIN only)
@@ -15,7 +15,7 @@
 - [x] T006-06 Implementar PATCH /plans/:id
 - [x] T006-07 Implementar DELETE /plans/:id (soft-disable)
 
-## Fase 3 — Subscriptions
+## Fase 3: Subscriptions
 
 - [x] T006-08 Criar SubscriptionsModule, SubscriptionsService, SubscriptionsController
 - [x] T006-09 Implementar POST /subscriptions com validação de unicidade
@@ -24,7 +24,7 @@
 - [x] T006-12 Sincronizar customer.planStatus ao mudar status da subscription
 - [x] T006-13 Emitir PLANO_ASSINADO e PLANO_CANCELADO
 
-## Fase 4 — Validação
+## Fase 4: Validação
 
 - [x] T006-14 Testar: cliente com assinatura ativa não pode assinar novamente (409)
 - [x] T006-15 Testar: cancelamento atualiza customer.planStatus

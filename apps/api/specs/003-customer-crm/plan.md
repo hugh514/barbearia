@@ -1,4 +1,4 @@
-# Plano Técnico 003 — Gestão de Clientes e CRM Automático
+# Plano Técnico 003: Gestão de Clientes e CRM Automático
 
 **Input:** `specs/003-customer-crm/spec.md`
 
@@ -8,13 +8,13 @@
 
 | Artigo | Status | Nota |
 |--------|--------|------|
-| I — API como Hub | ✅ | CRM automático via endpoint, não acesso direto |
-| II — Multi-tenancy | ✅ | Customer scoped por tenant_id |
-| III — Stack canônica | ✅ | Prisma, PostgreSQL |
-| IV — Orientação a Eventos | ✅ | `CLIENTE_CADASTRADO` emitido na criação |
-| V — Separação de módulos | ✅ | `customers/` isolado |
-| VI — Segurança | ✅ | JWT + RBAC em todas as rotas, upsert via API key |
-| X — Ordem de chegada | ✅ | Sem lógica de agendamento |
+| I, API como Hub | sim | CRM automático via endpoint, não acesso direto |
+| II, Multi-tenancy | sim | Customer scoped por tenant_id |
+| III, Stack canônica | sim | Prisma, PostgreSQL |
+| IV, Orientação a Eventos | sim | `CLIENTE_CADASTRADO` emitido na criação |
+| V, Separação de módulos | sim | `customers/` isolado |
+| VI, Segurança | sim | JWT + RBAC em todas as rotas, upsert via API key |
+| X, Ordem de chegada | sim | Sem lógica de agendamento |
 
 ---
 
@@ -81,7 +81,7 @@ enum PlanStatus {
 
 ### Busca Textual
 
-A busca em `GET /customers?search=` usa `ILIKE` no PostgreSQL para nome, telefone e instagram_user. Sem full-text search nesta fase — se a base crescer, migrar para `tsvector` no futuro.
+A busca em `GET /customers?search=` usa `ILIKE` no PostgreSQL para nome, telefone e instagram_user. Sem full-text search nesta fase, se a base crescer, migrar para `tsvector` no futuro.
 
 ```sql
 WHERE tenant_id = $1

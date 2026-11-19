@@ -22,7 +22,7 @@ Um funcionário da barbearia (ADMIN/GERENTE/BARBEIRO) acessa o backoffice, infor
 ### User Story 2 - Sessão persistente e refresh automático (Priority: P1)
 O usuário permanece logado ao recarregar a página e entre abas; o access token expirado é renovado transparentemente.
 
-**Why this priority**: UX e segurança da sessão — evita relogar a cada expiração de token.
+**Why this priority**: UX e segurança da sessão, evita relogar a cada expiração de token.
 
 **Independent Test**: Com access token expirado mas refresh válido, uma request protegida dispara refresh e devolve os dados sem erro visível ao usuário.
 
@@ -73,7 +73,7 @@ Cadastro de novos usuários. Backoffice: um ADMIN/GERENTE cadastra membros da eq
 - **FR-005**: `middleware.ts` DEVE proteger rotas privadas no servidor e redirecionar não autenticados para `/login?from=`.
 - **FR-006**: Toda resposta da API DEVE ser validada com Zod antes de uso.
 - **FR-007**: Logout DEVE chamar `POST /auth/logout` e limpar cookies.
-- **FR-008**: Recuperação de senha DEVE usar `POST /auth/forgot-password` e `POST /auth/reset-password` (a adicionar na API — ver spec 008 da API).
+- **FR-008**: Recuperação de senha DEVE usar `POST /auth/forgot-password` e `POST /auth/reset-password` (a adicionar na API, ver spec 008 da API).
 - **FR-009**: Mensagens de erro de auth NÃO DEVEM revelar existência de conta.
 - **FR-010**: Mutações de auth DEVEM enviar `Idempotency-Key`.
 

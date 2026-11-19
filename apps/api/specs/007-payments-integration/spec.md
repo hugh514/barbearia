@@ -1,4 +1,4 @@
-# Spec 007 — Integração com Pagamentos
+# Spec 007: Integração com Pagamentos
 
 **Branch:** `feat/007-payments-integration`
 **Status:** Ready for Implementation
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-Clientes pagam planos mensais via PIX, cartão de crédito ou boleto. A API se integra com um gateway de pagamento (Mercado Pago — gratuito, popular no Brasil, suporta PIX nativo) via webhooks. O módulo de pagamentos nunca processa cartão diretamente — ele cria a cobrança no gateway e recebe a confirmação por webhook.
+Clientes pagam planos mensais via PIX, cartão de crédito ou boleto. A API se integra com um gateway de pagamento (Mercado Pago, gratuito, popular no Brasil, suporta PIX nativo) via webhooks. O módulo de pagamentos nunca processa cartão diretamente, ele cria a cobrança no gateway e recebe a confirmação por webhook.
 
 ---
 
 ## User Stories
 
-### US-007.1 — Criar Cobrança para Assinatura (Priority: P0)
+### US-007.1: Criar Cobrança para Assinatura (Priority: P0)
 
 **Como** sistema (ao criar assinatura),
 **Quero** gerar uma cobrança no gateway de pagamento,
@@ -27,7 +27,7 @@ Clientes pagam planos mensais via PIX, cartão de crédito ou boleto. A API se i
 - [ ] Status inicial: `PENDENTE`
 - [ ] Apenas 1 payment PENDENTE por subscription por vez
 
-### US-007.2 — Receber Webhook de Confirmação (Priority: P0)
+### US-007.2: Receber Webhook de Confirmação (Priority: P0)
 
 **Como** gateway de pagamento,
 **Quero** notificar a API quando um pagamento for aprovado ou recusado,
@@ -41,14 +41,14 @@ Clientes pagam planos mensais via PIX, cartão de crédito ou boleto. A API se i
 - [ ] Se expirado: status → EXPIRADO
 - [ ] Idempotente: webhook duplicado não processa duas vezes (check externalId)
 
-### US-007.3 — Consultar Pagamentos (Priority: P1)
+### US-007.3: Consultar Pagamentos (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /payments` com filtros: subscriptionId, customerId, status, dateFrom, dateTo
 - [ ] `GET /payments/:id` retorna detalhes incluindo dados do gateway
 - [ ] Paginado, scoped por tenant
 
-### US-007.4 — Histórico Financeiro do Cliente (Priority: P2)
+### US-007.4: Histórico Financeiro do Cliente (Priority: P2)
 
 **Critérios de Aceite:**
 - [ ] `GET /customers/:id/payments` retorna pagamentos do cliente paginados
@@ -119,6 +119,6 @@ Para MVP, usar variáveis de ambiente globais. Multi-tenant payment config é fu
 
 ## Fora de Escopo
 
-- Cobrança recorrente automática (futuro — usar API de assinaturas do MP)
+- Cobrança recorrente automática (futuro, usar API de assinaturas do MP)
 - Reembolso automático
 - Split payment entre barbeiros

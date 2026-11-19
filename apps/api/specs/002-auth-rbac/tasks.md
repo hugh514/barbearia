@@ -1,10 +1,10 @@
-# Tasks 002 — Autenticação e Autorização (RBAC)
+# Tasks 002: Autenticação e Autorização (RBAC)
 
 **Input:** `specs/002-auth-rbac/plan.md`
 
 ---
 
-## Fase 1 — JWT e Login
+## Fase 1: JWT e Login
 
 - [x] T002-01 Instalar dependências: `@nestjs/passport`, `@nestjs/jwt`, `passport`, `passport-jwt`, `bcryptjs`
 - [x] T002-02 Criar `AuthModule` com imports de `JwtModule` e `PassportModule`
@@ -17,7 +17,7 @@
 - [x] T002-09 Testar: login com credenciais válidas retorna tokens
 - [x] T002-10 Testar: login com senha errada retorna 401 genérico
 
-## Fase 2 — Refresh Token e Logout
+## Fase 2: Refresh Token e Logout
 
 - [x] T002-11 Implementar storage de refresh tokens no Redis com TTL de 7 dias
 - [x] T002-12 Implementar `AuthService.refresh()` com rotação de token (deleta antigo, cria novo)
@@ -27,7 +27,7 @@
 - [x] T002-16 Testar: refresh com token já usado retorna 401 (replay prevention)
 - [x] T002-17 Testar: logout invalida refresh token
 
-## Fase 3 — RBAC
+## Fase 3: RBAC
 
 - [x] T002-18 Criar decorator `@Roles(UserRole.ADMIN, UserRole.GERENTE)` 
 - [x] T002-19 Criar `RolesGuard` que verifica role do JWT contra roles requeridos
@@ -38,7 +38,7 @@
 - [x] T002-24 Testar: token expirado retorna 401
 - [x] T002-25 Testar: token ausente retorna 401
 
-## Fase 4 — CRUD de Usuários
+## Fase 4: CRUD de Usuários
 
 - [x] T002-26 Criar `UsersModule`, `UsersService`, `UsersController`
 - [x] T002-27 Implementar `POST /users` com validação de role hierarchy (ADMIN cria ADMIN/GERENTE, GERENTE cria BARBEIRO)
@@ -49,7 +49,7 @@
 - [x] T002-32 Testar: BARBEIRO não pode criar outros usuários
 - [x] T002-33 Testar: email duplicado no tenant retorna 409
 
-## Fase 5 — Rate Limiting e Segurança
+## Fase 5: Rate Limiting e Segurança
 
 - [x] T002-34 Instalar e configurar `@nestjs/throttler` com Redis store
 - [x] T002-35 Aplicar rate limit em `POST /auth/login`: 5 req/min por IP
@@ -57,7 +57,7 @@
 - [x] T002-37 Testar: 6ª tentativa de login no mesmo minuto retorna 429
 - [x] T002-38 Atualizar Swagger com todos os endpoints de auth e users
 
-## Fase 6 — Validação Final
+## Fase 6: Validação Final
 
 - [x] T002-39 Login funcional com geração de JWT
 - [x] T002-40 Refresh token funcional com rotação

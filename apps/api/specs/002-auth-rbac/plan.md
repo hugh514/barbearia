@@ -1,7 +1,7 @@
-# Plano Técnico 002 — Autenticação e Autorização (RBAC)
+# Plano Técnico 002: Autenticação e Autorização (RBAC)
 
 **Input:** `specs/002-auth-rbac/spec.md`
-**Constituição:** `.specify/memory/constitution.md`
+**Constituição:** `docs/constituicao/api.md`
 
 ---
 
@@ -9,16 +9,16 @@
 
 | Artigo | Status | Nota |
 |--------|--------|------|
-| I — API como Hub | ✅ | Auth é interno à API |
-| II — Multi-tenancy | ✅ | `tenantId` no JWT, isolamento por tenant |
-| III — Stack canônica | ✅ | JWT, bcrypt, Redis para refresh tokens |
-| IV — Orientação a Eventos | N/A | Auth não emite eventos de negócio |
-| V — Separação de módulos | ✅ | `auth/` e `users/` separados |
-| VI — Segurança | ✅ | bcrypt 12 rounds, rate limiting, RBAC em guards |
-| VII — Observabilidade | ✅ | Tentativas de login logadas, sem dados sensíveis |
-| VIII — DB é da API | ✅ | Tabela `users` já criada em 001 |
-| IX — Dev iterativo | ✅ | Depende de 001, bloqueia 003+ |
-| X — Ordem de chegada | N/A | Auth é independente do modelo de atendimento |
+| I, API como Hub | sim | Auth é interno à API |
+| II, Multi-tenancy | sim | `tenantId` no JWT, isolamento por tenant |
+| III, Stack canônica | sim | JWT, bcrypt, Redis para refresh tokens |
+| IV, Orientação a Eventos | N/A | Auth não emite eventos de negócio |
+| V, Separação de módulos | sim | `auth/` e `users/` separados |
+| VI, Segurança | sim | bcrypt 12 rounds, rate limiting, RBAC em guards |
+| VII, Observabilidade | sim | Tentativas de login logadas, sem dados sensíveis |
+| VIII, DB é da API | sim | Tabela `users` já criada em 001 |
+| IX, Dev iterativo | sim | Depende de 001, bloqueia 003+ |
+| X, Ordem de chegada | N/A | Auth é independente do modelo de atendimento |
 
 ---
 
@@ -122,12 +122,12 @@ interface JwtRefreshPayload {
 
 | Ação | ADMIN | GERENTE | BARBEIRO | CLIENTE |
 |------|-------|---------|----------|---------|
-| Criar ADMIN | ✅ | ❌ | ❌ | ❌ |
-| Criar GERENTE | ✅ | ❌ | ❌ | ❌ |
-| Criar BARBEIRO | ✅ | ✅ | ❌ | ❌ |
-| Listar usuários | ✅ | ✅ | ❌ | ❌ |
-| Editar próprio perfil | ✅ | ✅ | ✅ | ✅ |
-| Desativar usuário | ✅ | ❌ | ❌ | ❌ |
+| Criar ADMIN | sim | não | não | não |
+| Criar GERENTE | sim | não | não | não |
+| Criar BARBEIRO | sim | sim | não | não |
+| Listar usuários | sim | sim | não | não |
+| Editar próprio perfil | sim | sim | sim | sim |
+| Desativar usuário | sim | não | não | não |
 
 ---
 
@@ -135,8 +135,8 @@ interface JwtRefreshPayload {
 
 | Método | Rota | Descrição | Auth | Roles |
 |--------|------|-----------|------|-------|
-| POST | `/auth/login` | Login | Pública | — |
-| POST | `/auth/refresh` | Renovar token | Pública | — |
+| POST | `/auth/login` | Login | Pública | - |
+| POST | `/auth/refresh` | Renovar token | Pública | - |
 | POST | `/auth/logout` | Encerrar sessão | JWT | Qualquer |
 | GET | `/auth/me` | Perfil do usuário logado | JWT | Qualquer |
 | POST | `/users` | Criar usuário interno | JWT | ADMIN, GERENTE |

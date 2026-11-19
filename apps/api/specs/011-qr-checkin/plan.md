@@ -1,4 +1,4 @@
-# Plano Técnico 011 — Check-in por QR Code
+# Plano Técnico 011: Check-in por QR Code
 
 **Branch**: `011-qr-checkin` | **Data**: 2026-06-11 | **Spec**: `specs/011-qr-checkin/spec.md`
 
@@ -6,7 +6,7 @@
 
 ## Resumo
 
-Módulo `checkin` que expõe dois endpoints: um para clientes gerarem um token efêmero de check-in (armazenado exclusivamente no Redis, TTL 60 s) e outro para barbeiros/atendentes consumirem o token de forma atômica, identificando o cliente e criando um atendimento walk-in na fila do dia — ou retornando o atendimento aberto existente (idempotência). Nenhuma tabela nova no banco relacional. Evento de domínio `CHECKIN_REALIZADO` publicado via `EventEmitter2` e processado de forma assíncrona pela fila BullMQ, sem efeito colateral no handler HTTP.
+Módulo `checkin` que expõe dois endpoints: um para clientes gerarem um token efêmero de check-in (armazenado exclusivamente no Redis, TTL 60 s) e outro para barbeiros/atendentes consumirem o token de forma atômica, identificando o cliente e criando um atendimento walk-in na fila do dia, ou retornando o atendimento aberto existente (idempotência). Nenhuma tabela nova no banco relacional. Evento de domínio `CHECKIN_REALIZADO` publicado via `EventEmitter2` e processado de forma assíncrona pela fila BullMQ, sem efeito colateral no handler HTTP.
 
 ---
 
@@ -18,11 +18,11 @@ Módulo `checkin` que expõe dois endpoints: um para clientes gerarem um token e
 
 **Dependências primárias**: Prisma 5+ (leitura de `Customer` e `Appointment`), ioredis (acesso direto via `REDIS_CLIENT`), `@nestjs/event-emitter` (EventEmitter2), BullMQ / `@nestjs/bullmq`, Zod (validação de DTOs), `crypto.randomBytes`
 
-**Armazenamento de tokens**: Redis exclusivamente — chave `checkin:{tenantId}:{token}` → `customerId`, TTL 60 s; chave reversa `checkin:customer:{tenantId}:{customerId}` → token atual (para invalidação na regeneração)
+**Armazenamento de tokens**: Redis exclusivamente, chave `checkin:{tenantId}:{token}` → `customerId`, TTL 60 s; chave reversa `checkin:customer:{tenantId}:{customerId}` → token atual (para invalidação na regeneração)
 
 **Banco relacional**: Sem migrations novas. Leitura de `customer` (campo `active`) e criação de `Appointment` via `PrismaService` já existente.
 
-**Testes**: Jest e2e com Supertest — arquivo `test/feature-011.e2e-spec.ts`
+**Testes**: Jest e2e com Supertest, arquivo `test/feature-011.e2e-spec.ts`
 
 **Plataforma**: Linux server · Docker Compose (PostgreSQL 16 + Redis 7)
 
@@ -36,16 +36,16 @@ Módulo `checkin` que expõe dois endpoints: um para clientes gerarem um token e
 
 | Artigo | Status | Nota |
 |--------|--------|------|
-| I — API como Hub Central | ✅ | App mobile e backoffice chamam exclusivamente a API; Redis é interno à API |
-| II — Multi-tenancy desde o Início | ✅ | Chaves Redis prefixadas com `tenantId`; toda query Prisma filtra `tenantId`; consumo valida que o token pertence ao tenant do usuário autenticado |
-| III — Stack Canônica | ✅ | ioredis (já no projeto via `REDIS_CLIENT`), NestJS, Prisma, BullMQ, EventEmitter2, Zod — sem tecnologias novas |
-| IV — Orientação a Eventos | ✅ | Evento `CHECKIN_REALIZADO` emitido via `EventEmitter2` após criação do atendimento; listener despacha job BullMQ; nenhuma notificação ou side-effect no handler HTTP |
-| V — Separação de Responsabilidades | ✅ | Novo módulo `checkin` isolado; acessa `AppointmentsService` (para criar atendimento e calcular fila) e `PrismaService` (leitura de customer); não acessa repositórios de outros módulos diretamente |
-| VI — Segurança por Design | ✅ | `POST /checkin/token` requer CLIENTE; `POST /checkin/consume` requer ADMIN/GERENTE/BARBEIRO; rate limiting `@Throttle` em ambos; erros genéricos sem vazar existência de token; dados sensíveis fora dos logs |
-| VII — Observabilidade | ✅ | Logger Pino herdado do contexto NestJS; token nunca logado; Swagger documentado; Sentry captura exceções não tratadas |
-| VIII — Banco é Responsabilidade da API | ✅ | Sem migration nova (token não persiste no banco); `Appointment` já existe e é criado via `PrismaService` |
-| IX — Desenvolvimento Iterativo | ✅ | Feature 011 inicia após 010 estar completa; spec.md aprovada antes deste plan |
-| X — Ordem de Chegada (walk-in) | ✅ CRÍTICO | O check-in cria `Appointment` com `status: AGUARDANDO` e sem nenhum campo de horário agendado; posição na fila é derivada de `createdAt ASC` do dia corrente — idêntico à Feature 005; PROIBIDO qualquer slot ou lógica de calendário |
+| I, API como Hub Central | sim | App mobile e backoffice chamam exclusivamente a API; Redis é interno à API |
+| II, Multi-tenancy desde o Início | sim | Chaves Redis prefixadas com `tenantId`; toda query Prisma filtra `tenantId`; consumo valida que o token pertence ao tenant do usuário autenticado |
+| III, Stack Canônica | sim | ioredis (já no projeto via `REDIS_CLIENT`), NestJS, Prisma, BullMQ, EventEmitter2, Zod, sem tecnologias novas |
+| IV, Orientação a Eventos | sim | Evento `CHECKIN_REALIZADO` emitido via `EventEmitter2` após criação do atendimento; listener despacha job BullMQ; nenhuma notificação ou side-effect no handler HTTP |
+| V, Separação de Responsabilidades | sim | Novo módulo `checkin` isolado; acessa `AppointmentsService` (para criar atendimento e calcular fila) e `PrismaService` (leitura de customer); não acessa repositórios de outros módulos diretamente |
+| VI, Segurança por Design | sim | `POST /checkin/token` requer CLIENTE; `POST /checkin/consume` requer ADMIN/GERENTE/BARBEIRO; rate limiting `@Throttle` em ambos; erros genéricos sem vazar existência de token; dados sensíveis fora dos logs |
+| VII, Observabilidade | sim | Logger Pino herdado do contexto NestJS; token nunca logado; Swagger documentado; Sentry captura exceções não tratadas |
+| VIII, Banco é Responsabilidade da API | sim | Sem migration nova (token não persiste no banco); `Appointment` já existe e é criado via `PrismaService` |
+| IX, Desenvolvimento Iterativo | sim | Feature 011 inicia após 010 estar completa; spec.md aprovada antes deste plan |
+| X, Ordem de Chegada (walk-in) | CRÍTICO | O check-in cria `Appointment` com `status: AGUARDANDO` e sem nenhum campo de horário agendado; posição na fila é derivada de `createdAt ASC` do dia corrente, idêntico à Feature 005; PROIBIDO qualquer slot ou lógica de calendário |
 
 ---
 
@@ -85,13 +85,13 @@ test/
 
 ## Decisões de Design
 
-### 1. Geração de token — `POST /checkin/token`
+### 1. Geração de token: `POST /checkin/token`
 
 **Role exigida**: `CLIENTE`
 
 **Identificação do cliente**: O JWT do cliente tem `userId`; o `User` tem `customerId` (FK opcional para `Customer`). O service busca `user.customerId` via `PrismaService` e valida que o customer existe, pertence ao mesmo `tenantId` e está ativo (`active: true`). Se o user não tiver `customerId` vinculado, retorna 422 com mensagem clara ("Usuário sem cadastro de cliente vinculado").
 
-**Geração do token**: `crypto.randomBytes(32).toString('hex')` — 64 chars hex, opaco, sem dados pessoais.
+**Geração do token**: `crypto.randomBytes(32).toString('hex')`, 64 chars hex, opaco, sem dados pessoais.
 
 **Lógica Redis**:
 ```
@@ -102,7 +102,7 @@ test/
    (TTL ligeiramente maior para garantir janela de limpeza na próxima regeneração)
 ```
 
-Operações 2-4 executadas via pipeline Redis (atomicidade suficiente para invalidação — race condition de dupla regeneração simultânea é tolerável e resulta em exatamente um token válido no final).
+Operações 2-4 executadas via pipeline Redis (atomicidade suficiente para invalidação, race condition de dupla regeneração simultânea é tolerável e resulta em exatamente um token válido no final).
 
 **Resposta**:
 ```json
@@ -114,7 +114,7 @@ Operações 2-4 executadas via pipeline Redis (atomicidade suficiente para inval
 
 ---
 
-### 2. Consumo atômico — `POST /checkin/consume`
+### 2. Consumo atômico: `POST /checkin/consume`
 
 **Role exigida**: `ADMIN`, `GERENTE`, `BARBEIRO`
 
@@ -148,7 +148,7 @@ Operações 2-4 executadas via pipeline Redis (atomicidade suficiente para inval
 7. Responder com appointment + queuePosition + reused
 ```
 
-**Atomicidade do consumo**: `GETDEL` é atômico no Redis. Dois consumos simultâneos do mesmo token: exatamente um recebe `customerId`, o outro recebe `null` e é recusado — garantia de uso único (FR-008).
+**Atomicidade do consumo**: `GETDEL` é atômico no Redis. Dois consumos simultâneos do mesmo token: exatamente um recebe `customerId`, o outro recebe `null` e é recusado, garantia de uso único (FR-008).
 
 **Resposta**:
 ```json
@@ -161,7 +161,7 @@ Operações 2-4 executadas via pipeline Redis (atomicidade suficiente para inval
 
 ---
 
-### 3. Evento de Domínio — `CHECKIN_REALIZADO`
+### 3. Evento de Domínio: `CHECKIN_REALIZADO`
 
 Definido em `src/common/events/checkin.events.ts`:
 
@@ -194,7 +194,7 @@ Os nomes de throttler seguem o padrão do projeto (`login` em auth). O Redis do 
 
 ### 5. Multi-tenancy e Segurança
 
-- Chaves Redis sempre incluem `tenantId` — isolamento completo entre barbearias.
+- Chaves Redis sempre incluem `tenantId`, isolamento completo entre barbearias.
 - `GETDEL` retorna o `customerId` armazenado, mas o service ainda valida que `customer.tenantId === tenantId` do JWT (defesa em profundidade contra chave Redis corrompida).
 - Erros de token inválido, expirado e cross-tenant retornam o mesmo `404` genérico (FR-004).
 - Token nunca aparece em logs de aplicação (apenas comprimento/prefixo em debug se necessário).
@@ -235,10 +235,10 @@ Não há tabela nova. O módulo `checkin` usa:
 ```
 CheckinModule
   imports:
-    - PrismaModule (global — já disponível)
-    - RedisModule  (global — já disponível)
+    - PrismaModule (global, já disponível)
+    - RedisModule  (global, já disponível)
     - AppointmentsModule (para AppointmentsService)
-    - EventEmitterModule (global — já disponível)
+    - EventEmitterModule (global, já disponível)
   providers:
     - CheckinService
     - CheckinController (não é provider, mas declarado no @Module)

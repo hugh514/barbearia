@@ -1,4 +1,4 @@
-# Spec 009 — Dashboard e Métricas do Backoffice
+# Spec 009: Dashboard e Métricas do Backoffice
 
 **Branch:** `feat/009-dashboard-backoffice`
 **Status:** Ready for Implementation
@@ -8,13 +8,13 @@
 
 ## Contexto
 
-O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — não sabe quantos clientes tem, quanto faturou, qual barbeiro atende mais. Este módulo expõe endpoints de métricas agregadas que o frontend do backoffice consumirá. Não inclui o frontend — apenas a API de dados.
+O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio, não sabe quantos clientes tem, quanto faturou, qual barbeiro atende mais. Este módulo expõe endpoints de métricas agregadas que o frontend do backoffice consumirá. Não inclui o frontend, apenas a API de dados.
 
 ---
 
 ## User Stories
 
-### US-009.1 — Dashboard Resumo (Priority: P0)
+### US-009.1: Dashboard Resumo (Priority: P0)
 
 **Como** dono/gerente,
 **Quero** ver um resumo do dia/semana/mês em uma tela,
@@ -30,7 +30,7 @@ O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — 
 - [ ] Filtro por período obrigatório
 - [ ] Scoped por tenant
 
-### US-009.2 — Métricas de Clientes (Priority: P1)
+### US-009.2: Métricas de Clientes (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /dashboard/customers` retorna:
@@ -39,7 +39,7 @@ O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — 
   - Clientes recorrentes (2+ atendimentos)
   - Top 10 clientes por frequência
 
-### US-009.3 — Métricas Financeiras (Priority: P1)
+### US-009.3: Métricas Financeiras (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /dashboard/revenue?period=month` retorna:
@@ -49,7 +49,7 @@ O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — 
   - Comparativo com período anterior (% crescimento)
   - Receita por barbeiro
 
-### US-009.4 — Métricas de Planos (Priority: P1)
+### US-009.4: Métricas de Planos (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /dashboard/plans` retorna:
@@ -58,7 +58,7 @@ O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — 
   - MRR (Monthly Recurring Revenue)
   - Churn rate (cancelados / ativos)
 
-### US-009.5 — Métricas de Conversas (Priority: P2)
+### US-009.5: Métricas de Conversas (Priority: P2)
 
 **Critérios de Aceite:**
 - [ ] `GET /dashboard/conversations` retorna:
@@ -67,7 +67,7 @@ O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — 
   - Total de mensagens no período por canal (WhatsApp vs Instagram)
   - Tempo médio de resposta
 
-### US-009.6 — Performance por Barbeiro (Priority: P1)
+### US-009.6: Performance por Barbeiro (Priority: P1)
 
 **Critérios de Aceite:**
 - [ ] `GET /dashboard/barbers` retorna por barbeiro:
@@ -80,7 +80,7 @@ O dono da barbearia hoje não tem nenhuma visibilidade do próprio negócio — 
 
 ## Modelo de Dados
 
-Não há novas tabelas — este módulo faz queries de agregação sobre tabelas existentes.
+Não há novas tabelas, este módulo faz queries de agregação sobre tabelas existentes.
 
 Queries pesadas devem usar:
 - Cache em Redis (TTL: 5 min para dashboard, 15 min para relatórios)
