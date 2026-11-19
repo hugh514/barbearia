@@ -87,7 +87,7 @@ export default function PlanosPage() {
                       sub.mutate(plan.id);
                     }}
                   >
-                    {current ? 'Seu plano atual' : `Assinar plano ${plan.name}`}
+                    {current ? 'Seu plano atual' : `Assinar ${plan.name}`}
                   </Button>
                 </CardContent>
               </Card>
