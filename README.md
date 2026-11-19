@@ -99,6 +99,6 @@ Cada app tem o próprio `package.json` e `package-lock.json`. Não há workspace
 - **Efeito colateral vai para fila.** Mandar mensagem pós-atendimento, pedir avaliação ou oferecer plano roda em jobs do BullMQ, com retry, e nunca trava a requisição.
 - **Check-in por QR Code de vida curta.** O cliente gera um token opaco que vale 60 segundos e é guardado no Redis; a equipe lê e o cliente entra na fila. Gerar um novo invalida o anterior.
 - **Pagamento pelo gateway.** A API cria a cobrança no Mercado Pago e confirma por webhook com assinatura validada e processamento idempotente. Cartão nunca passa pela API.
-- **Sessão em cookie httpOnly nos fronts.** O navegador fala só com as rotas `/api/*` do próprio Next, que repassam para a API. O token não fica exposto ao JavaScript da página.
+- **Sessão em cookie httpOnly nos fronts.** Nas chamadas REST, o navegador fala só com as rotas `/api/*` do próprio Next, que repassam para a API, e os tokens ficam em cookie httpOnly. A exceção é o tempo real do painel: a rota `/api/realtime/token` devolve o access token ao JavaScript e o navegador conecta direto na API (Socket.IO) em `API_PUBLIC_URL`. Por isso essa URL precisa ser alcançável pelo navegador (no compose, `http://127.0.0.1:3000`).
 
 Os detalhes estão em `docs/constituicao/` e nas specs de cada app.
