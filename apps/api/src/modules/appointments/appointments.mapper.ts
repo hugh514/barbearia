@@ -41,6 +41,7 @@ export function toAppointmentResponse(
     startedAt: appointment.startedAt,
     finishedAt: appointment.finishedAt,
     createdAt: appointment.createdAt,
+    enteredAt: appointment.createdAt,
     updatedAt: appointment.updatedAt,
     customer: appointment.customer
       ? {
