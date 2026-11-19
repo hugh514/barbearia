@@ -25,10 +25,11 @@ export class EmailProcessor extends WorkerHost {
     }
     const { email, token, tenantSlug, role } = job.data;
 
-    const baseUrl = this.config.get(
-      role === UserRole.CLIENTE ? 'CLIENTE_PUBLIC_URL' : 'PAINEL_PUBLIC_URL',
-      { infer: true },
-    );
+    const isCliente = role === UserRole.CLIENTE;
+    const baseUrl =
+      this.config.get(isCliente ? 'CLIENTE_PUBLIC_URL' : 'PAINEL_PUBLIC_URL', {
+        infer: true,
+      }) ?? (isCliente ? 'http://localhost:3002' : 'http://localhost:3001');
     const params = new URLSearchParams({ token, tenant: tenantSlug });
     const link = `${baseUrl.replace(/\/+$/, '')}/reset-password?${params}`;
 
