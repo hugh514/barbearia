@@ -12,6 +12,7 @@ import {
   UserRole,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { seedBarbearias } from './seed-barbearias';
 
 const prisma = new PrismaClient();
 
@@ -489,6 +490,8 @@ async function main(): Promise<void> {
       finishedAt: weekAgoFinished,
     },
   });
+
+  await seedBarbearias(prisma, passwordHash);
 
   console.log(
     `Seed completed: tenant + users + customers + conversations/messages + appointments (waiting: ${waitingAppointment.id}) + plans/subscriptions (active: ${joaoSubscription.id}, pending: ${mariaSubscription.id}, cancelled: ${carlosSubscription.id}) + payments (approved: ${joaoPayment.id}, pending: ${mariaPayment.id})`,
