@@ -240,30 +240,36 @@ export class AuthService {
    * para não revelar se o e-mail existe. Gera token de uso único em Redis e emite
    * evento para envio do e-mail (efeito colateral fora do handler).
    */
-  async forgotPassword(email: string): Promise<void> {
-    const user = await this.prisma.user.findFirst({
-      where: { email: email.toLowerCase(), active: true },
+  async forgotPassword(email: string, tenantSlug?: string): Promise<void> {
+    // O e-mail é único só por tenant: sem tenantSlug, cada usuário ativo com
+    // esse e-mail recebe o próprio token (e o próprio link).
+    const users = await this.prisma.user.findMany({
+      where: {
+        email: email.toLowerCase(),
+        active: true,
+        ...(tenantSlug ? { tenant: { slug: tenantSlug } } : {}),
+      },
       include: { tenant: { select: { slug: true } } },
     });
 
-    if (!user) return; // resposta genérica
+    for (const user of users) {
+      const token = randomUUID();
+      await this.redis.set(
+        passwordResetKey(token),
+        JSON.stringify({ tenantId: user.tenantId, userId: user.id }),
+        'EX',
+        PASSWORD_RESET_TTL_SECONDS,
+      );
 
-    const token = randomUUID();
-    await this.redis.set(
-      passwordResetKey(token),
-      JSON.stringify({ tenantId: user.tenantId, userId: user.id }),
-      'EX',
-      PASSWORD_RESET_TTL_SECONDS,
-    );
-
-    this.eventEmitter.emit(SENHA_RECUPERACAO_SOLICITADA, {
-      tenantId: user.tenantId,
-      userId: user.id,
-      email: user.email,
-      tenantSlug: user.tenant.slug,
-      role: user.role,
-      token,
-    });
+      this.eventEmitter.emit(SENHA_RECUPERACAO_SOLICITADA, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        email: user.email,
+        tenantSlug: user.tenant.slug,
+        role: user.role,
+        token,
+      });
+    }
   }
 
   /**

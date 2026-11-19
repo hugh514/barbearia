@@ -101,7 +101,7 @@ export class AuthController {
   async forgotPassword(
     @Body(new ZodValidationPipe(forgotPasswordSchema)) body: ForgotPasswordDto,
   ): Promise<{ ok: true }> {
-    await this.authService.forgotPassword(body.email);
+    await this.authService.forgotPassword(body.email, body.tenantSlug);
     return { ok: true };
   }
 
