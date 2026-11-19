@@ -1,0 +1,14 @@
+import { createZodDto } from '@anatine/zod-nestjs';
+import { z } from 'zod';
+
+export const updateCustomerSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    phone: z.string().min(8).optional(),
+    instagram: z.string().min(1).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided',
+  });
+
+export class UpdateCustomerDto extends createZodDto(updateCustomerSchema) {}

@@ -1,0 +1,10 @@
+import { createZodDto } from '@anatine/zod-nestjs';
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+  tenantSlug: z.string().optional(),
+});
+
+export class LoginDto extends createZodDto(loginSchema) {}

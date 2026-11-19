@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.env
+coverage
+*.md
+specs
+barber-specs
+.specify
+.claude
