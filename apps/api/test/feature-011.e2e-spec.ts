@@ -123,7 +123,8 @@ describe('Feature 011 — QR Check-in (e2e)', () => {
       .accessToken;
     barberToken = (await login(barberEmail)).accessToken;
     adminToken = (await login(adminEmail)).accessToken;
-    otherTenantBarberToken = (await login('admin@other-011.example')).accessToken;
+    otherTenantBarberToken = (await login('admin@other-011.example'))
+      .accessToken;
   });
 
   afterAll(async () => {
