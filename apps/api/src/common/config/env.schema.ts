@@ -59,9 +59,50 @@ export const envSchema = z
     OPENAI_API_KEY: z.string().default(''),
     OPENAI_MODEL: z.string().default('gpt-4o'),
     ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
+    // Vazio = escolhe pelo token: o token falso do .env.example usa o mock.
+    PAYMENTS_PROVIDER: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z.enum(['mock', 'mercadopago']).optional(),
+    ),
+    // URLs públicas dos fronts, usadas nos links de e-mail.
+    PAINEL_PUBLIC_URL: z.string().default('http://localhost:3001'),
+    CLIENTE_PUBLIC_URL: z.string().default('http://localhost:3002'),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') return;
+
+    const devChecks: Array<[keyof typeof data, boolean]> = [
+      [
+        'INSTAGRAM_VERIFY_TOKEN',
+        data.INSTAGRAM_VERIFY_TOKEN === 'dev-instagram-verify-token',
+      ],
+      [
+        'MERCADO_PAGO_ACCESS_TOKEN',
+        data.MERCADO_PAGO_ACCESS_TOKEN.startsWith('TEST-dev-'),
+      ],
+      ['DATABASE_URL', /\/\/barber:barber@/.test(data.DATABASE_URL)],
+      [
+        'ALLOWED_ORIGINS',
+        data.ALLOWED_ORIGINS.split(',')
+          .map((o) => o.trim())
+          .filter(Boolean)
+          .every(
+            (o) =>
+              o === '*' ||
+              /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o),
+          ),
+      ],
+      ['PAYMENTS_PROVIDER', data.PAYMENTS_PROVIDER === 'mock'],
+    ];
+    for (const [field, insecure] of devChecks) {
+      if (insecure) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [field],
+          message: `${field} has a development value, not allowed in production`,
+        });
+      }
+    }
 
     const insecureDefaults: Array<{
       field: keyof typeof data;
@@ -99,7 +140,15 @@ export const envSchema = z
         });
       }
     }
-  });
+  })
+  .transform((data) => ({
+    ...data,
+    PAYMENTS_PROVIDER:
+      data.PAYMENTS_PROVIDER ??
+      (data.MERCADO_PAGO_ACCESS_TOKEN === 'TEST-dev-mercado-pago-access-token'
+        ? ('mock' as const)
+        : ('mercadopago' as const)),
+  }));
 
 export type Env = z.infer<typeof envSchema>;
 
