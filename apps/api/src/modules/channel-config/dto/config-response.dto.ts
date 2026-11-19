@@ -39,6 +39,12 @@ export class ChannelConfigResponseDto {
   @ApiPropertyOptional()
   instagramPageId?: string | null;
 
+  @ApiProperty({ example: '#1F4FB8', description: 'Cor da marca, #RRGGBB' })
+  brandColor!: string;
+
+  @ApiProperty({ enum: ['light', 'dark'] })
+  themeMode!: 'light' | 'dark';
+
   @ApiProperty()
   createdAt!: string;
 

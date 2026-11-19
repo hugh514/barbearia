@@ -74,6 +74,13 @@ export class ChannelConfigService {
       data.instagramPageId = dto.instagramPageId;
     }
 
+    if (dto.brandColor !== undefined) {
+      data.brandColor = dto.brandColor;
+    }
+    if (dto.themeMode !== undefined) {
+      data.themeMode = dto.themeMode;
+    }
+
     const config = await this.prisma.channelConfig.update({
       where: { tenantId },
       data,
@@ -124,6 +131,8 @@ export class ChannelConfigService {
       rules: dto.rules,
       whatsappInstance: dto.whatsappInstance,
       instagramPageId: dto.instagramPageId,
+      brandColor: dto.brandColor,
+      themeMode: dto.themeMode,
     };
   }
 }

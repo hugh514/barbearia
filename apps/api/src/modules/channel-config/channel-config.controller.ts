@@ -17,6 +17,8 @@ import {
 import { UserRole } from '@prisma/client';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { CurrentTenant } from '@modules/auth/decorators/current-tenant.decorator';
+import { CurrentUser } from '@modules/auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '@modules/auth/auth.types';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { ChannelConfigService } from './channel-config.service';
 import {
@@ -50,14 +52,22 @@ export class ChannelConfigController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.BARBEIRO)
+  @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.BARBEIRO, UserRole.CLIENTE)
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Obter configuração do bot do tenant' })
+  @ApiOperation({
+    summary:
+      'Obter configuração do tenant (CLIENTE recebe sem ids de integração)',
+  })
   @ApiResponse({ status: 200, type: ChannelConfigResponseDto })
   async findOne(
     @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<ChannelConfigResponseDto> {
-    return this.channelConfigService.findOne(tenantId);
+    const config = await this.channelConfigService.findOne(tenantId);
+    if (user.role === UserRole.CLIENTE) {
+      return { ...config, whatsappInstance: null, instagramPageId: null };
+    }
+    return config;
   }
 
   @Patch()

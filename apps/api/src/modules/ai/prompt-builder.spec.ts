@@ -13,6 +13,8 @@ describe('PromptBuilder', () => {
     rules: 'Sem agendamento.',
     whatsappInstance: 'barbearia-modelo',
     instagramPageId: 'fk-page',
+    brandColor: '#1F4FB8',
+    themeMode: 'light',
     createdAt: new Date(),
     updatedAt: new Date(),
   };
