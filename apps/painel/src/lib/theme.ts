@@ -70,6 +70,21 @@ function readableOn(brand: string, mode: ThemeMode): string {
   return mode === 'light' ? INK : WHITE;
 }
 
+/**
+ * Marca usada como fundo de botão, com texto que passe de 4.5:1. Se nem branco
+ * nem ink passam, escurece (texto branco) ou clareia (texto ink) aos poucos,
+ * pelo caminho mais curto.
+ */
+function buttonSafe(brand: string): { brand: string; fg: string } {
+  for (let step = 0; step <= 20; step++) {
+    const darker = mix(brand, '#000000', step * 0.05);
+    if (contrastRatio(WHITE, darker) >= 4.5) return { brand: darker, fg: WHITE };
+    const lighter = mix(brand, WHITE, step * 0.05);
+    if (contrastRatio(INK, lighter) >= 4.5) return { brand: lighter, fg: INK };
+  }
+  return { brand: INK, fg: WHITE };
+}
+
 export interface TenantTheme {
   mode: ThemeMode;
   vars: Record<'--brand' | '--brand-fg' | '--brand-soft' | '--brand-text', string>;
@@ -78,9 +93,9 @@ export interface TenantTheme {
 export function themeFrom(
   settings: { brandColor?: unknown; themeMode?: unknown } | null | undefined,
 ): TenantTheme {
-  const brand = normalizeHex(settings?.brandColor) ?? DEFAULT_BRAND.toLowerCase();
+  const chosen = normalizeHex(settings?.brandColor) ?? DEFAULT_BRAND.toLowerCase();
   const mode: ThemeMode = settings?.themeMode === 'dark' ? 'dark' : 'light';
-  const fg = contrastRatio(WHITE, brand) >= contrastRatio(INK, brand) ? WHITE : INK;
+  const { brand, fg } = buttonSafe(chosen);
   return {
     mode,
     vars: {

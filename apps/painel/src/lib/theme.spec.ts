@@ -69,6 +69,21 @@ describe('themeFrom', () => {
     expect(contrastRatio(t.vars['--brand-text'], SURFACE_LIGHT)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it.each(['#7a7a7a', '#3f9cff', '#e0457b', '#2bb673'])(
+    'cor livre %s é ajustada até o texto do botão passar de 4.5:1',
+    (hex) => {
+      const { vars } = themeFrom({ brandColor: hex });
+      expect(contrastRatio(vars['--brand-fg'], vars['--brand'])).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it.each(BRAND_PRESETS.map((p) => [p.name, p.hex]))(
+    'preset %s não é alterado',
+    (_name, hex) => {
+      expect(themeFrom({ brandColor: hex }).vars['--brand']).toBe(hex.toLowerCase());
+    },
+  );
+
   it('marca que já passa no claro fica como está', () => {
     expect(themeFrom({ brandColor: '#1F4FB8' }).vars['--brand-text']).toBe('#1f4fb8');
   });
