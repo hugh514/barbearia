@@ -112,9 +112,14 @@ export class QueuesAdminService {
     return stats;
   }
 
-  async getFailedJobs(name: string): Promise<FailedJobDto[]> {
+  async getFailedJobs(name: string, tenantId: string): Promise<FailedJobDto[]> {
     const queue = this.resolveQueue(name);
-    const failed = await queue.getFailed(0, 19);
+    const failed = (await queue.getFailed(0, 99))
+      .filter(
+        (job) =>
+          (job.data as { tenantId?: string } | null)?.tenantId === tenantId,
+      )
+      .slice(0, 20);
 
     return failed.map((job) => ({
       id: job.id ?? '',
