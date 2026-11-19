@@ -2,7 +2,6 @@
 
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Phone } from 'lucide-react';
 import type { Customer } from './schemas';
 import { PlanBadge } from './plan-badge';
 import { ORIGIN_LABEL } from './schemas';
@@ -40,7 +39,7 @@ export function CustomersTable({
   if (customers.length === 0) {
     return (
       <div className="flex min-h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-        Nenhum cliente encontrado.
+        Nenhum cliente encontrado. Confira a busca ou use Novo cliente.
       </div>
     );
   }
@@ -64,19 +63,16 @@ export function CustomersTable({
                 transform: `translateY(${vi.start}px)`,
               }}
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
-                {c.name.charAt(0).toUpperCase()}
-              </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">
                   {c.name}
                 </p>
-                <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                  <Phone className="size-3" />
-                  {c.phone} · {ORIGIN_LABEL[c.origin]}
+                <p className="truncate text-xs text-muted-foreground">
+                  <span className="tabular-nums">{c.phone}</span>
+                  <span className="ml-3">{ORIGIN_LABEL[c.origin]}</span>
                 </p>
               </div>
-              <div className="hidden text-xs text-muted-foreground sm:block">
+              <div className="hidden text-xs tabular-nums text-muted-foreground sm:block">
                 {c.lastVisit ? formatDateTime(c.lastVisit) : 'Sem visitas'}
               </div>
               <PlanBadge status={c.planStatus} />

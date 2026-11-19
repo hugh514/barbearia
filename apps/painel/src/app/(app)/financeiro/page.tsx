@@ -1,20 +1,13 @@
-import { DollarSign, Scissors, CreditCard } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatCard } from '@/features/dashboard/stat-card';
+import { KeyFigures } from '@/features/dashboard/key-figures';
+import { PERIODS, PERIOD_PHRASE } from '@/features/dashboard/schemas';
 import { revenueMetricsSchema } from '@/features/finance/schemas';
 import { serverApiGet, ServerApiError } from '@/lib/http/server-api';
 import { formatBRL } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-const PERIODS = ['today', 'week', 'month', 'year'] as const;
-const LABEL: Record<(typeof PERIODS)[number], string> = {
-  today: 'Hoje',
-  week: 'Semana',
-  month: 'Mês',
-  year: 'Ano',
-};
 
 export default async function FinanceiroPage({
   searchParams,
@@ -35,14 +28,14 @@ export default async function FinanceiroPage({
     );
   } catch (e) {
     error =
-      e instanceof ServerApiError ? e.message : 'Erro ao carregar financeiro.';
+      e instanceof ServerApiError ? e.message : 'Não foi possível carregar o financeiro. Recarregue a página.';
   }
 
   return (
     <div>
       <PageHeader
         title="Financeiro"
-        description={`Receita · ${LABEL[period]}`}
+        description={`Quanto entrou ${PERIOD_PHRASE[period]}, por atendimento e por plano.`}
       />
 
       {error && (
@@ -55,24 +48,13 @@ export default async function FinanceiroPage({
 
       {metrics && (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <StatCard
-              label="Receita total"
-              value={formatBRL(metrics.totalRevenue)}
-              icon={DollarSign}
-              highlight
-            />
-            <StatCard
-              label="Atendimentos"
-              value={formatBRL(metrics.appointmentRevenue)}
-              icon={Scissors}
-            />
-            <StatCard
-              label="Planos"
-              value={formatBRL(metrics.planRevenue)}
-              icon={CreditCard}
-            />
-          </div>
+          <KeyFigures
+            main={{ label: 'Receita total', value: formatBRL(metrics.totalRevenue) }}
+            rest={[
+              { label: 'Atendimentos', value: formatBRL(metrics.appointmentRevenue) },
+              { label: 'Planos', value: formatBRL(metrics.planRevenue) },
+            ]}
+          />
 
           <Card className="mt-6">
             <CardHeader>
@@ -92,11 +74,12 @@ export default async function FinanceiroPage({
                     >
                       <span className="text-sm text-foreground">
                         {b.barberName}
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          {b.appointmentCount} atend.
+                        <span className="ml-2 text-xs tabular-nums text-muted-foreground">
+                          {b.appointmentCount}{' '}
+                          {b.appointmentCount === 1 ? 'atendimento' : 'atendimentos'}
                         </span>
                       </span>
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="text-sm font-medium tabular-nums text-foreground">
                         {formatBRL(b.revenue)}
                       </span>
                     </li>

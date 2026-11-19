@@ -40,7 +40,7 @@ export default function CheckinPage() {
     <div>
       <PageHeader
         title="Check-in"
-        description="Escaneie o QR do cliente ou informe o token para colocá-lo na fila"
+        description="Leia o QR do app do cliente para colocá-lo na fila."
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -84,14 +84,14 @@ export default function CheckinPage() {
         </Card>
 
         {result && (
-          <Card className="border-[var(--success)]/40">
-            <CardContent className="space-y-2 p-6">
-              <div className="flex items-center gap-2 text-[var(--success)]">
+          <Card className="border-success">
+            <CardContent className="space-y-2 p-5">
+              <div role="status" className="flex items-center gap-2 text-success">
                 <CheckCircle2 className="size-5" />
                 <span className="font-semibold">
                   {result.reused
                     ? 'Cliente já estava na fila'
-                    : 'Check-in confirmado!'}
+                    : 'Check-in confirmado'}
                 </span>
               </div>
               <p className="text-sm text-foreground">

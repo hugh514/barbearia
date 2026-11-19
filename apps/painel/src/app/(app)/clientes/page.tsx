@@ -28,7 +28,7 @@ export default function ClientesPage() {
     <div>
       <PageHeader
         title="Clientes"
-        description="Base de clientes da barbearia"
+        description="Quem já passou pela barbearia e a situação do plano de cada um."
         actions={
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="size-4" />
@@ -64,12 +64,12 @@ export default function ClientesPage() {
       {meta && meta.total > 0 && (
         <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            {meta.total} cliente{meta.total !== 1 ? 's' : ''} · página{' '}
+            {meta.total} cliente{meta.total !== 1 ? 's' : ''}, página{' '}
             {meta.page} de {meta.lastPage}
           </span>
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -77,7 +77,7 @@ export default function ClientesPage() {
               Anterior
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               disabled={page >= meta.lastPage}
               onClick={() => setPage((p) => p + 1)}

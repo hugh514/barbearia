@@ -11,11 +11,11 @@ export default function FilaPage() {
   return (
     <div>
       <PageHeader
-        title="Fila do Dia"
+        title="Fila de hoje"
         description={
           isFetching
             ? 'Atualizando atendimentos…'
-            : 'Atendimentos por ordem de chegada (tempo real)'
+            : 'Por ordem de chegada. A lista se atualiza sozinha.'
         }
       />
 

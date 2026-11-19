@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input, fieldClass } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { saveConfig } from './services';
@@ -138,7 +139,7 @@ export function ConfigFormView({ config }: { config: ChannelConfig | null }) {
             <CardTitle>Serviços</CardTitle>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => append({ name: '', price: '' })}
             >
@@ -188,7 +189,7 @@ export function ConfigFormView({ config }: { config: ChannelConfig | null }) {
             <textarea
               id="rules"
               rows={4}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className={cn(fieldClass, 'h-auto py-2')}
               {...register('rules')}
             />
           </div>
@@ -216,8 +217,8 @@ export function ConfigFormView({ config }: { config: ChannelConfig | null }) {
           {mutation.isPending ? 'Salvando…' : 'Salvar configurações'}
         </Button>
         {saved && (
-          <span role="status" className="text-sm text-[var(--success)]">
-            Salvo com sucesso!
+          <span role="status" className="text-sm text-success">
+            Configurações salvas.
           </span>
         )}
       </div>

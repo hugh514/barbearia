@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Usa a sessão salva em auth.setup.ts (storageState) — sem re-login por teste.
 
-test('dashboard exibe KPIs', async ({ page }) => {
+test('dashboard exibe os números do período', async ({ page }) => {
   await page.goto('/dashboard');
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.getByText('Receita', { exact: true })).toBeVisible();
@@ -24,10 +24,10 @@ test('busca de clientes filtra via API', async ({ page }) => {
 
 test('fila do dia mostra colunas de status', async ({ page }) => {
   await page.goto('/fila');
-  await expect(page.getByRole('heading', { name: 'Fila do Dia' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Aguardando' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fila de hoje' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Esperando' })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Em atendimento' }),
+    page.getByRole('heading', { name: 'Na cadeira' }),
   ).toBeVisible();
 });
 

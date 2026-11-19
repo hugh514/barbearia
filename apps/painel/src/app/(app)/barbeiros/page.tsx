@@ -19,7 +19,7 @@ export default function BarbeirosPage() {
     <div>
       <PageHeader
         title="Equipe"
-        description="Barbeiros e gestores da barbearia"
+        description="Quem atende e quem administra. Cada pessoa entra com o próprio e-mail."
         actions={
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="size-4" />
@@ -39,39 +39,30 @@ export default function BarbeirosPage() {
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
+        <Card className="divide-y divide-border">
           {(data?.data ?? []).map((u) => (
-            <Card
+            <div
               key={u.id}
-              className="flex items-center justify-between gap-4 p-4"
+              className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3"
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
-                  {u.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {u.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {u.email}
-                  </p>
-                </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">
+                  {u.name}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">{u.email}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <StatusBadge tone="amberSoft">{ROLE_LABEL[u.role]}</StatusBadge>
-                <StatusBadge tone={u.active ? 'success' : 'neutral'}>
-                  {u.active ? 'Ativo' : 'Inativo'}
-                </StatusBadge>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                {ROLE_LABEL[u.role]}
+                {!u.active && <StatusBadge>Inativo</StatusBadge>}
               </div>
-            </Card>
+            </div>
           ))}
           {data && data.data.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Nenhum membro cadastrado.
+            <p className="p-5 text-sm text-muted-foreground">
+              Ninguém na equipe ainda. Use Novo membro para cadastrar.
             </p>
           )}
-        </div>
+        </Card>
       )}
 
       <CreateUserDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />

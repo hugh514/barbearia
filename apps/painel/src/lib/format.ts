@@ -25,10 +25,10 @@ const TIME = new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' });
 
 export function formatDateTime(value: string | Date): string {
   const d = typeof value === 'string' ? new Date(value) : value;
-  return Number.isNaN(d.getTime()) ? '—' : DATE_TIME.format(d);
+  return Number.isNaN(d.getTime()) ? 'sem data' : DATE_TIME.format(d);
 }
 
 export function formatTime(value: string | Date): string {
   const d = typeof value === 'string' ? new Date(value) : value;
-  return Number.isNaN(d.getTime()) ? '—' : TIME.format(d);
+  return Number.isNaN(d.getTime()) ? 'sem hora' : TIME.format(d);
 }

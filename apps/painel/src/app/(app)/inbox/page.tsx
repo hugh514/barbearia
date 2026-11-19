@@ -42,7 +42,7 @@ export default function InboxPage() {
 
   return (
     <div>
-      <PageHeader title="Inbox" description="Conversas omnichannel (tempo real)" />
+      <PageHeader title="Inbox" description="Mensagens do WhatsApp e do Instagram. A resposta sai pelo mesmo canal." />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
         {/* Lista de conversas */}
@@ -63,16 +63,17 @@ export default function InboxPage() {
                 <li key={c.id}>
                   <button
                     onClick={() => setActive(c)}
+                    aria-current={active?.id === c.id ? 'true' : undefined}
                     className={cn(
                       'flex w-full flex-col gap-1 px-4 py-3 text-left transition-colors hover:bg-secondary',
-                      active?.id === c.id && 'bg-secondary',
+                      active?.id === c.id && 'bg-accent',
                     )}
                   >
                     <div className="flex items-center justify-between">
                       <span className="truncate text-sm font-medium text-foreground">
                         {c.customer?.name ?? 'Cliente'}
                       </span>
-                      <StatusBadge tone="amberSoft">
+                      <StatusBadge>
                         {CHANNEL_LABEL[c.channel]}
                       </StatusBadge>
                     </div>
@@ -90,7 +91,7 @@ export default function InboxPage() {
         <Card className="flex max-h-[calc(100vh-14rem)] flex-col">
           {!active ? (
             <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-              Selecione uma conversa
+              Selecione uma conversa para ler e responder.
             </div>
           ) : (
             <>
@@ -99,7 +100,8 @@ export default function InboxPage() {
                   {active.customer?.name ?? 'Cliente'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {active.customer?.phone} · {CHANNEL_LABEL[active.channel]}
+                  {CHANNEL_LABEL[active.channel]}
+                  {active.customer?.phone ? `, ${active.customer.phone}` : ''}
                 </p>
               </div>
 

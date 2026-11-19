@@ -1,10 +1,9 @@
-import { DollarSign, Users, CalendarCheck, Activity } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatCard } from '@/features/dashboard/stat-card';
+import { KeyFigures } from '@/features/dashboard/key-figures';
 import {
   dashboardSummarySchema,
-  PERIOD_LABEL,
+  PERIOD_PHRASE,
   type Period,
 } from '@/features/dashboard/schemas';
 import { serverApiGet, ServerApiError } from '@/lib/http/server-api';
@@ -35,51 +34,33 @@ export default async function DashboardPage({
     error =
       e instanceof ServerApiError
         ? e.message
-        : 'Não foi possível carregar o dashboard.';
+        : 'Não foi possível carregar o dashboard. Recarregue a página.';
   }
+
+  const max = Math.max(1, ...(summary?.appointmentsByBarber.map((b) => b.count) ?? []));
 
   return (
     <div>
-      <PageHeader
-        title="Dashboard"
-        description={`Visão geral · ${PERIOD_LABEL[period]}`}
-      />
+      <PageHeader title="Dashboard" description={`Números ${PERIOD_PHRASE[period]}.`} />
 
       {error && (
         <Card>
-          <CardContent className="p-6 text-sm text-destructive">
-            {error}
-          </CardContent>
+          <CardContent className="p-5 text-sm text-destructive">{error}</CardContent>
         </Card>
       )}
 
       {summary && (
-        <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              label="Receita"
-              value={formatBRL(summary.revenue)}
-              icon={DollarSign}
-              highlight
-            />
-            <StatCard
-              label="Atendimentos"
-              value={String(summary.totalAppointments)}
-              icon={CalendarCheck}
-            />
-            <StatCard
-              label="Novos clientes"
-              value={String(summary.newCustomers)}
-              icon={Users}
-            />
-            <StatCard
-              label="Ocupação"
-              value={formatPercent(summary.occupancyRate)}
-              icon={Activity}
-            />
-          </div>
+        <div className="space-y-6">
+          <KeyFigures
+            main={{ label: 'Atendimentos', value: String(summary.totalAppointments) }}
+            rest={[
+              { label: 'Receita', value: formatBRL(summary.revenue) },
+              { label: 'Novos clientes', value: String(summary.newCustomers) },
+              { label: 'Ocupação', value: formatPercent(summary.occupancyRate) },
+            ]}
+          />
 
-          <Card className="mt-6">
+          <Card>
             <CardHeader>
               <CardTitle>Atendimentos por barbeiro</CardTitle>
             </CardHeader>
@@ -89,16 +70,20 @@ export default async function DashboardPage({
                   Nenhum atendimento no período.
                 </p>
               ) : (
-                <ul className="divide-y divide-border">
+                <ul className="space-y-3">
                   {summary.appointmentsByBarber.map((b) => (
                     <li
                       key={b.barberId ?? b.barberName}
-                      className="flex items-center justify-between py-3"
+                      className="grid grid-cols-[minmax(0,10rem)_1fr_2.5rem] items-center gap-3 text-sm"
                     >
-                      <span className="text-sm text-foreground">
-                        {b.barberName}
+                      <span className="truncate text-foreground">{b.barberName}</span>
+                      <span className="h-2 rounded-sm bg-secondary" aria-hidden>
+                        <span
+                          className="block h-full rounded-sm bg-primary"
+                          style={{ width: `${(b.count / max) * 100}%` }}
+                        />
                       </span>
-                      <span className="text-sm font-medium text-muted-foreground">
+                      <span className="text-right font-medium tabular-nums text-foreground">
                         {b.count}
                       </span>
                     </li>
@@ -107,7 +92,7 @@ export default async function DashboardPage({
               )}
             </CardContent>
           </Card>
-        </>
+        </div>
       )}
     </div>
   );

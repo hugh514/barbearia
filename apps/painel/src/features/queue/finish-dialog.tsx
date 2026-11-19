@@ -83,7 +83,7 @@ export function FinishDialog({
           onClose();
         },
         onError: (e) =>
-          toast(e instanceof Error ? e.message : 'Erro ao finalizar', 'error'),
+          toast(e instanceof Error ? e.message : 'Não foi possível finalizar. Tente de novo.', 'error'),
       },
     );
   }
@@ -111,14 +111,15 @@ export function FinishDialog({
                     key={s.name}
                     type="button"
                     onClick={() => toggle(s.name)}
+                    aria-pressed={on}
                     className={
                       on
-                        ? 'rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground'
-                        : 'rounded-full border border-input px-3 py-1.5 text-xs text-foreground hover:bg-secondary'
+                        ? 'inline-flex h-9 items-center gap-2 rounded-md border border-primary bg-accent px-3 text-sm font-semibold text-accent-foreground focus-visible:outline-2 focus-visible:outline-ring'
+                        : 'inline-flex h-9 items-center gap-2 rounded-md border border-input px-3 text-sm text-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-ring'
                     }
                   >
                     {s.name}
-                    {s.price ? ` · ${s.price}` : ''}
+                    {s.price && <span className="tabular-nums text-muted-foreground">{s.price}</span>}
                   </button>
                 );
               })}
@@ -138,7 +139,7 @@ export function FinishDialog({
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
           <Button onClick={submit} disabled={finish.isPending}>

@@ -6,7 +6,6 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
 import { usePlans, usePlanActions } from '@/features/plans/use-plans';
@@ -45,32 +44,27 @@ export default function PlanosPage() {
   }
 
   const renderPlan = (plan: Plan) => (
-    <Card key={plan.id} className={plan.active ? '' : 'opacity-70'}>
+    <Card key={plan.id}>
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <CardTitle>{plan.name}</CardTitle>
-          <StatusBadge tone={plan.active ? 'success' : 'neutral'}>
-            {plan.active ? 'Ativo' : 'Inativo'}
-          </StatusBadge>
-        </div>
+        <CardTitle>{plan.name}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-2xl font-bold text-foreground">
+        <p className="text-2xl font-bold tabular-nums text-foreground">
           {formatCents(plan.priceCents)}
           <span className="text-sm font-normal text-muted-foreground">
-            {' '}/ {plan.intervalDays}d
+            {' '}a cada {plan.intervalDays} dias
           </span>
         </p>
         {plan.benefits.length > 0 && (
-          <ul className="space-y-1 text-sm text-muted-foreground">
+          <ul className="list-disc space-y-1 pl-4 text-sm text-muted-foreground">
             {plan.benefits.map((b, i) => (
-              <li key={i}>• {b}</li>
+              <li key={i}>{b}</li>
             ))}
           </ul>
         )}
         <div className="flex gap-2 pt-1">
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={() => {
               setEditing(plan);
@@ -81,7 +75,7 @@ export default function PlanosPage() {
             Editar
           </Button>
           <Button
-            variant={plan.active ? 'ghost' : 'default'}
+            variant={plan.active ? 'ghost' : 'primary'}
             size="sm"
             onClick={() => setToggling(plan)}
           >
@@ -97,7 +91,7 @@ export default function PlanosPage() {
     <div>
       <PageHeader
         title="Planos"
-        description="Planos recorrentes da barbearia"
+        description="Planos de assinatura que o cliente contrata pelo app."
         actions={
           <Button
             onClick={() => {
@@ -124,7 +118,9 @@ export default function PlanosPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {activePlans.map(renderPlan)}
             {activePlans.length === 0 && (
-              <p className="text-sm text-muted-foreground">Nenhum plano ativo.</p>
+              <p className="text-sm text-muted-foreground">
+                Nenhum plano ativo. Use Novo plano para criar o primeiro.
+              </p>
             )}
           </div>
 
