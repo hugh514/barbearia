@@ -25,7 +25,11 @@ import {
   CreateChannelConfigDto,
   createChannelConfigSchema,
 } from './dto/create-config.dto';
-import { ChannelConfigResponseDto } from './dto/config-response.dto';
+import {
+  ChannelAppearanceDto,
+  ChannelConfigPublicDto,
+  ChannelConfigResponseDto,
+} from './dto/config-response.dto';
 import {
   UpdateChannelConfigDto,
   updateChannelConfigSchema,
@@ -51,23 +55,36 @@ export class ChannelConfigController {
     return this.channelConfigService.create(tenantId, body);
   }
 
+  @Get('appearance')
+  @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.BARBEIRO, UserRole.CLIENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary:
+      'Aparência da barbearia (qualquer papel; padrões se não há config)',
+  })
+  @ApiResponse({ status: 200, type: ChannelAppearanceDto })
+  async appearance(
+    @CurrentTenant() tenantId: string,
+  ): Promise<ChannelAppearanceDto> {
+    return this.channelConfigService.findAppearance(tenantId);
+  }
+
   @Get()
   @Roles(UserRole.ADMIN, UserRole.GERENTE, UserRole.BARBEIRO, UserRole.CLIENTE)
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary:
-      'Obter configuração do tenant (CLIENTE recebe sem ids de integração)',
+      'Obter configuração do tenant (CLIENTE recebe só a lista permitida; 404 para a equipe se não existe)',
   })
   @ApiResponse({ status: 200, type: ChannelConfigResponseDto })
   async findOne(
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
-  ): Promise<ChannelConfigResponseDto> {
-    const config = await this.channelConfigService.findOne(tenantId);
+  ): Promise<ChannelConfigResponseDto | ChannelConfigPublicDto> {
     if (user.role === UserRole.CLIENTE) {
-      return { ...config, whatsappInstance: null, instagramPageId: null };
+      return this.channelConfigService.findPublic(tenantId);
     }
-    return config;
+    return this.channelConfigService.findOne(tenantId);
   }
 
   @Patch()
