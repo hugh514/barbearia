@@ -43,6 +43,10 @@ Para parar: `docker compose down`. Para zerar o banco também: `docker compose d
 
 Em produção os fronts marcam os cookies de sessão como `Secure`, e o navegador só os aceita em https. O compose roda em http, então os serviços `painel` e `cliente` recebem `COOKIE_SECURE=false`. Só o valor `false`, escrito assim, desliga o `Secure`; sem a variável ou com qualquer outro valor, vale o padrão (ligado em produção). Nunca use `COOKIE_SECURE=false` num ambiente com https.
 
+### IP de quem chama, pelo painel
+
+O painel fala com a API pelo próprio servidor, então sem ajuste o limite de tentativas de login da API conta todo mundo como um IP só. Com `FORWARD_CLIENT_IP=true`, o painel repassa o `X-Forwarded-For` que recebeu. Só ligue com um proxy de borda na frente do painel que acrescente o IP real ao cabeçalho, e com `TRUST_PROXY` na API contando o painel como um salto: o Next mantém o cabeçalho que o navegador mandar, e sem a borda qualquer um forja um IP novo a cada tentativa.
+
 ## Login de teste
 
 Essas senhas existem só no seed, para ambiente local. Não use em produção.
