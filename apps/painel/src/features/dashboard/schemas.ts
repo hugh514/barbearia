@@ -1,28 +1,38 @@
 import { z } from 'zod';
 
+// occupancyRate fica de fora: a API divide atendimentos por horas abertas
+// fixas (10 h/dia), sem horário real da barbearia nem capacidade de cadeiras.
 export const dashboardSummarySchema = z.object({
   period: z.string(),
   totalAppointments: z.number(),
-  appointmentsByBarber: z.array(
-    z.object({
-      barberId: z.string().nullable(),
-      barberName: z.string(),
-      count: z.number(),
-    }),
-  ),
+  previousTotalAppointments: z.number(),
   newCustomers: z.number(),
   revenue: z.number(),
-  occupancyRate: z.number(),
+  appointmentsByDay: z.array(
+    z.object({ date: z.string(), count: z.number(), revenue: z.number() }),
+  ),
 });
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>;
 
-export const PERIODS = ['today', 'week', 'month', 'year'] as const;
-export type Period = (typeof PERIODS)[number];
+export const plansMetricsSchema = z.object({
+  activeSubscribers: z.number(),
+  mrrCents: z.number(),
+});
 
-/** Complemento de frase: "Números deste mês". */
-export const PERIOD_PHRASE: Record<Period, string> = {
-  today: 'de hoje',
-  week: 'desta semana',
-  month: 'deste mês',
-  year: 'deste ano',
-};
+export const conversationsMetricsSchema = z.object({
+  openConversations: z.number(),
+  waitingForHuman: z.number(),
+});
+
+export const barbersMetricsSchema = z.object({
+  barbers: z.array(
+    z.object({
+      barberId: z.string(),
+      barberName: z.string(),
+      totalAppointments: z.number(),
+      averageServiceTimeMinutes: z.number().nullable(),
+      revenue: z.number(),
+    }),
+  ),
+});
+export type BarbersMetrics = z.infer<typeof barbersMetricsSchema>;
