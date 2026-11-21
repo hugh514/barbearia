@@ -70,7 +70,8 @@ jobs:
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_SECRET: ci-refresh-secret-apenas-para-teste-32-caracteres
       JWT_REFRESH_EXPIRES_IN: 7d
-      INTERNAL_API_KEY: ci-internal-api-key
+      # O e2e da feature 006 usa este valor fixo (o mesmo do .env.example).
+      INTERNAL_API_KEY: dev-internal-api-key-change-in-production
       MERCADO_PAGO_ACCESS_TOKEN: TEST-ci-mercado-pago
       MERCADO_PAGO_WEBHOOK_SECRET: ci-mp-webhook-secret
       INSTAGRAM_VERIFY_TOKEN: ci-instagram-verify-token
