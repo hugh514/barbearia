@@ -21,6 +21,8 @@ export const appointmentSchema = z.object({
   startedAt: z.string().nullish(),
   finishedAt: z.string().nullish(),
   createdAt: z.string(),
+  /** Hora de entrada na fila (igual a createdAt na API). */
+  enteredAt: z.string().optional(),
   updatedAt: z.string(),
   customer: z
     .object({ id: z.string(), name: z.string(), phone: z.string() })

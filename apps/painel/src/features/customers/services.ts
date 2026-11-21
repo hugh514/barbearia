@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/http/client';
+import { unmaskDigits } from '@/lib/masks';
 import {
   customerListSchema,
   customerSchema,
@@ -29,13 +30,22 @@ export async function listCustomers(
   });
 }
 
+/** Corpo para a API: telefone só com dígitos e Instagram no campo `instagram`. */
+function toApi(input: UpdateCustomerInput) {
+  const body: { name?: string; phone?: string; instagram?: string } = {};
+  if (input.name !== undefined) body.name = input.name.trim();
+  if (input.phone !== undefined) body.phone = unmaskDigits(input.phone);
+  if (input.instagramUser) body.instagram = input.instagramUser.trim();
+  return body;
+}
+
 export async function createCustomer(
   input: CreateCustomerInput,
   idempotencyKey?: string,
 ): Promise<Customer> {
   return apiClient('/customers', {
     method: 'POST',
-    body: input,
+    body: toApi(input),
     schema: customerSchema,
     idempotencyKey,
   });
@@ -45,9 +55,9 @@ export async function updateCustomer(
   id: string,
   input: UpdateCustomerInput,
 ): Promise<Customer> {
-  return apiClient(`/customers/${id}`, {
+  return apiClient(`/customers/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: input,
+    body: toApi(input),
     schema: customerSchema,
   });
 }
