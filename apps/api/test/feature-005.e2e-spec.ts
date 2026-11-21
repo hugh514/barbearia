@@ -131,6 +131,60 @@ describe('Feature 005 — Appointments (e2e)', () => {
       expect(res.body.createdAt).toBeDefined();
     });
 
+    it('registers walk-in without services, like the QR check-in', async () => {
+      const customerId = await createCustomer();
+
+      const res = await request(app.getHttpServer())
+        .post('/appointments')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ customerId })
+        .expect(201);
+
+      expect(res.body.status).toBe(AppointmentStatus.AGUARDANDO);
+      expect(res.body.services).toEqual([]);
+    });
+
+    it('returns 409, not 500, when the customer is already in the queue', async () => {
+      const customerId = await createCustomer();
+      await createAppointment(customerId);
+
+      const res = await request(app.getHttpServer())
+        .post('/appointments')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ customerId })
+        .expect(409);
+
+      expect(res.body.message).toBe('Cliente já tem atendimento em aberto.');
+    });
+
+    it('still rejects an empty service name', async () => {
+      const customerId = await createCustomer();
+
+      await request(app.getHttpServer())
+        .post('/appointments')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ customerId, services: [''] })
+        .expect(400);
+    });
+
+    it('rejects a service name over 100 characters and more than 20 services', async () => {
+      const customerId = await createCustomer();
+
+      await request(app.getHttpServer())
+        .post('/appointments')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ customerId, services: ['x'.repeat(101)] })
+        .expect(400);
+      await request(app.getHttpServer())
+        .post('/appointments')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          customerId,
+          services: Array.from({ length: 21 }, (_, i) => `Serviço ${i}`),
+        })
+        .expect(400);
+    });
+
     it('returns 404 when customer does not exist', async () => {
       await request(app.getHttpServer())
         .post('/appointments')

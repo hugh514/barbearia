@@ -21,7 +21,7 @@ A Barbearia Modelo opera por ordem de chegada, não há agendamento prévio. O c
 **Para que** ele entre na fila e tenha o atendimento rastreado.
 
 **Critérios de Aceite:**
-- [ ] `POST /appointments` aceita: `customerId`, `services[]` (array de serviços solicitados)
+- [ ] `POST /appointments` aceita: `customerId`, `services[]` opcional (serviços pedidos; sem ele, `[]` e os serviços entram ao finalizar)
 - [ ] Status inicial: `AGUARDANDO`
 - [ ] `tenantId` inferido do JWT
 - [ ] Se cliente não existe, retorna 404 (cadastro é responsabilidade do módulo 003)

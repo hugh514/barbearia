@@ -232,6 +232,11 @@ async function main(): Promise<void> {
     });
   }
 
+  // A fila filtra o dia por createdAt: sem ele, um atendimento da semana
+  // passada entraria em Feitos de hoje.
+  const minutesBefore = (date: Date, minutes: number) =>
+    new Date(date.getTime() - minutes * 60_000);
+
   const pedro = customers[2];
   const carlos = customers[3];
 
@@ -260,6 +265,7 @@ async function main(): Promise<void> {
       barberId: barber.id,
       status: AppointmentStatus.EM_ATENDIMENTO,
       services: ['Corte'],
+      createdAt: minutesBefore(inProgressStartedAt, 5),
       startedAt: inProgressStartedAt,
     },
   });
@@ -281,6 +287,7 @@ async function main(): Promise<void> {
       services: ['Corte', 'Sobrancelha'],
       totalPrice: 55.0,
       notes: 'Cliente satisfeito',
+      createdAt: minutesBefore(finishedStartedAt, 10),
       startedAt: finishedStartedAt,
       finishedAt,
     },
@@ -451,6 +458,7 @@ async function main(): Promise<void> {
       status: AppointmentStatus.FINALIZADO,
       services: ['Corte'],
       totalPrice: 45.0,
+      createdAt: minutesBefore(weekAgo, 10),
       startedAt: weekAgo,
       finishedAt: weekAgoFinished,
     },
@@ -489,6 +497,7 @@ async function main(): Promise<void> {
       status: AppointmentStatus.FINALIZADO,
       services: ['Corte'],
       totalPrice: 50.0,
+      createdAt: minutesBefore(weekAgo, 10),
       startedAt: weekAgo,
       finishedAt: weekAgoFinished,
     },
