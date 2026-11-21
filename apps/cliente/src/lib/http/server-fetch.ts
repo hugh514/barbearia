@@ -1,5 +1,7 @@
 import 'server-only';
+import { headers as requestHeaders } from 'next/headers';
 import { env } from '@/lib/env';
+import { forwardedFor } from '@/lib/http/forwarded-for';
 
 export interface ApiFetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
@@ -29,6 +31,9 @@ export async function apiFetch(
   if (idempotencyKey) {
     finalHeaders.set('Idempotency-Key', idempotencyKey);
   }
+  // Sem o IP de quem chamou, o limite da API vira um balde só para todo o Next.
+  const ip = env.forwardClientIp ? forwardedFor(await requestHeaders(), true) : null;
+  if (ip) finalHeaders.set('X-Forwarded-For', ip);
 
   const url = `${env.apiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 
