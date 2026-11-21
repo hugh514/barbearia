@@ -75,6 +75,7 @@ jobs:
       MERCADO_PAGO_WEBHOOK_SECRET: ci-mp-webhook-secret
       INSTAGRAM_VERIFY_TOKEN: ci-instagram-verify-token
       INSTAGRAM_APP_SECRET: ci-instagram-app-secret
+      PAYMENTS_PROVIDER: mock
       EMAIL_PROVIDER: log
       TRUST_PROXY: 'true'
       ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
