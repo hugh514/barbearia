@@ -3,7 +3,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const apiClient = vi.fn();
 vi.mock('@/lib/http/client', () => ({ apiClient: (...a: unknown[]) => apiClient(...a) }));
 
-import { createCustomer, listCustomers, updateCustomer } from './services';
+import {
+  createCustomer,
+  getCustomer,
+  listCustomerHistory,
+  listCustomers,
+  updateCustomer,
+} from './services';
 
 beforeEach(() => {
   apiClient.mockReset();
@@ -34,5 +40,12 @@ describe('services de clientes', () => {
   it('listCustomers monta a query da página e da busca', async () => {
     await listCustomers({ page: 3, perPage: 20, search: 'Ana' });
     expect(apiClient.mock.calls[0][0]).toBe('/customers?page=3&perPage=20&search=Ana');
+  });
+
+  it('id na URL vai codificado', async () => {
+    await getCustomer('a/b');
+    expect(apiClient.mock.calls[0][0]).toBe('/customers/a%2Fb');
+    await listCustomerHistory('x', 2);
+    expect(apiClient.mock.calls[1][0]).toBe('/customers/x/history?page=2&perPage=10');
   });
 });

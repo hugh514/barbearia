@@ -1,8 +1,12 @@
 import { apiClient } from '@/lib/http/client';
 import { unmaskDigits } from '@/lib/masks';
 import {
+  customerConversationsSchema,
+  customerHistorySchema,
   customerListSchema,
+  customerPaymentsSchema,
   customerSchema,
+  customerSubscriptionsSchema,
   type CreateCustomerInput,
   type CustomerList,
   type Customer,
@@ -60,4 +64,34 @@ export async function updateCustomer(
     body: toApi(input),
     schema: customerSchema,
   });
+}
+
+export async function getCustomer(id: string, signal?: AbortSignal): Promise<Customer> {
+  return apiClient(`/customers/${encodeURIComponent(id)}`, { schema: customerSchema, signal });
+}
+
+const PER_PAGE = 10;
+const sub = (id: string, what: string, page: number) =>
+  `/customers/${encodeURIComponent(id)}/${what}?page=${page}&perPage=${PER_PAGE}`;
+
+export async function listCustomerHistory(id: string, page = 1, signal?: AbortSignal) {
+  return apiClient(sub(id, 'history', page), { schema: customerHistorySchema, signal });
+}
+
+export async function listCustomerPayments(id: string, page = 1, signal?: AbortSignal) {
+  return apiClient(sub(id, 'payments', page), { schema: customerPaymentsSchema, signal });
+}
+
+export async function listCustomerConversations(id: string, page = 1, signal?: AbortSignal) {
+  return apiClient(sub(id, 'conversations', page), {
+    schema: customerConversationsSchema,
+    signal,
+  });
+}
+
+export async function listCustomerSubscriptions(id: string, signal?: AbortSignal) {
+  return apiClient(
+    `/subscriptions?customerId=${encodeURIComponent(id)}&page=1&perPage=5`,
+    { schema: customerSubscriptionsSchema, signal },
+  );
 }
