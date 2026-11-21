@@ -67,13 +67,19 @@ export class UsersController {
   @ApiOperation({ summary: 'Listar usuários do tenant' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'scope', required: false, enum: ['staff'] })
   @ApiResponse({ status: 200, type: PaginatedUsersResponseDto })
   async findAll(
     @CurrentTenant() tenantId: string,
     @Query(new ZodValidationPipe(listUsersQuerySchema))
     query: ListUsersQueryDto,
   ): Promise<PaginatedUsersResponseDto> {
-    return this.usersService.findAll(tenantId, query.page, query.limit);
+    return this.usersService.findAll(
+      tenantId,
+      query.page,
+      query.limit,
+      query.scope,
+    );
   }
 
   @Patch(':id')

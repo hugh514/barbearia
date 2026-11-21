@@ -196,6 +196,45 @@ describe('Feature 002 — Auth & RBAC (e2e)', () => {
         .expect(403);
     });
 
+    it('scope=staff leaves out CLIENTE logins', async () => {
+      const tenant = await prisma.tenant.findFirst({
+        where: { slug: 'barbearia-modelo' },
+      });
+      await prisma.user.upsert({
+        where: {
+          tenantId_email: {
+            tenantId: tenant!.id,
+            email: 'scope-cliente@test.example',
+          },
+        },
+        update: { role: UserRole.CLIENTE, active: true },
+        create: {
+          tenantId: tenant!.id,
+          name: 'Cliente Scope',
+          email: 'scope-cliente@test.example',
+          passwordHash: await bcrypt.hash(validUserPassword, 4),
+          role: UserRole.CLIENTE,
+          active: true,
+        },
+      });
+      const tokens = await login();
+
+      const all = await request(app.getHttpServer())
+        .get('/users?limit=100')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .expect(200);
+      const staff = await request(app.getHttpServer())
+        .get('/users?limit=100&scope=staff')
+        .set('Authorization', `Bearer ${tokens.accessToken}`)
+        .expect(200);
+
+      const roles = (body: { data: { role: string }[] }) =>
+        body.data.map((u) => u.role);
+      expect(roles(all.body)).toContain(UserRole.CLIENTE);
+      expect(roles(staff.body)).not.toContain(UserRole.CLIENTE);
+      expect(staff.body.total).toBe(staff.body.data.length);
+    });
+
     it('returns 401 for expired token', async () => {
       const expiredToken = jwt.sign(
         {
