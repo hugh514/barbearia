@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Decide quais apps rodar olhando os arquivos alterados (paths por job não existe no Actions).
+  mudancas:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filtro.outputs.api }}
+      painel: ${{ steps.filtro.outputs.painel }}
+      cliente: ${{ steps.filtro.outputs.cliente }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filtro
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Push inicial ou base inexistente: roda tudo.
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE" 2>/dev/null; then
+            arquivos=$'apps/api/x\napps/painel/x\napps/cliente/x'
+          else
+            arquivos=$(git diff --name-only "$BASE" "$GITHUB_SHA")
+          fi
+          for app in api painel cliente; do
+            if echo "$arquivos" | grep -qE "^(apps/$app/|\.github/workflows/ci\.yml$)"; then
+              echo "$app=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$app=false" >> "$GITHUB_OUTPUT"
+            fi
+          done
+
+  api:
+    needs: mudancas
+    if: needs.mudancas.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: barber
+          POSTGRES_PASSWORD: barber
+          POSTGRES_DB: barber_db
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U barber -d barber_db"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://barber:barber@localhost:5432/barber_db?schema=public
+      REDIS_HOST: localhost
+      REDIS_PORT: '6379'
+      JWT_SECRET: ci-jwt-secret-apenas-para-teste-32-caracteres
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: ci-refresh-secret-apenas-para-teste-32-caracteres
+      JWT_REFRESH_EXPIRES_IN: 7d
+      INTERNAL_API_KEY: ci-internal-api-key
+      MERCADO_PAGO_ACCESS_TOKEN: TEST-ci-mercado-pago
+      MERCADO_PAGO_WEBHOOK_SECRET: ci-mp-webhook-secret
+      INSTAGRAM_VERIFY_TOKEN: ci-instagram-verify-token
+      INSTAGRAM_APP_SECRET: ci-instagram-app-secret
+      EMAIL_PROVIDER: log
+      TRUST_PROXY: 'true'
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
+      PAINEL_PUBLIC_URL: http://localhost:3001
+      CLIENTE_PUBLIC_URL: http://localhost:3002
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/api/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint:check
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npx prisma migrate deploy
+      - run: npx prisma db seed
+      - run: npm run test:e2e -- --runInBand --forceExit
+
+  painel:
+    needs: mudancas
+    if: needs.mudancas.outputs.painel == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/painel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/painel/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+        env:
+          API_BASE_URL: http://localhost:3000
+
+  cliente:
+    needs: mudancas
+    if: needs.mudancas.outputs.cliente == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/cliente
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/cliente/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+        env:
+          API_BASE_URL: http://localhost:3000
