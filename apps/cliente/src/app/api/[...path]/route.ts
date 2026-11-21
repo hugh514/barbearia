@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
+import { forwardedFor } from '@/lib/http/forwarded-for';
 import { ensureAccessToken, performRefresh } from '@/lib/auth/refresh-flow';
 import { rememberAppearance } from '@/lib/tenant-theme';
 
@@ -35,6 +36,7 @@ async function forward(request: NextRequest, ctx: Ctx): Promise<NextResponse> {
       ? undefined
       : await request.text();
 
+  const ip = forwardedFor(request.headers, env.forwardClientIp);
   const buildInit = (accessToken: string | null): RequestInit => {
     const headers = new Headers();
     for (const h of FORWARD_HEADERS) {
@@ -42,6 +44,7 @@ async function forward(request: NextRequest, ctx: Ctx): Promise<NextResponse> {
       if (v) headers.set(h, v);
     }
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+    if (ip) headers.set('X-Forwarded-For', ip);
     return {
       method: request.method,
       headers,
