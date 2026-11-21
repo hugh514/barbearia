@@ -55,7 +55,7 @@ test('inbox carrega conversas da API', async ({ page }) => {
   await page.goto('/inbox');
   await expect(page.getByRole('heading', { name: 'Inbox' })).toBeVisible();
   // painel de thread com estado vazio até selecionar
-  await expect(page.getByText('Selecione uma conversa')).toBeVisible();
+  await expect(page.getByText('Escolha uma conversa')).toBeVisible();
 });
 
 test('check-in mostra entrada de token e scanner', async ({ page }) => {

@@ -34,9 +34,10 @@ export function useMessages(conversationId: string | null) {
  * Conecta ao Socket.IO da API (namespace /conversations) para atualização em
  * tempo real. Autentica com um token efêmero obtido do próprio backend (o
  * cookie httpOnly nunca é lido pelo JS). Em `message.new`/`conversation.updated`
- * invalida as queries relevantes.
+ * invalida as queries relevantes. Uma conexão por tela: trocar de conversa não
+ * reconecta, porque o evento já diz de qual conversa é a mensagem.
  */
-export function useRealtimeInbox(activeConversationId: string | null) {
+export function useRealtimeInbox() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -67,18 +68,12 @@ export function useRealtimeInbox(activeConversationId: string | null) {
         });
         socket.on('message.new', (msg: { conversationId?: string }) => {
           queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
-          if (msg?.conversationId) {
-            queryClient.invalidateQueries({
-              queryKey: messagesKey(msg.conversationId),
-            });
-          } else if (activeConversationId) {
-            queryClient.invalidateQueries({
-              queryKey: messagesKey(activeConversationId),
-            });
-          }
+          queryClient.invalidateQueries({
+            queryKey: msg?.conversationId ? messagesKey(msg.conversationId) : ['messages'],
+          });
         });
       } catch {
-        // Sem tempo real → o polling das queries cobre a atualização.
+        // Sem tempo real: recarregar a página ou trocar de conversa atualiza.
       }
     })();
 
@@ -86,5 +81,5 @@ export function useRealtimeInbox(activeConversationId: string | null) {
       cancelled = true;
       socket?.disconnect();
     };
-  }, [queryClient, activeConversationId]);
+  }, [queryClient]);
 }
