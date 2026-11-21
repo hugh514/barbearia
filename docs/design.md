@@ -46,7 +46,7 @@ Na fila: esperando é neutro, na cadeira usa a marca, feitos em muted, cancelado
 
 ### Modo
 
-Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /channels/config/appearance`; se o token expirou ou a API falhou, usa o cookie `vez_theme` gravado no login e ao salvar a aparência) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (login, cadastro) vale o padrão.
+Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /channels/config/appearance`; se o token expirou ou a API falhou, usa o cookie de tema gravado no login e ao salvar a aparência: `vez_theme` no painel, `bc_theme` no cliente) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (login, cadastro) vale o padrão.
 
 ## Marca
 
@@ -112,6 +112,13 @@ Cliente:
 +----------------------------+
 ```
 
+Telas de entrada do cliente (login, cadastro, esqueci a senha, senha nova):
+
+- No celular, faixa no topo na cor da barbearia, com um degradê curto da marca para um tom mais escuro (`.auth-band` em `globals.css`), símbolo invertido, "Vez" e a frase "Entre para ver sua vez na fila e seu plano.". Decoração só em CSS e SVG, em `--brand-fg` com opacidade baixa: listras finas na diagonal (poste de barbearia) e o contorno de uma tesoura aberta cortado pela borda.
+- O formulário fica numa superfície clara que sobe um pouco sobre a faixa. Botão principal na marca, largura total.
+- No desktop, duas colunas: a faixa vira o painel de marca à esquerda e o formulário fica à direita, em surface.
+- A barbearia vem do link (`?b=slug`). O nome dela não aparece na faixa porque a aparência só é lida com sessão; aparece "Vez".
+
 ## Movimento
 
 Só em resposta a ação: abrir diálogo, confirmar check-in (a senha aparece com uma transição curta), card que muda de coluna. Nada de entrada animada em seção. `prefers-reduced-motion` desliga tudo.
@@ -126,4 +133,4 @@ Só em resposta a ação: abrir diálogo, confirmar check-in (a senha aparece co
 
 ## Proibido
 
-Cartões idênticos com sombra em grade, gradiente decorativo, ícone em quadradinho no canto, avatar de inicial em todo lugar, badge que repete o que a coluna já diz, rótulo em caixa alta espaçada, Geist, `#0b0b0d`, âmbar, hex ou cor do Tailwind fora de `globals.css`.
+Cartões idênticos com sombra em grade, gradiente decorativo (a única exceção é a faixa das telas de entrada do cliente, descrita em Layout), ícone em quadradinho no canto, avatar de inicial em todo lugar, badge que repete o que a coluna já diz, rótulo em caixa alta espaçada, Geist, `#0b0b0d`, âmbar, hex ou cor do Tailwind fora de `globals.css`.

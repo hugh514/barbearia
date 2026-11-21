@@ -7,6 +7,7 @@ export const historyItemSchema = z.object({
   status: z.string(),
   services: z.array(z.string()),
   barber: z.object({ id: z.string(), name: z.string() }).nullish(),
+  totalPrice: z.union([z.string(), z.number()]).nullish(),
   createdAt: z.string(),
   finishedAt: z.string().nullish(),
 });
