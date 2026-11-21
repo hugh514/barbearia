@@ -37,10 +37,10 @@ test('planos carrega da API', async ({ page }) => {
   await expect(page.getByRole('button', { name: /novo plano/i })).toBeVisible();
 });
 
-test('financeiro exibe receita por período', async ({ page }) => {
+test('financeiro exibe os totais do período', async ({ page }) => {
   await page.goto('/financeiro');
   await expect(page.getByRole('heading', { name: 'Financeiro' })).toBeVisible();
-  await expect(page.getByText('Receita total')).toBeVisible();
+  await expect(page.getByText('Recebido em planos')).toBeVisible();
 });
 
 test('equipe (barbeiros) carrega usuários da API', async ({ page }) => {
