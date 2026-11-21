@@ -20,7 +20,7 @@ Fila de hoje no painel: quem espera, quem está na cadeira e o que já foi feito
 <tr>
 <td><img src="docs/prints/cliente/home-senha-celular.png" alt="App do cliente com a posição na fila" width="260"></td>
 <td><img src="docs/prints/cliente/planos-pix-celular.png" alt="Assinatura de plano com PIX no app do cliente" width="260"></td>
-<td><img src="docs/prints/painel/dashboard-celular.png" alt="Dashboard do painel no celular" width="260"></td>
+<td><img src="docs/prints/painel/fila-celular.png" alt="Fila de hoje do painel no celular" width="260"></td>
 </tr>
 </table>
 
@@ -68,7 +68,7 @@ A fila do dia fica com a data em que o banco foi criado. Para ter a fila de novo
 
 O `.env.example` não tem nenhuma chave real, e o sistema funciona inteiro em modo local:
 
-- **PIX**: com o token falso do `.env.example`, a API usa um provedor de teste (`PAYMENTS_PROVIDER` vazio escolhe sozinho; `mock` força). O QR e o copia e cola aparecem normalmente, e um botão "Simular pagamento" aprova a cobrança. Para usar o Mercado Pago de verdade, ponha um token de sandbox seu (`TEST-...`) em `MERCADO_PAGO_ACCESS_TOKEN`.
+- **PIX**: com o token falso do `.env.example`, a API usa um provedor de teste (`PAYMENTS_PROVIDER` vazio escolhe sozinho; `mock` força). O QR e o copia e cola aparecem normalmente, e no app do cliente o botão "Simular pagamento (dev)" aprova a cobrança. Para usar o Mercado Pago de verdade, ponha um token de sandbox seu (`TEST-...`) em `MERCADO_PAGO_ACCESS_TOKEN`.
 - **E-mail de recuperação de senha**: com `EMAIL_PROVIDER=log` (o padrão), a API não envia nada e registra no log só que o e-mail saiu, sem o link. Em produção a API exige um provedor real e não sobe com `log`. O envio por SMTP ainda não foi implementado, então hoje a API não sobe em produção até ele existir.
 - **WhatsApp** (Evolution API): sem `EVOLUTION_API_KEY` a API recusa os webhooks e não envia nada.
 - **Instagram**: sem `INSTAGRAM_PAGE_ACCESS_TOKEN` nada é enviado.
@@ -81,21 +81,21 @@ Os segredos de webhook do `.env.example` são públicos e servem só para testar
 | Variável | Onde | Para quê |
 |---|---|---|
 | `APP_TZ` | compose (API e painel) | Fuso do "hoje" da fila e do dashboard. Padrão `America/Sao_Paulo`. |
-| `COOKIE_SECURE` | painel e cliente | Os cookies de sessão são `Secure` e só funcionam em https. O compose roda em http e usa `false`. Só o valor `false`, escrito assim, desliga. Nunca use num ambiente com https. |
+| `COOKIE_SECURE` | painel e cliente | Com `NODE_ENV=production` os cookies de sessão são `Secure` e só funcionam em https. O compose roda em http e usa `false`. Só o valor `false`, escrito assim, desliga. Nunca use num ambiente com https. |
 | `TRUST_PROXY` | API | Quantos proxies confiáveis estão na frente da API (`false` ou um número). Obrigatório em produção; `true` é recusado. |
 | `FORWARD_CLIENT_IP` | painel e cliente | Repassa o IP de quem acessa para a API, para o limite de tentativas valer por pessoa. Só ligue com um proxy na frente que sobrescreva o `X-Forwarded-For`; sem ele o IP é forjável. Padrão desligado. |
 | `PAINEL_PUBLIC_URL`, `CLIENTE_PUBLIC_URL` | API | Endereço público de cada front, usado no link do e-mail de nova senha. Em produção precisa ser https. |
-| `DEFAULT_TENANT_SLUG` | cliente | Barbearia usada no cadastro quando o link não traz `?b=`. |
+| `DEFAULT_TENANT_SLUG` | cliente | Barbearia usada no login e no cadastro quando o link não traz `?b=`. Padrão `barbearia-modelo`. |
 
 ## Testes e CI
 
-Cada app tem os próprios testes; os comandos estão no `AGENTS.md`.
+Cada app tem os próprios testes. Dentro da pasta do app: `npm test` para os unitários e `npm run test:e2e` para os e2e (na API, com o banco migrado e o Redis no ar; no cliente, `npx playwright test`).
 
 - **API**: unitários (Jest) e e2e contra Postgres e Redis de verdade.
 - **Painel e cliente**: unitários (Vitest) e fluxos de tela com Playwright.
 - **Fumaça**: com o compose no ar, `bash scripts/testar-api.sh` percorre login, clientes, fila, atendimento, planos, papéis e isolamento entre barbearias.
 
-O GitHub Actions (`.github/workflows/ci.yml`) roda lint, tipos, testes e build de cada app que mudou, e os e2e da API com banco. A `main` só aceita merge por PR com o check `ci` verde.
+O GitHub Actions (`.github/workflows/ci.yml`) roda lint, tipos, testes e build de cada app que mudou, e os e2e da API com banco. A `main` só recebe mudança por PR, e o merge exige o check `ci` verde com a branch atualizada.
 
 ## Estrutura
 
