@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 test('dashboard exibe os números do período', async ({ page }) => {
   await page.goto('/dashboard');
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-  await expect(page.getByText('Receita', { exact: true })).toBeVisible();
+  await expect(page.getByText('Receita dos atendimentos', { exact: true })).toBeVisible();
   await expect(page.getByText('Atendimentos', { exact: true })).toBeVisible();
 });
 

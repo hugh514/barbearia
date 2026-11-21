@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 
 interface Figure {
@@ -9,7 +10,15 @@ interface Figure {
  * Hierarquia de números: um principal grande e os demais em linha, menores.
  * Substitui a grade de cartões iguais com ícone.
  */
-export function KeyFigures({ main, rest }: { main: Figure; rest: Figure[] }) {
+export function KeyFigures({
+  main,
+  note,
+  rest,
+}: {
+  main: Figure;
+  note?: ReactNode;
+  rest: Figure[];
+}) {
   return (
     <Card className="p-5 md:p-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -18,6 +27,7 @@ export function KeyFigures({ main, rest }: { main: Figure; rest: Figure[] }) {
           <dd className="mt-1 text-6xl leading-none font-extrabold tabular-nums font-stretch-extra-condensed text-foreground">
             {main.value}
           </dd>
+          {note && <dd className="mt-2 text-sm text-muted-foreground">{note}</dd>}
         </dl>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:flex sm:flex-wrap md:justify-end">
           {rest.map((f) => (
