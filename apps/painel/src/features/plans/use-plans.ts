@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listPlans, createPlan, updatePlan } from './services';
+import { listPlans, createPlan, updatePlan, disablePlan } from './services';
 import type { CreatePlanPayload } from './schemas';
 
 const KEY = ['plans'];
@@ -33,5 +33,11 @@ export function usePlanActions() {
     onSuccess: invalidate,
   });
 
-  return { create, update, setActive };
+  /** Arquivar é o soft delete da API (DELETE desativa sem apagar). */
+  const archive = useMutation({
+    mutationFn: (id: string) => disablePlan(id),
+    onSuccess: invalidate,
+  });
+
+  return { create, update, setActive, archive };
 }
