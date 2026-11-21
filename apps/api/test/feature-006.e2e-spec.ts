@@ -1,9 +1,11 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PlanStatus, SubscriptionStatus } from '@prisma/client';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { Env } from '../src/common/config/env.schema';
 import {
   PLANO_ASSINADO,
   PLANO_CANCELADO,
@@ -20,7 +22,7 @@ describe('Feature 006 — Plans & Subscriptions (e2e)', () => {
 
   const adminEmail = 'admin@barbearia.example';
   const adminPassword = 'admin123';
-  const internalApiKey = 'dev-internal-api-key-change-in-production';
+  let internalApiKey: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,6 +32,9 @@ describe('Feature 006 — Plans & Subscriptions (e2e)', () => {
     app = moduleFixture.createNestApplication();
     prisma = app.get(PrismaService);
     eventEmitter = app.get(EventEmitter2);
+    internalApiKey = app
+      .get(ConfigService<Env, true>)
+      .get('INTERNAL_API_KEY', { infer: true });
 
     await app.init();
 
