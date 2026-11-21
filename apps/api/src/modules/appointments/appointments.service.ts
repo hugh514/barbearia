@@ -61,17 +61,27 @@ export class AppointmentsService {
   ): Promise<AppointmentResponseDto> {
     await this.assertCustomerInTenant(dto.customerId, tenantId);
 
-    const appointment = await this.prisma.appointment.create({
-      data: {
-        tenantId,
-        customerId: dto.customerId,
-        services: dto.services,
-        status: AppointmentStatus.AGUARDANDO,
-      },
-      include: appointmentInclude,
-    });
-
-    return toAppointmentResponse(appointment);
+    try {
+      const appointment = await this.prisma.appointment.create({
+        data: {
+          tenantId,
+          customerId: dto.customerId,
+          services: dto.services,
+          status: AppointmentStatus.AGUARDANDO,
+        },
+        include: appointmentInclude,
+      });
+      return toAppointmentResponse(appointment);
+    } catch (err) {
+      // Índice único parcial: um atendimento ativo por cliente no tenant.
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        throw new ConflictException('Cliente já tem atendimento em aberto.');
+      }
+      throw err;
+    }
   }
 
   async getQueue(

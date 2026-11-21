@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { User, UserRole } from '@prisma/client';
+import { Prisma, User, UserRole } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { SafeUser, withoutPasswordHash } from '@common/utils/user.util';
 import { AuthService } from '@modules/auth/auth.service';
@@ -61,17 +61,22 @@ export class UsersService {
     tenantId: string,
     page: number,
     limit: number,
+    scope?: 'staff',
   ): Promise<{ data: SafeUser[]; total: number; page: number; limit: number }> {
     const skip = (page - 1) * limit;
+    const where: Prisma.UserWhereInput =
+      scope === 'staff'
+        ? { tenantId, role: { not: UserRole.CLIENTE } }
+        : { tenantId };
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
-        where: { tenantId },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count({ where: { tenantId } }),
+      this.prisma.user.count({ where }),
     ]);
 
     return {
