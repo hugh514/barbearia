@@ -8,11 +8,20 @@ import {
 } from './schemas';
 
 export async function getQueue(signal?: AbortSignal): Promise<Appointment[]> {
-  const res = await apiClient('/appointments/queue', {
+  const res = await apiClient('/appointments/queue?include=finished', {
     schema: queueResponseSchema,
     signal,
   });
   return res.data;
+}
+
+/** Cliente chegou sem QR: entra na fila sem serviço, como no check-in. */
+export async function createAppointment(customerId: string): Promise<Appointment> {
+  return apiClient('/appointments', {
+    method: 'POST',
+    body: { customerId },
+    schema: appointmentSchema,
+  });
 }
 
 export async function startAppointment(id: string): Promise<Appointment> {
