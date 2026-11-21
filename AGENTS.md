@@ -31,6 +31,29 @@ Tudo sobe com `docker compose up --build` na raiz. Para mexer num app, entre na 
 7. Nos fronts, tokens ficam em cookie httpOnly e o navegador fala com `/api/*` do próprio Next. Exceção: o tempo real do painel, em que `/api/realtime/token` entrega o access token ao JS e o navegador conecta direto na API (Socket.IO) em `API_PUBLIC_URL` (alcançável pelo navegador). `API_BASE_URL` é só do servidor, nunca `NEXT_PUBLIC_`.
 8. RBAC em duas camadas: `src/proxy.ts` no front e guardas na API (a API é a barreira final).
 
+## Sem cara de código gerado
+
+1. Comentário só explica o porquê. Se repete o código, apague.
+2. Comentários, mensagens de erro e textos de tela em português. Erro da API é texto para o usuário final.
+3. Sem travessão e sem emoji em código, docs, commit e tela.
+4. Nada de abstração, parâmetro ou arquivo "para o futuro". Sem uso hoje, não entra.
+5. Nenhum catch vazio ou que devolva sucesso. Trate, registre com contexto ou propague.
+6. Proibido any, as unknown as e @ts-ignore. Todo eslint-disable leva `-- motivo`.
+7. Sem console.log, TODO ou FIXME na main. Pendência vira issue.
+8. Antes de criar uma função, procure se ela já existe no app ou no outro front.
+9. Arquivo novo é importado no mesmo PR; arquivo que ficou sem uso é apagado no mesmo PR.
+10. Dependência nova só depois de conferir no registro; a que ficou sem uso sai no mesmo PR.
+11. Validação vale na API; a do front é conveniência. Todo campo de texto da API tem limite de tamanho.
+12. Toda query e todo update de recurso filtram por tenantId e conferem o dono, com teste de acesso cruzado.
+13. Toda tela tem carregando, vazio e erro distintos. Erro nunca aparece como vazio.
+14. Visual segue docs/design.md.
+15. Teste confere comportamento, não a chamada do mock. Em E2E, nada de waitForTimeout.
+16. Doc, spec e constituição mudam no mesmo PR que o código.
+17. Nada de relatório, resumo ou evidência de agente no repositório; isso vai no PR.
+18. Instrução para agente só neste AGENTS.md.
+19. Commit atômico. PR com mais de cerca de 600 linhas de código é dividido.
+20. Lint, typecheck e testes passam no CI antes do merge.
+
 ## Next.js 16
 
 Esta versão tem mudanças que quebram o que você conhece (APIs, convenções, estrutura). Antes de escrever código num front, leia o guia em `node_modules/next/dist/docs/` do app e respeite avisos de depreciação.
