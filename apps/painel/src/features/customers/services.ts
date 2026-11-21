@@ -1,7 +1,12 @@
 import { apiClient } from '@/lib/http/client';
+import { unmaskDigits } from '@/lib/masks';
 import {
+  customerConversationsSchema,
+  customerHistorySchema,
   customerListSchema,
+  customerPaymentsSchema,
   customerSchema,
+  customerSubscriptionsSchema,
   type CreateCustomerInput,
   type CustomerList,
   type Customer,
@@ -29,13 +34,22 @@ export async function listCustomers(
   });
 }
 
+/** Corpo para a API: telefone só com dígitos e Instagram no campo `instagram`. */
+function toApi(input: UpdateCustomerInput) {
+  const body: { name?: string; phone?: string; instagram?: string } = {};
+  if (input.name !== undefined) body.name = input.name.trim();
+  if (input.phone !== undefined) body.phone = unmaskDigits(input.phone);
+  if (input.instagramUser) body.instagram = input.instagramUser.trim();
+  return body;
+}
+
 export async function createCustomer(
   input: CreateCustomerInput,
   idempotencyKey?: string,
 ): Promise<Customer> {
   return apiClient('/customers', {
     method: 'POST',
-    body: input,
+    body: toApi(input),
     schema: customerSchema,
     idempotencyKey,
   });
@@ -45,9 +59,39 @@ export async function updateCustomer(
   id: string,
   input: UpdateCustomerInput,
 ): Promise<Customer> {
-  return apiClient(`/customers/${id}`, {
+  return apiClient(`/customers/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: input,
+    body: toApi(input),
     schema: customerSchema,
   });
+}
+
+export async function getCustomer(id: string, signal?: AbortSignal): Promise<Customer> {
+  return apiClient(`/customers/${encodeURIComponent(id)}`, { schema: customerSchema, signal });
+}
+
+const PER_PAGE = 10;
+const sub = (id: string, what: string, page: number) =>
+  `/customers/${encodeURIComponent(id)}/${what}?page=${page}&perPage=${PER_PAGE}`;
+
+export async function listCustomerHistory(id: string, page = 1, signal?: AbortSignal) {
+  return apiClient(sub(id, 'history', page), { schema: customerHistorySchema, signal });
+}
+
+export async function listCustomerPayments(id: string, page = 1, signal?: AbortSignal) {
+  return apiClient(sub(id, 'payments', page), { schema: customerPaymentsSchema, signal });
+}
+
+export async function listCustomerConversations(id: string, page = 1, signal?: AbortSignal) {
+  return apiClient(sub(id, 'conversations', page), {
+    schema: customerConversationsSchema,
+    signal,
+  });
+}
+
+export async function listCustomerSubscriptions(id: string, signal?: AbortSignal) {
+  return apiClient(
+    `/subscriptions?customerId=${encodeURIComponent(id)}&page=1&perPage=5`,
+    { schema: customerSubscriptionsSchema, signal },
+  );
 }

@@ -1,14 +1,10 @@
-'use client';
-
-import { useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import Link from 'next/link';
 import type { Customer } from './schemas';
 import { PlanBadge } from './plan-badge';
-import { ORIGIN_LABEL } from './schemas';
+import { maskPhone } from '@/lib/masks';
 import { formatDateTime } from '@/lib/format';
+import { timeAgo } from '@/lib/relative-time';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const ROW_HEIGHT = 64;
 
 export function CustomersTable({
   customers,
@@ -17,71 +13,63 @@ export function CustomersTable({
   customers: Customer[];
   loading?: boolean;
 }) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  // useVirtualizer é incompatível com o React Compiler por design; o componente só não é memorizado.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({
-    count: customers.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 8,
-  });
-
-  if (loading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full" />
-        ))}
-      </div>
-    );
-  }
-
-  if (customers.length === 0) {
-    return (
-      <div className="flex min-h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-        Nenhum cliente encontrado. Confira a busca ou use Novo cliente.
-      </div>
-    );
-  }
-
   return (
-    <div
-      ref={parentRef}
-      className="max-h-[calc(100vh-16rem)] overflow-auto rounded-lg border border-border bg-card"
-    >
-      <div
-        style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
-      >
-        {virtualizer.getVirtualItems().map((vi) => {
-          const c = customers[vi.index];
-          return (
-            <div
-              key={c.id}
-              className="absolute left-0 top-0 flex w-full items-center gap-4 border-b border-border px-4"
-              style={{
-                height: ROW_HEIGHT,
-                transform: `translateY(${vi.start}px)`,
-              }}
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {c.name}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  <span className="tabular-nums">{c.phone}</span>
-                  <span className="ml-3">{ORIGIN_LABEL[c.origin]}</span>
-                </p>
-              </div>
-              <div className="hidden text-xs tabular-nums text-muted-foreground sm:block">
-                {c.lastVisit ? formatDateTime(c.lastVisit) : 'Sem visitas'}
-              </div>
-              <PlanBadge status={c.planStatus} />
-            </div>
-          );
-        })}
-      </div>
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <table className="w-full table-fixed text-sm">
+        <caption className="sr-only">Clientes da barbearia</caption>
+        <thead className="border-b border-border text-left text-muted-foreground">
+          <tr>
+            <th scope="col" className="px-4 py-3 font-semibold">Nome</th>
+            <th scope="col" className="hidden w-44 px-4 py-3 font-semibold sm:table-cell">Telefone</th>
+            <th scope="col" className="w-28 px-4 py-3 text-right font-semibold sm:w-36">Última visita</th>
+            <th scope="col" className="hidden w-32 px-4 py-3 font-semibold md:table-cell">Plano</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i}>
+                  <td colSpan={4} className="px-4 py-3">
+                    <Skeleton className="h-6 w-full" />
+                  </td>
+                </tr>
+              ))
+            : customers.map((c) => (
+                <tr key={c.id} className="relative hover:bg-secondary">
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/clientes/${c.id}`}
+                      className="block truncate font-medium text-foreground after:absolute after:inset-0 focus-visible:outline-none after:focus-visible:outline-2 after:focus-visible:-outline-offset-2 after:focus-visible:outline-ring"
+                      title={c.name}
+                    >
+                      {c.name}
+                    </Link>
+                    <span className="block truncate tabular-nums text-muted-foreground sm:hidden">
+                      {maskPhone(c.phone)}
+                    </span>
+                    <span className="mt-1 block md:hidden">
+                      <PlanBadge status={c.planStatus} />
+                    </span>
+                  </td>
+                  <td className="hidden px-4 py-3 tabular-nums text-muted-foreground sm:table-cell">
+                    {maskPhone(c.phone)}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                    {c.lastVisit ? (
+                      <time dateTime={c.lastVisit} title={formatDateTime(c.lastVisit)}>
+                        {timeAgo(c.lastVisit)}
+                      </time>
+                    ) : (
+                      'Sem visita'
+                    )}
+                  </td>
+                  <td className="hidden px-4 py-3 md:table-cell">
+                    <PlanBadge status={c.planStatus} />
+                  </td>
+                </tr>
+              ))}
+        </tbody>
+      </table>
     </div>
   );
 }

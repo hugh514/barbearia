@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { roleSchema } from '@/lib/zod/base';
+import { roleSchema, type Role } from '@/lib/zod/base';
 
 export const userSchema = z.object({
   id: z.string(),
@@ -36,6 +36,11 @@ export const createUserSchema = z.object({
   role: roleSchema,
 });
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+export interface UpdateUserInput {
+  name?: string;
+  role?: Role;
+}
 
 export const ROLE_LABEL = {
   ADMIN: 'Administrador',

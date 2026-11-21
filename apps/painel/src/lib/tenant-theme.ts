@@ -53,11 +53,15 @@ export async function fetchAppearance(accessToken: string): Promise<Appearance |
 
 /**
  * Grava o cookie de tema. Só em Route Handler ou Server Action (layout não
- * pode gravar cookie). Guarda só cor, modo e nome: nada sensível.
+ * pode gravar cookie). Guarda só cor, modo e nome: nada sensível. Sem
+ * aparência válida, apaga o cookie: não fica o tema de outra barbearia.
  */
 export async function rememberAppearance(input: unknown): Promise<void> {
   const parsed = appearanceSchema.safeParse(input);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    (await cookies()).delete(THEME_COOKIE);
+    return;
+  }
   const a = parsed.data;
   const value: Appearance = {
     businessName: a.businessName ?? null,
@@ -76,7 +80,7 @@ export async function rememberAppearance(input: unknown): Promise<void> {
 /**
  * Tema e nome da barbearia do usuário logado, para o layout. Tenta a API com o
  * access token atual (sem refresh: o layout não grava cookie); se não houver
- * token ou a API falhar, usa o cookie vez_theme; sem ele, o padrão.
+ * token ou a API falhar, usa o cookie bb_theme; sem ele, o padrão.
  * `cache` evita chamar a API duas vezes no mesmo request (layout raiz e do app).
  */
 export const getTenantTheme = cache(async (): Promise<TenantAppearance> => {

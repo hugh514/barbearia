@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { paginated } from '@/lib/zod/base';
+import { appointmentSchema } from '@/features/queue/schemas';
 
 export const customerOriginSchema = z.enum([
   'MANUAL',
@@ -49,6 +50,41 @@ export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 
 export const updateCustomerSchema = createCustomerSchema.partial();
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
+
+export const customerHistorySchema = paginated(appointmentSchema);
+
+const customerPaymentSchema = z.object({
+  id: z.string(),
+  method: z.enum(['PIX', 'CARD', 'BOLETO']),
+  amountCents: z.number(),
+  status: z.enum(['PENDENTE', 'APROVADO', 'RECUSADO', 'EXPIRADO', 'REEMBOLSADO']),
+  paidAt: z.string().nullish(),
+  createdAt: z.string(),
+  plan: z.object({ name: z.string() }).nullish(),
+});
+export const customerPaymentsSchema = paginated(customerPaymentSchema);
+
+const customerConversationSchema = z.object({
+  id: z.string(),
+  channel: z.enum(['WHATSAPP', 'INSTAGRAM']),
+  status: z.enum(['ABERTA', 'AGUARDANDO', 'EM_ATENDIMENTO', 'FECHADA']),
+  updatedAt: z.string(),
+  lastMessage: z
+    .object({ content: z.string(), direction: z.string(), createdAt: z.string() })
+    .nullish(),
+});
+export const customerConversationsSchema = paginated(customerConversationSchema);
+
+const customerSubscriptionSchema = z.object({
+  id: z.string(),
+  status: z.enum(['PENDENTE', 'ATIVO', 'SUSPENSO', 'CANCELADO']),
+  startedAt: z.string().nullish(),
+  nextBillingAt: z.string().nullish(),
+  createdAt: z.string(),
+  plan: z.object({ name: z.string(), priceCents: z.number() }).nullish(),
+});
+export type CustomerSubscription = z.infer<typeof customerSubscriptionSchema>;
+export const customerSubscriptionsSchema = paginated(customerSubscriptionSchema);
 
 export const PLAN_STATUS_LABEL: Record<PlanStatus, string> = {
   NONE: 'Sem plano',

@@ -19,7 +19,7 @@
   --ink: #15181c;
   --muted: #5b6470;
   --line: #dde1e6;
-  --line-strong: #8a939e; /* borda de input: 3:1 sobre surface */
+  --line-strong: #7d8691; /* borda de input: 3,2:1 ou mais sobre page, surface e subtle */
 
   --success: #1c7a4e;
   --success-soft: #e3f1ea;
@@ -48,7 +48,7 @@
   --ink: #e8ebee;
   --muted: #9aa3ae;
   --line: #2c3137;
-  --line-strong: #5f6873;
+  --line-strong: #6b7480; /* 3,1:1 ou mais sobre page, surface e subtle */
 
   --success: #5cc795;
   --success-soft: #1a2e25;
@@ -113,8 +113,11 @@
   }
 }
 
-* {
-  border-color: var(--line);
+/* Em @layer base para que border-input e outras utilidades ganhem do padrão. */
+@layer base {
+  * {
+    border-color: var(--line);
+  }
 }
 
 body {

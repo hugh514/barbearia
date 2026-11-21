@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { env } from '@/lib/env';
 import { ensureAccessToken, performRefresh } from '@/lib/auth/refresh-flow';
 import { rememberAppearance } from '@/lib/tenant-theme';
+import { forwardedFor } from '@/lib/http/forwarded-for';
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
@@ -21,7 +22,7 @@ async function rememberThemeFrom(
   try {
     await rememberAppearance(JSON.parse(body));
   } catch {
-    // Corpo inesperado: o cookie fica como estava.
+    // Corpo que não é JSON: o cookie fica como estava.
   }
 }
 
@@ -36,7 +37,7 @@ async function forward(request: NextRequest, ctx: Ctx): Promise<NextResponse> {
       : await request.text();
 
   const buildInit = (accessToken: string | null): RequestInit => {
-    const headers = new Headers();
+    const headers = new Headers(forwardedFor(request));
     for (const h of FORWARD_HEADERS) {
       const v = request.headers.get(h);
       if (v) headers.set(h, v);
