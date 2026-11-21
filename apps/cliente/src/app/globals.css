@@ -36,6 +36,7 @@
 
   --overlay: rgb(10 12 15 / 0.5);
   --media: #15181c; /* fundo do vídeo do scanner */
+  --qr: #ffffff; /* fundo do QR: branco nos dois modos para o leitor do banco */
   --float-shadow: 0 12px 32px rgb(10 12 15 / 0.18);
 }
 
@@ -93,6 +94,7 @@
   --color-ring: var(--brand-text);
   --color-overlay: var(--overlay);
   --color-media: var(--media);
+  --color-qr: var(--qr);
 
   --radius-sm: 4px;
   --radius-md: 6px;  /* controles: botão, input, badge */
@@ -123,6 +125,26 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px; /* evita zoom automático do iOS em input */
   -webkit-font-smoothing: antialiased;
+}
+
+/* Faixa das telas de entrada: a marca com um degradê curto para um tom mais
+   escuro, e listras finas na diagonal lembrando o poste de barbearia. */
+.auth-band {
+  background: linear-gradient(
+    160deg,
+    var(--brand) 0%,
+    color-mix(in srgb, var(--brand) 72%, black) 100%
+  );
+}
+
+.auth-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    currentColor 0 1.5px,
+    transparent 1.5px 16px
+  );
+  opacity: 0.07;
+  mask-image: linear-gradient(to right, black, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
