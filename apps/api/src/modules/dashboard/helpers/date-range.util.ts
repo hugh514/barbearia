@@ -46,6 +46,13 @@ function subtractDays(date: Date, days: number): Date {
 
 function subtractMonths(date: Date, months: number): Date {
   const d = new Date(date);
+  // setMonth direto em 31/03 vira 03/03; prende o dia ao fim do mês de destino.
+  const lastDay = new Date(
+    d.getFullYear(),
+    d.getMonth() - months + 1,
+    0,
+  ).getDate();
+  d.setDate(Math.min(d.getDate(), lastDay));
   d.setMonth(d.getMonth() - months);
   return d;
 }
@@ -64,6 +71,8 @@ export function getDateRange(period: Period): DateRange {
       return { from: startOfDay(now), to: now };
     case Period.WEEK:
       return { from: startOfWeek(now), to: now };
+    case Period.LAST_7_DAYS:
+      return { from: subtractDays(startOfDay(now), 6), to: now };
     case Period.MONTH:
       return { from: startOfMonth(now), to: now };
     case Period.YEAR:
@@ -86,7 +95,8 @@ export function getDateRangeWithPrevious(
         previousTo,
       };
     }
-    case Period.WEEK: {
+    case Period.WEEK:
+    case Period.LAST_7_DAYS: {
       const previousTo = new Date(current.from.getTime() - 1);
       return {
         ...current,
@@ -142,4 +152,45 @@ export function getOpenHoursInRange(from: Date, to: Date): number {
   }
 
   return days * BUSINESS_HOURS_PER_DAY;
+}
+
+/**
+ * Mesmo trecho no período anterior, para comparar sem favorecer o passado:
+ * hoje até agora contra ontem até a mesma hora, mês até hoje contra o mês
+ * anterior até o mesmo dia.
+ */
+export function getComparableRange(
+  period: Period,
+  range: DateRange,
+): DateRange {
+  const shift = (d: Date): Date => {
+    switch (period) {
+      case Period.TODAY:
+        return subtractDays(d, 1);
+      case Period.WEEK:
+      case Period.LAST_7_DAYS:
+        return subtractDays(d, 7);
+      case Period.MONTH:
+        return subtractMonths(d, 1);
+      case Period.YEAR:
+        return subtractYears(d, 1);
+    }
+  };
+  return { from: shift(range.from), to: shift(range.to) };
+}
+
+/** Chave local AAAA-MM-DD, no mesmo fuso de getDateRange. */
+export function dayKey(date: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`;
+}
+
+export function daysInRange(range: DateRange): string[] {
+  const days: string[] = [];
+  const cursor = startOfDay(range.from);
+  while (cursor <= range.to) {
+    days.push(dayKey(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return days;
 }

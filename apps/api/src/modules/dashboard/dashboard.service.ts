@@ -15,6 +15,9 @@ import { PlansMetricsResponseDto } from './dto/plans-metrics.dto';
 import { RevenueMetricsResponseDto } from './dto/revenue-metrics.dto';
 import { DashboardSummaryResponseDto } from './dto/summary-response.dto';
 import {
+  dayKey,
+  daysInRange,
+  getComparableRange,
   getDateRange,
   getDateRangeWithPrevious,
   getOpenHoursInRange,
@@ -38,26 +41,55 @@ export class DashboardService {
       deletedAt: null,
     };
 
-    const [totalAppointments, revenueAgg, appointmentsByBarber, newCustomers] =
-      await Promise.all([
-        this.prisma.appointment.count({ where: finishedWhere }),
-        this.prisma.appointment.aggregate({
-          where: finishedWhere,
-          _sum: { totalPrice: true },
-        }),
-        this.prisma.appointment.groupBy({
-          by: ['barberId'],
-          where: finishedWhere,
-          _count: true,
-        }),
-        this.prisma.customer.count({
-          where: {
-            tenantId,
-            active: true,
-            createdAt: { gte: from, lte: to },
-          },
-        }),
-      ]);
+    const previous = getComparableRange(period, { from, to });
+
+    const [
+      totalAppointments,
+      revenueAgg,
+      appointmentsByBarber,
+      newCustomers,
+      previousTotalAppointments,
+      finishedInRange,
+    ] = await Promise.all([
+      this.prisma.appointment.count({ where: finishedWhere }),
+      this.prisma.appointment.aggregate({
+        where: finishedWhere,
+        _sum: { totalPrice: true },
+      }),
+      this.prisma.appointment.groupBy({
+        by: ['barberId'],
+        where: finishedWhere,
+        _count: true,
+      }),
+      this.prisma.customer.count({
+        where: {
+          tenantId,
+          active: true,
+          createdAt: { gte: from, lte: to },
+        },
+      }),
+      this.prisma.appointment.count({
+        where: {
+          ...finishedWhere,
+          finishedAt: { gte: previous.from, lte: previous.to },
+        },
+      }),
+      // Agrupa em memória porque a série vai até 31 dias; para o ano, agrupar no banco.
+      this.prisma.appointment.findMany({
+        where: finishedWhere,
+        select: { finishedAt: true, totalPrice: true },
+      }),
+    ]);
+
+    const byDay = new Map(
+      daysInRange({ from, to }).map((d) => [d, { count: 0, revenue: 0 }]),
+    );
+    for (const appt of finishedInRange) {
+      const bucket = appt.finishedAt && byDay.get(dayKey(appt.finishedAt));
+      if (!bucket) continue;
+      bucket.count += 1;
+      bucket.revenue += Number(appt.totalPrice ?? 0);
+    }
 
     const barberIds = appointmentsByBarber
       .map((row) => row.barberId)
@@ -86,6 +118,11 @@ export class DashboardService {
       })),
       newCustomers,
       revenue,
+      previousTotalAppointments,
+      appointmentsByDay:
+        period === Period.YEAR
+          ? []
+          : [...byDay].map(([date, v]) => ({ date, ...v })),
       occupancyRate:
         openHours > 0
           ? Math.round((totalAppointments / openHours) * 100) / 100

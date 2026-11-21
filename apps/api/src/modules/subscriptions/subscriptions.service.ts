@@ -84,7 +84,8 @@ export class SubscriptionsService {
     }
 
     const isBackoffice =
-      user.role === UserRole.ADMIN || user.role === UserRole.GERENTE;
+      (user.role === UserRole.ADMIN || user.role === UserRole.GERENTE) &&
+      dto.activateNow !== false;
     const now = new Date();
     const initialStatus = isBackoffice
       ? SubscriptionStatus.ATIVO

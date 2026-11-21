@@ -57,3 +57,12 @@ Endpoints:
 - Erro 429 do throttle: `{ statusCode: 429, message: "Muitas requisições. Tente novamente em instantes.", error: "Too Many Requests", ... }`.
 
 Recuperação de senha: `POST /auth/forgot-password` emite `SENHA_RECUPERACAO_SOLICITADA`; o listener põe o job na fila `email` e o processor envia o link `<PAINEL|CLIENTE>_PUBLIC_URL/reset-password?token=...&tenant=<slug>` pelo provedor de e-mail (interface `EmailSender` em `src/modules/email`). Em dev e teste (`EMAIL_PROVIDER=log`) o provedor não envia nada e registra no log só o assunto, sem link, token nem destinatário. SMTP real não foi ligado porque não há biblioteca de e-mail instalada: para produção, implemente `EmailSender` e ligue em `createEmailSender` (`EmailModule`).
+
+## Contratos da feature 016 (painel de gestão)
+
+- `POST /subscriptions` aceita `activateNow` (boolean, opcional). Só vale para ADMIN e GERENTE: sem ele ou com `true` a assinatura nasce ATIVO (pagamento no balcão); com `false` nasce PENDENTE, para gerar o PIX em `POST /payments`. Para CLIENTE é ignorado (sempre PENDENTE).
+- `PATCH /subscriptions/:id/manual/{activate|suspend|renew}` (ADMIN, GERENTE): as mesmas transições das rotas internas, pela equipe. 422 em transição inválida, 404 fora do tenant, 400 em ação desconhecida. As rotas `PATCH /subscriptions/:id/{activate|suspend|renew}` continuam só com `X-Internal-Key`.
+- `GET /payments` e `GET /payments/:id` trazem `customer: { id, name }`. `GET /payments` aceita `method` (`PIX`, `CARD`, `BOLETO`).
+- `GET /payments/totals` (ADMIN, GERENTE), mesmos filtros de `GET /payments` sem paginação: `{ count, totalCents, byStatus: [{ status, count, amountCents }] }`.
+- Dashboard: período novo `7d` (hoje e os seis dias anteriores) em todos os `/dashboard/*`. `GET /dashboard/summary` ganha `previousTotalAppointments` (mesmo trecho do período anterior: ontem até a mesma hora, mês anterior até o mesmo dia) e `appointmentsByDay: [{ date: 'AAAA-MM-DD', count, revenue }]`, um item por dia do período no fuso do servidor (vazio para `year`). A chave de cache do summary passou a `dashboard:summary:v2`.
+- O fuso vem de `TZ`; o compose usa `APP_TZ` (padrão `America/Sao_Paulo`) na API e no painel, para não herdar o `TZ` do shell. Os cortes de período e os dias de `appointmentsByDay` seguem esse fuso; em produção defina `TZ` igual nos dois.

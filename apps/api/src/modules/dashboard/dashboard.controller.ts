@@ -37,12 +37,12 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('summary')
-  @CacheMetric('dashboard:summary', CACHE_TTL_SECONDS)
+  @CacheMetric('dashboard:summary:v2', CACHE_TTL_SECONDS)
   @ApiOperation({ summary: 'Resumo do dashboard por período' })
   @ApiQuery({
     name: 'period',
     required: true,
-    enum: ['today', 'week', 'month', 'year'],
+    enum: ['today', 'week', '7d', 'month', 'year'],
   })
   @ApiResponse({ status: 200, type: DashboardSummaryResponseDto })
   getSummary(
@@ -59,7 +59,7 @@ export class DashboardController {
   @ApiQuery({
     name: 'period',
     required: false,
-    enum: ['today', 'week', 'month', 'year'],
+    enum: ['today', 'week', '7d', 'month', 'year'],
   })
   @ApiResponse({ status: 200, type: CustomersMetricsResponseDto })
   getCustomers(
@@ -76,7 +76,7 @@ export class DashboardController {
   @ApiQuery({
     name: 'period',
     required: false,
-    enum: ['today', 'week', 'month', 'year'],
+    enum: ['today', 'week', '7d', 'month', 'year'],
   })
   @ApiResponse({ status: 200, type: RevenueMetricsResponseDto })
   getRevenue(
@@ -93,7 +93,7 @@ export class DashboardController {
   @ApiQuery({
     name: 'period',
     required: false,
-    enum: ['today', 'week', 'month', 'year'],
+    enum: ['today', 'week', '7d', 'month', 'year'],
   })
   @ApiResponse({ status: 200, type: PlansMetricsResponseDto })
   getPlans(
@@ -110,7 +110,7 @@ export class DashboardController {
   @ApiQuery({
     name: 'period',
     required: false,
-    enum: ['today', 'week', 'month', 'year'],
+    enum: ['today', 'week', '7d', 'month', 'year'],
   })
   @ApiResponse({ status: 200, type: ConversationsMetricsResponseDto })
   getConversations(
@@ -127,7 +127,7 @@ export class DashboardController {
   @ApiQuery({
     name: 'period',
     required: false,
-    enum: ['today', 'week', 'month', 'year'],
+    enum: ['today', 'week', '7d', 'month', 'year'],
   })
   @ApiResponse({ status: 200, type: BarbersMetricsResponseDto })
   getBarbers(

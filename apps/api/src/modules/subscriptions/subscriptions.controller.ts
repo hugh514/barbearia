@@ -23,6 +23,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
+import { z } from 'zod';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { InternalApiKeyGuard } from '@common/guards/internal-api-key.guard';
 import { TenantHeader } from '@common/decorators/tenant-header.decorator';
@@ -44,6 +45,9 @@ import {
   SubscriptionResponseDto,
 } from '@modules/subscriptions/dto/subscription-response.dto';
 import { SubscriptionsService } from '@modules/subscriptions/subscriptions.service';
+
+const manualActionSchema = z.enum(['activate', 'suspend', 'renew']);
+type ManualAction = z.infer<typeof manualActionSchema>;
 
 @ApiTags('subscriptions')
 @Controller('subscriptions')
@@ -115,6 +119,26 @@ export class SubscriptionsController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<SubscriptionResponseDto> {
     return this.subscriptionsService.findOne(tenantId, id, user);
+  }
+
+  @Patch(':id/manual/:action')
+  @Roles(UserRole.ADMIN, UserRole.GERENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary:
+      'Ativar, suspender ou renovar pela equipe (pagamento no balcão ou atraso)',
+  })
+  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'action', enum: ['activate', 'suspend', 'renew'] })
+  @ApiResponse({ status: 200, type: SubscriptionResponseDto })
+  @ApiResponse({ status: 422, description: 'Transição de status inválida' })
+  async manual(
+    @CurrentTenant() tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('action', new ZodValidationPipe(manualActionSchema))
+    action: ManualAction,
+  ): Promise<SubscriptionResponseDto> {
+    return this.subscriptionsService[action](tenantId, id);
   }
 
   @Patch(':id/activate')

@@ -26,7 +26,10 @@ import { PaginatedResult } from '@common/pagination/pagination.types';
 import { AuthenticatedUser } from '@modules/auth/auth.types';
 import { CreatePaymentDto } from '@modules/payments/dto/create-payment.dto';
 import { PaymentQueryDto } from '@modules/payments/dto/payment-query.dto';
-import { PaymentResponseDto } from '@modules/payments/dto/payment-response.dto';
+import {
+  PaymentResponseDto,
+  PaymentTotalsResponseDto,
+} from '@modules/payments/dto/payment-response.dto';
 import { WebhookPayloadDto } from '@modules/payments/dto/webhook-payload.dto';
 import { toPaymentResponse } from '@modules/payments/payments.mapper';
 import {
@@ -37,6 +40,7 @@ import {
 import { PrismaService } from '@prisma/prisma.service';
 
 const paymentInclude = {
+  customer: { select: { id: true, name: true } },
   subscription: {
     include: {
       plan: { select: { id: true, name: true, priceCents: true } },
@@ -264,22 +268,7 @@ export class PaymentsService {
     tenantId: string,
     query: PaymentQueryDto,
   ): Promise<PaginatedResult<PaymentResponseDto>> {
-    const where: Prisma.PaymentWhereInput = {
-      tenantId,
-      deletedAt: null,
-      ...(query.subscriptionId ? { subscriptionId: query.subscriptionId } : {}),
-      ...(query.customerId ? { customerId: query.customerId } : {}),
-      ...(query.status ? { status: query.status } : {}),
-      ...(query.dateFrom || query.dateTo
-        ? {
-            createdAt: {
-              ...(query.dateFrom ? { gte: query.dateFrom } : {}),
-              ...(query.dateTo ? { lte: query.dateTo } : {}),
-            },
-          }
-        : {}),
-    };
-
+    const where = this.buildWhere(tenantId, query);
     const skip = getPaginationSkip(query.page, query.perPage);
 
     const [payments, total] = await Promise.all([
@@ -299,6 +288,51 @@ export class PaymentsService {
       query.page,
       query.perPage,
     );
+  }
+
+  async totals(
+    tenantId: string,
+    query: PaymentQueryDto,
+  ): Promise<PaymentTotalsResponseDto> {
+    const rows = await this.prisma.payment.groupBy({
+      by: ['status'],
+      where: this.buildWhere(tenantId, query),
+      _count: { _all: true },
+      _sum: { amountCents: true },
+      orderBy: { status: 'asc' },
+    });
+    const byStatus = rows.map((r) => ({
+      status: r.status,
+      count: r._count._all,
+      amountCents: r._sum.amountCents ?? 0,
+    }));
+    return {
+      count: byStatus.reduce((n, r) => n + r.count, 0),
+      totalCents: byStatus.reduce((n, r) => n + r.amountCents, 0),
+      byStatus,
+    };
+  }
+
+  private buildWhere(
+    tenantId: string,
+    query: PaymentQueryDto,
+  ): Prisma.PaymentWhereInput {
+    return {
+      tenantId,
+      deletedAt: null,
+      ...(query.subscriptionId ? { subscriptionId: query.subscriptionId } : {}),
+      ...(query.customerId ? { customerId: query.customerId } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.method ? { method: query.method } : {}),
+      ...(query.dateFrom || query.dateTo
+        ? {
+            createdAt: {
+              ...(query.dateFrom ? { gte: query.dateFrom } : {}),
+              ...(query.dateTo ? { lte: query.dateTo } : {}),
+            },
+          }
+        : {}),
+    };
   }
 
   async findOne(

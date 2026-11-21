@@ -4,6 +4,7 @@ import { PaymentResponseDto } from '@modules/payments/dto/payment-response.dto';
 type PaymentWithPlan = Payment &
   Prisma.PaymentGetPayload<{
     include: {
+      customer: { select: { id: true; name: true } };
       subscription: {
         include: {
           plan: { select: { id: true; name: true; priceCents: true } };
@@ -30,6 +31,9 @@ export function toPaymentResponse(
     paidAt: payment.paidAt,
     createdAt: payment.createdAt,
     updatedAt: payment.updatedAt,
+    customer: payment.customer
+      ? { id: payment.customer.id, name: payment.customer.name }
+      : undefined,
     plan: payment.subscription?.plan
       ? {
           id: payment.subscription.plan.id,
