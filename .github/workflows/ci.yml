@@ -8,10 +8,10 @@ on:
 permissions:
   contents: read
 
-# Um run novo na mesma branch ou PR cancela o anterior.
+# Em PR, um run novo cancela o anterior. Na main cada merge mantém o próprio CI.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Decide quais apps rodar olhando os arquivos alterados (paths por job não existe no Actions).
