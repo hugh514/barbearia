@@ -11,7 +11,7 @@ export const env = {
     // Última aparência da barbearia (cor, modo, nome). Não é sensível.
     theme: 'bc_theme',
   },
-  // Barbearia usada no cadastro e no login quando o link não traz ?b=slug.
+  // Barbearia usada no cadastro quando o link não traz ?b=slug.
   defaultTenantSlug: process.env.DEFAULT_TENANT_SLUG ?? 'barbearia-modelo',
   // Repassa o IP de quem chamou à API em X-Forwarded-For. Só ligue com um proxy
   // na frente que sobrescreva o cabeçalho e TRUST_PROXY na API; sem isso o IP é forjável.

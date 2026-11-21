@@ -24,7 +24,7 @@ Fila de hoje no painel: quem espera, quem está na cadeira e o que já foi feito
 </tr>
 </table>
 
-Os prints de todas as telas, em celular e desktop, ficam em `docs/prints/painel` e `docs/prints/cliente`.
+Os prints das telas, em celular e desktop, ficam em `docs/prints/painel` e `docs/prints/cliente`.
 
 ## Como rodar
 
@@ -85,11 +85,11 @@ Os segredos de webhook do `.env.example` são públicos e servem só para testar
 | `TRUST_PROXY` | API | Quantos proxies confiáveis estão na frente da API (`false` ou um número). Obrigatório em produção; `true` é recusado. |
 | `FORWARD_CLIENT_IP` | painel e cliente | Repassa o IP de quem acessa para a API, para o limite de tentativas valer por pessoa. Só ligue com um proxy na frente que sobrescreva o `X-Forwarded-For`; sem ele o IP é forjável. Padrão desligado. |
 | `PAINEL_PUBLIC_URL`, `CLIENTE_PUBLIC_URL` | API | Endereço público de cada front, usado no link do e-mail de nova senha. Em produção precisa ser https. |
-| `DEFAULT_TENANT_SLUG` | cliente | Barbearia usada no login e no cadastro quando o link não traz `?b=`. Padrão `barbearia-modelo`. |
+| `DEFAULT_TENANT_SLUG` | cliente | Barbearia usada no cadastro quando o link não traz `?b=`. Padrão `barbearia-modelo`. |
 
 ## Testes e CI
 
-Cada app tem os próprios testes. Dentro da pasta do app: `npm test` para os unitários e `npm run test:e2e` para os e2e (na API, com o banco migrado e o Redis no ar; no cliente, `npx playwright test`).
+Cada app tem os próprios testes. Dentro da pasta do app: `npm test` para os unitários e `npm run test:e2e` para os e2e (na API, com o banco migrado, o seed rodado e o Redis no ar).
 
 - **API**: unitários (Jest) e e2e contra Postgres e Redis de verdade.
 - **Painel e cliente**: unitários (Vitest) e fluxos de tela com Playwright.
