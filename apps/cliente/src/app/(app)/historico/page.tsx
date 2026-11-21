@@ -5,21 +5,27 @@ import { myHistory } from '@/features/history/services';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { formatDateTime } from '@/lib/format';
+import { formatBRL, formatDateTime, formatRelative } from '@/lib/format';
 
 const STATUS_LABEL: Record<string, string> = {
-  AGUARDANDO: 'Aguardando',
-  EM_ATENDIMENTO: 'Em atendimento',
-  FINALIZADO: 'Finalizado',
+  AGUARDANDO: 'Na fila',
+  EM_ATENDIMENTO: 'Na cadeira',
   CANCELADO: 'Cancelado',
 };
 
+function price(v: string | number | null | undefined): string | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? formatBRL(n) : null;
+}
+
 export default function HistoricoPage() {
-  const { data, isLoading } = useQuery({
+  const { data: history, isLoading } = useQuery({
     queryKey: ['my-history'],
     queryFn: ({ signal }) => myHistory(signal),
     staleTime: 15_000,
   });
+  const items = history?.data ?? [];
 
   return (
     <div className="space-y-4">
@@ -31,30 +37,44 @@ export default function HistoricoPage() {
             <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
-      ) : (data?.data ?? []).length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+      ) : items.length === 0 ? (
+        <p className="text-base text-muted-foreground">
           Nenhum atendimento ainda. Quando você passar pela barbearia, ele aparece aqui.
         </p>
       ) : (
-        <Card className="divide-y divide-border">
-          {data!.data.map((h) => (
-            <div key={h.id} className="flex items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {h.services.join(', ') || 'Atendimento'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {h.barber?.name ? `${h.barber.name}, ` : ''}
-                    <span className="tabular-nums">{formatDateTime(h.createdAt)}</span>
-                  </p>
-                </div>
-                {h.status !== 'FINALIZADO' && (
-                  <StatusBadge tone={h.status === 'CANCELADO' ? 'danger' : 'neutral'}>
-                    {STATUS_LABEL[h.status] ?? h.status}
-                  </StatusBadge>
-                )}
-            </div>
-          ))}
+        <Card>
+          <ul className="divide-y divide-border">
+            {items.map((h) => {
+              const value = h.status === 'FINALIZADO' ? price(h.totalPrice) : null;
+              const when = h.finishedAt ?? h.createdAt;
+              return (
+                <li key={h.id} className="flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-medium text-foreground">
+                      {h.services.join(', ') || 'Atendimento'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {h.barber?.name ? `${h.barber.name}, ` : ''}
+                      <time dateTime={when} title={formatDateTime(when)}>
+                        {formatRelative(when)}
+                      </time>
+                    </p>
+                  </div>
+                  {value ? (
+                    <span className="shrink-0 text-base font-semibold tabular-nums text-foreground">
+                      {value}
+                    </span>
+                  ) : (
+                    STATUS_LABEL[h.status] && (
+                      <StatusBadge tone={h.status === 'CANCELADO' ? 'danger' : 'neutral'}>
+                        {STATUS_LABEL[h.status]}
+                      </StatusBadge>
+                    )
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </Card>
       )}
     </div>
