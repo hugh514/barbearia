@@ -4,10 +4,14 @@ const jar = new Map<string, string>();
 const set = vi.fn<(name: string, value: string, opts?: object) => void>((name, value) => {
   jar.set(name, value);
 });
+const del = vi.fn<(name: string) => void>((name) => {
+  jar.delete(name);
+});
 vi.mock('next/headers', () => ({
   cookies: async () => ({
     get: (name: string) => (jar.has(name) ? { value: jar.get(name) } : undefined),
     set,
+    delete: del,
   }),
 }));
 
@@ -21,6 +25,7 @@ vi.mock('@/lib/http/server-fetch', () => ({
 
 import {
   THEME_COOKIE,
+  forgetAppearance,
   getTenantTheme,
   parseThemeCookie,
   rememberAppearance,
@@ -47,7 +52,7 @@ describe('getTenantTheme', () => {
     expect(t.businessName).toBe('Barbearia Modelo');
   });
 
-  it('API com 401 cai no cookie vez_theme', async () => {
+  it('API com 401 cai no cookie bc_theme', async () => {
     readAccessToken.mockResolvedValue('expirado');
     apiFetch.mockResolvedValue(fail(401));
     jar.set(THEME_COOKIE, JSON.stringify({ brandColor: '#0A6A82', themeMode: 'dark', businessName: 'Navalha' }));
@@ -96,6 +101,27 @@ describe('cookie de tema', () => {
     expect(name).toBe(THEME_COOKIE);
     expect(JSON.parse(value)).toEqual({ brandColor: '#6E1F2A', themeMode: 'dark', businessName: 'X' });
     expect(opts).toMatchObject({ httpOnly: true, sameSite: 'lax', path: '/' });
+  });
+
+  it('o cookie se chama bc_theme', () => {
+    expect(THEME_COOKIE).toBe('bc_theme');
+  });
+
+  it('forgetAppearance apaga o cookie de tema', async () => {
+    jar.set(THEME_COOKIE, JSON.stringify({ brandColor: '#6E1F2A' }));
+    await forgetAppearance();
+    expect(del).toHaveBeenCalledWith(THEME_COOKIE);
+    expect(jar.has(THEME_COOKIE)).toBe(false);
+  });
+
+  it('gravar ou apagar o tema também apaga o cookie antigo vez_theme', async () => {
+    jar.set('vez_theme', '{}');
+    await rememberAppearance({ brandColor: '#6E1F2A' });
+    expect(jar.has('vez_theme')).toBe(false);
+
+    jar.set('vez_theme', '{}');
+    await forgetAppearance();
+    expect(jar.has('vez_theme')).toBe(false);
   });
 
   it('parseThemeCookie recusa lixo', () => {

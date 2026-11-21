@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { sessionFromToken } from '@/lib/auth/jwt';
-import { isPublicRoute } from '@/config/route-access';
+import { isPublicRoute, isSignedOutOnly } from '@/config/route-access';
 import { env } from '@/lib/env';
 
 /** Proxy (middleware Next 16): protege rotas do cliente. */
@@ -12,7 +12,9 @@ export function proxy(request: NextRequest): NextResponse {
   const maybeAuth = Boolean(session) || Boolean(refreshToken);
 
   if (isPublicRoute(pathname)) {
-    if (session) return NextResponse.redirect(new URL('/', request.url));
+    if (session && isSignedOutOnly(pathname)) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
     return NextResponse.next();
   }
 

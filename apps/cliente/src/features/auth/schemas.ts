@@ -20,6 +20,24 @@ const strongPassword = z
   .regex(/[a-z]/, 'Inclua uma minúscula')
   .regex(/[0-9]/, 'Inclua um número');
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  tenantSlug: z.string().trim().min(1).optional(),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1).max(200),
+    password: strongPassword,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'As senhas não são iguais',
+  });
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 export const registerClientSchema = z.object({
   name: z.string().trim().min(2, 'Informe seu nome'),
   phone: z
@@ -29,6 +47,6 @@ export const registerClientSchema = z.object({
     .regex(/^[0-9()+\-\s]+$/, 'Telefone inválido'),
   email: z.string().email('E-mail inválido'),
   password: strongPassword,
-  tenantSlug: z.string().trim().min(1, 'Informe a barbearia'),
+  tenantSlug: z.string().trim().min(1),
 });
 export type RegisterClientInput = z.infer<typeof registerClientSchema>;
