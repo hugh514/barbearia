@@ -9,8 +9,13 @@ export const env = {
     access: process.env.SESSION_COOKIE_ACCESS ?? 'bc_at',
     refresh: process.env.SESSION_COOKIE_REFRESH ?? 'bc_rt',
     // Última aparência da barbearia (cor, modo, nome). Não é sensível.
-    theme: 'vez_theme',
+    theme: 'bc_theme',
   },
+  // Barbearia usada no cadastro e no login quando o link não traz ?b=slug.
+  defaultTenantSlug: process.env.DEFAULT_TENANT_SLUG ?? 'barbearia-modelo',
+  // Repassa o IP de quem chamou à API em X-Forwarded-For. Só ligue com um proxy
+  // na frente que sobrescreva o cabeçalho e TRUST_PROXY na API; sem isso o IP é forjável.
+  forwardClientIp: process.env.FORWARD_CLIENT_IP === 'true',
   // Cookie Secure em produção. Só COOKIE_SECURE=false, explícito, desliga (http local
   // do compose); qualquer outro valor mantém o padrão.
   cookieSecure:
