@@ -13,6 +13,14 @@ export class PaymentPlanDto {
   priceCents!: number;
 }
 
+export class PaymentCustomerDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  name!: string;
+}
+
 export class PaymentResponseDto {
   @ApiProperty()
   id!: string;
@@ -58,6 +66,31 @@ export class PaymentResponseDto {
 
   @ApiPropertyOptional({ type: PaymentPlanDto })
   plan?: PaymentPlanDto;
+
+  @ApiPropertyOptional({ type: PaymentCustomerDto })
+  customer?: PaymentCustomerDto;
+}
+
+export class PaymentStatusTotalDto {
+  @ApiProperty({ enum: PaymentStatus })
+  status!: PaymentStatus;
+
+  @ApiProperty()
+  count!: number;
+
+  @ApiProperty()
+  amountCents!: number;
+}
+
+export class PaymentTotalsResponseDto {
+  @ApiProperty()
+  count!: number;
+
+  @ApiProperty({ description: 'Soma de todos os status filtrados' })
+  totalCents!: number;
+
+  @ApiProperty({ type: [PaymentStatusTotalDto] })
+  byStatus!: PaymentStatusTotalDto[];
 }
 
 export class PaginatedPaymentsResponseDto {

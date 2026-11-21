@@ -40,6 +40,7 @@ import {
 import {
   PaginatedPaymentsResponseDto,
   PaymentResponseDto,
+  PaymentTotalsResponseDto,
 } from '@modules/payments/dto/payment-response.dto';
 import { WebhookPayloadDto } from '@modules/payments/dto/webhook-payload.dto';
 import { PaymentsService } from '@modules/payments/payments.service';
@@ -117,6 +118,11 @@ export class PaymentsController {
   @ApiQuery({ name: 'subscriptionId', required: false, type: String })
   @ApiQuery({ name: 'customerId', required: false, type: String })
   @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({
+    name: 'method',
+    required: false,
+    enum: ['PIX', 'CARD', 'BOLETO'],
+  })
   @ApiQuery({ name: 'dateFrom', required: false, type: String })
   @ApiQuery({ name: 'dateTo', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -127,6 +133,27 @@ export class PaymentsController {
     @Query(new ZodValidationPipe(paymentQuerySchema)) query: PaymentQueryDto,
   ): Promise<PaginatedPaymentsResponseDto> {
     return this.paymentsService.findAll(tenantId, query);
+  }
+
+  @Get('totals')
+  @Roles(UserRole.ADMIN, UserRole.GERENTE)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Totais por status com os filtros da listagem' })
+  @ApiQuery({ name: 'customerId', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({
+    name: 'method',
+    required: false,
+    enum: ['PIX', 'CARD', 'BOLETO'],
+  })
+  @ApiQuery({ name: 'dateFrom', required: false, type: String })
+  @ApiQuery({ name: 'dateTo', required: false, type: String })
+  @ApiResponse({ status: 200, type: PaymentTotalsResponseDto })
+  async totals(
+    @CurrentTenant() tenantId: string,
+    @Query(new ZodValidationPipe(paymentQuerySchema)) query: PaymentQueryDto,
+  ): Promise<PaymentTotalsResponseDto> {
+    return this.paymentsService.totals(tenantId, query);
   }
 
   @Get(':id')

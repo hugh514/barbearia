@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs';
-import { PaymentStatus } from '@prisma/client';
+import { PaymentMethod, PaymentStatus } from '@prisma/client';
 import { z } from 'zod';
 import {
   DEFAULT_PAGE,
@@ -11,6 +11,7 @@ export const paymentQuerySchema = z.object({
   subscriptionId: z.string().uuid().optional(),
   customerId: z.string().uuid().optional(),
   status: z.nativeEnum(PaymentStatus).optional(),
+  method: z.nativeEnum(PaymentMethod).optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
   page: z.coerce.number().int().min(1).default(DEFAULT_PAGE),
