@@ -1,29 +1,37 @@
-# Barbearia
+# Vez
 
-Sistema para barbearia que atende por ordem de chegada. O cliente chega, faz check-in mostrando um QR Code no celular e entra na fila. A equipe acompanha a fila, chama o próximo, finaliza o atendimento e vende planos de assinatura pagos por PIX. As conversas de WhatsApp e Instagram caem numa caixa de entrada só, com IA para responder o básico. Uma única API atende várias barbearias ao mesmo tempo, cada uma isolada da outra.
+Sistema para barbearia que atende por ordem de chegada. O cliente chega, mostra um QR Code no celular e entra na fila. No app ele acompanha a própria vez ("Você é o próximo"). A equipe vê a fila ao vivo, chama o próximo, finaliza o atendimento e vende planos de assinatura pagos por PIX. As conversas de WhatsApp e Instagram caem numa caixa de entrada só. Uma única API atende várias barbearias, cada uma isolada da outra e com a própria cor de marca.
 
 São três apps neste repositório:
 
-- **API** (`apps/api`): NestJS, Prisma, PostgreSQL, Redis com BullMQ e Socket.IO. Toda a regra de negócio mora aqui.
-- **Painel** (`apps/painel`): Next.js para a equipe (dono, gerente, barbeiro). Fila, clientes, planos, financeiro, caixa de entrada e check-in.
-- **Cliente** (`apps/cliente`): Next.js para o cliente. Gera o QR Code de check-in, vê planos, histórico e perfil.
+| App | Pasta | Para quem | O que tem |
+|---|---|---|---|
+| API | `apps/api` | todos | NestJS, Prisma, PostgreSQL, Redis com BullMQ e Socket.IO. Toda a regra de negócio mora aqui. |
+| Painel | `apps/painel` | dono, gerente e barbeiro | Fila de hoje, clientes, planos, assinaturas, financeiro, dashboard, caixa de entrada, check-in, equipe e configurações. |
+| Cliente | `apps/cliente` | cliente da barbearia | Posição na fila, QR de entrada, planos com PIX, histórico, perfil e recuperação de senha. |
 
 ## Telas
 
-Painel da equipe, logo depois do login:
+Fila de hoje no painel: quem espera, quem está na cadeira e o que já foi feito, com o total do dia.
 
-![Painel](docs/prints/painel.png)
+![Fila de hoje no painel](docs/prints/painel/fila-desktop.png)
 
-App do cliente, tela inicial:
+<table>
+<tr>
+<td><img src="docs/prints/cliente/home-senha-celular.png" alt="App do cliente com a posição na fila" width="260"></td>
+<td><img src="docs/prints/cliente/planos-pix-celular.png" alt="Assinatura de plano com PIX no app do cliente" width="260"></td>
+<td><img src="docs/prints/painel/fila-celular.png" alt="Fila de hoje do painel no celular" width="260"></td>
+</tr>
+</table>
 
-![Cliente](docs/prints/cliente.png)
+Os prints das telas, em celular e desktop, ficam em `docs/prints/painel` e `docs/prints/cliente`.
 
 ## Como rodar
 
 Precisa só de Docker com o Compose 2.24 ou mais novo.
 
 ```bash
-git clone <url-deste-repositorio> barbearia && cd barbearia
+git clone https://github.com/hugh514/barbearia.git && cd barbearia
 cp .env.example .env
 docker compose up --build
 ```
@@ -39,14 +47,6 @@ Na primeira vez demora alguns minutos para montar as imagens. O compose sobe Pos
 
 Para parar: `docker compose down`. Para zerar o banco também: `docker compose down -v`.
 
-### Cookie de sessão em http
-
-Em produção os fronts marcam os cookies de sessão como `Secure`, e o navegador só os aceita em https. O compose roda em http, então os serviços `painel` e `cliente` recebem `COOKIE_SECURE=false`. Só o valor `false`, escrito assim, desliga o `Secure`; sem a variável ou com qualquer outro valor, vale o padrão (ligado em produção). Nunca use `COOKIE_SECURE=false` num ambiente com https.
-
-### IP de quem chama, pelo painel
-
-O painel fala com a API pelo próprio servidor, então sem ajuste o limite de tentativas de login da API conta todo mundo como um IP só. Com `FORWARD_CLIENT_IP=true`, o painel repassa à API só o último endereço do `X-Forwarded-For` (ou o `X-Real-IP`), o que o proxy da frente anotou, como o app cliente já faz. Só ligue com um proxy de borda que acrescente o IP real ao cabeçalho, e com `TRUST_PROXY` na API: o Next mantém o cabeçalho que o navegador mandar, e sem a borda qualquer um forja um IP novo a cada tentativa.
-
 ## Login de teste
 
 Essas senhas existem só no seed, para ambiente local. Não use em produção.
@@ -60,36 +60,56 @@ Essas senhas existem só no seed, para ambiente local. Não use em produção.
 | Painel, dono da Navalha Norte | dono@navalha.example | admin123 |
 | App do cliente | cliente@barbearia.example | Cliente123 |
 
-O seed roda sozinho no `docker compose up` e cria três barbearias, cada uma isolada da outra. A Barbearia Modelo é a mais completa: dono, gerente, três barbeiros, treze clientes, fila do dia com gente esperando, em atendimento, finalizada e cancelada, quatro planos, assinaturas ativas, pendentes, suspensas e canceladas, pagamentos PIX e cartão de teste e conversas de WhatsApp e Instagram. A Barbearia do Centro e a Navalha Norte têm equipe, clientes, planos, serviços e fila menores. Nomes, telefones e e-mails são inventados.
+O seed cria três barbearias. A Barbearia Modelo é a mais completa: dono, gerente, três barbeiros, clientes, fila do dia com gente esperando, na cadeira, finalizada e cancelada, planos, assinaturas em todos os status, pagamentos e conversas. As outras duas têm equipe, clientes, planos e fila menores. Nomes, telefones e e-mails são inventados.
 
 A fila do dia fica com a data em que o banco foi criado. Para ter a fila de novo no dia de hoje, rode `docker compose down -v` e suba outra vez.
 
-## Integrações externas ficam desligadas
+## O que dá para testar sem nenhuma chave
 
-O `.env.example` não tem nenhuma chave real.
+O `.env.example` não tem nenhuma chave real, e o sistema funciona inteiro em modo local:
 
-- **Mercado Pago**: vem com um token falso de teste. O painel mostra os pagamentos do seed, mas gerar uma cobrança PIX nova só funciona se você colocar um token de sandbox seu (`TEST-...`) em `MERCADO_PAGO_ACCESS_TOKEN`.
+- **PIX**: com o token falso do `.env.example`, a API usa um provedor de teste (`PAYMENTS_PROVIDER` vazio escolhe sozinho; `mock` força). O QR e o copia e cola aparecem normalmente, e no app do cliente o botão "Simular pagamento (dev)" aprova a cobrança. Para usar o Mercado Pago de verdade, ponha um token de sandbox seu (`TEST-...`) em `MERCADO_PAGO_ACCESS_TOKEN`.
+- **E-mail de recuperação de senha**: com `EMAIL_PROVIDER=log` (o padrão), a API não envia nada e registra no log só que o e-mail saiu, sem o link. Em produção a API exige um provedor real e não sobe com `log`. O envio por SMTP ainda não foi implementado, então hoje a API não sobe em produção até ele existir.
 - **WhatsApp** (Evolution API): sem `EVOLUTION_API_KEY` a API recusa os webhooks e não envia nada.
 - **Instagram**: sem `INSTAGRAM_PAGE_ACCESS_TOKEN` nada é enviado.
 - **IA** (OpenAI): sem `OPENAI_API_KEY` fica desligada.
 
-Os segredos de webhook do `.env.example` (Mercado Pago e Instagram) são públicos e servem só para testar localmente. Em qualquer ambiente exposto, troque todos; a API recusa subir em produção com esses valores padrão.
+Os segredos de webhook do `.env.example` são públicos e servem só para testar localmente. A API recusa subir em produção com esses valores padrão.
 
-## Testes
+## Configuração que importa fora do local
 
-Com o compose no ar, `bash scripts/testar-api.sh` faz login, lista e cria clientes, põe alguém na fila, cadastra um barbeiro que inicia e finaliza o atendimento, mexe nos serviços, cria plano e assinatura e confere papéis e isolamento entre barbearias. Os testes de cada app ficam dentro dele; os comandos estão no `AGENTS.md`.
+| Variável | Onde | Para quê |
+|---|---|---|
+| `APP_TZ` | compose (API e painel) | Fuso do "hoje" da fila e do dashboard. Padrão `America/Sao_Paulo`. |
+| `COOKIE_SECURE` | painel e cliente | Com `NODE_ENV=production` os cookies de sessão são `Secure` e só funcionam em https. O compose roda em http e usa `false`. Só o valor `false`, escrito assim, desliga. Nunca use num ambiente com https. |
+| `TRUST_PROXY` | API | Quantos proxies confiáveis estão na frente da API (`false` ou um número). Obrigatório em produção; `true` é recusado. |
+| `FORWARD_CLIENT_IP` | painel e cliente | Repassa o IP de quem acessa para a API, para o limite de tentativas valer por pessoa. Só ligue com um proxy na frente que sobrescreva o `X-Forwarded-For`; sem ele o IP é forjável. Padrão desligado. |
+| `PAINEL_PUBLIC_URL`, `CLIENTE_PUBLIC_URL` | API | Endereço público de cada front, usado no link do e-mail de nova senha. Em produção precisa ser https. |
+| `DEFAULT_TENANT_SLUG` | cliente | Barbearia usada no cadastro quando o link não traz `?b=`. Padrão `barbearia-modelo`. |
+
+## Testes e CI
+
+Cada app tem os próprios testes. Dentro da pasta do app: `npm test` para os unitários e `npm run test:e2e` para os e2e (na API, com o banco migrado, o seed rodado e o Redis no ar).
+
+- **API**: unitários (Jest) e e2e contra Postgres e Redis de verdade.
+- **Painel e cliente**: unitários (Vitest) e fluxos de tela com Playwright.
+- **Fumaça**: com o compose no ar, `bash scripts/testar-api.sh` percorre login, clientes, fila, atendimento, planos, papéis e isolamento entre barbearias.
+
+O GitHub Actions (`.github/workflows/ci.yml`) roda lint, tipos, testes e build de cada app que mudou, e os e2e da API com banco. A `main` só recebe mudança por PR, e o merge exige o check `ci` verde com a branch atualizada.
 
 ## Estrutura
 
 ```text
 barbearia/
+  .github/workflows/ci.yml   CI por app
   apps/
     api/        API NestJS (prisma/, src/, test/, specs/)
     painel/     painel da equipe (src/, e2e/, specs/)
-    cliente/    app do cliente (src/)
+    cliente/    app do cliente (src/, e2e/)
   docs/
     constituicao/   princípios da API e do painel
-    prints/         imagens deste README
+    design.md       identidade visual: cor por barbearia, tipografia, telas
+    prints/         prints das telas
   scripts/
     testar-api.sh   teste de fumaça da API
   docker-compose.yml
@@ -97,17 +117,18 @@ barbearia/
   AGENTS.md         regras para quem (pessoa ou agente) for mexer no código
 ```
 
-Cada app tem o próprio `package.json` e `package-lock.json`. Não há workspaces: para trabalhar num app, entre na pasta dele e use `npm install` e os scripts de lá. As specs de cada feature ficaram dentro do app a que pertencem (`apps/api/specs`, `apps/painel/specs`).
+Cada app tem o próprio `package.json` e `package-lock.json`. Não há workspaces: para trabalhar num app, entre na pasta dele e use `npm install` e os scripts de lá.
 
 ## Decisões principais
 
-- **Ordem de chegada, sem agendamento.** A barbearia funciona por walk-in. Não existe agenda com horários: a fila é a lista de atendimentos `AGUARDANDO` em ordem de criação, e o bot informa e direciona, mas não marca horário.
-- **Várias barbearias numa API (multi-tenant).** Toda tabela tem `tenant_id`, toda consulta filtra por ele e o tenant vem do token JWT. Vazar dado de uma barbearia para outra é tratado como falha de segurança.
-- **A API é o centro.** Painel, cliente, WhatsApp, Instagram e IA só falam com a API. Ninguém acessa o banco além dela, nem a IA.
-- **Efeito colateral vai para fila.** Mandar mensagem pós-atendimento, pedir avaliação ou oferecer plano roda em jobs do BullMQ, com retry, e nunca trava a requisição.
-- **Check-in por QR Code de vida curta.** O cliente gera um token opaco que vale 60 segundos e é guardado no Redis; a equipe lê e o cliente entra na fila. Gerar um novo invalida o anterior.
-- **Pagamento pelo gateway.** A API cria a cobrança no Mercado Pago e confirma por webhook com assinatura validada e processamento idempotente. Cartão nunca passa pela API.
-- **Sessão em cookie httpOnly nos fronts.** Nas chamadas REST, o navegador fala só com as rotas `/api/*` do próprio Next, que repassam para a API, e os tokens ficam em cookie httpOnly. A exceção é o tempo real do painel: a rota `/api/realtime/token` devolve o access token ao JavaScript e o navegador conecta direto na API (Socket.IO) em `API_PUBLIC_URL`. Por isso essa URL precisa ser alcançável pelo navegador (no compose, `http://127.0.0.1:3000`).
-- **Tema por barbearia.** Cada barbearia escolhe uma cor e o modo claro ou escuro (Configurações, Aparência). O layout de cada front lê `GET /channels/config/appearance` e guarda a última aparência num cookie (`bb_theme` no painel, `bc_theme` no cliente; só cor, modo e nome), usado quando o token expira ou a API não responde.
+- **Ordem de chegada, sem agendamento.** A fila é a lista de atendimentos em espera, em ordem de chegada. O bot informa e direciona, mas não marca horário.
+- **Várias barbearias numa API (multi-tenant).** Toda tabela tem `tenant_id`, toda consulta filtra por ele e o tenant vem do token. Vazar dado de uma barbearia para outra é tratado como falha de segurança.
+- **A API é o centro.** Painel, cliente, WhatsApp, Instagram e IA só falam com a API. Ninguém acessa o banco além dela.
+- **Efeito colateral vai para fila.** Mensagem pós-atendimento, pedido de avaliação e confirmação de pagamento rodam em jobs do BullMQ, com retry, e nunca travam a requisição.
+- **Check-in por QR Code de vida curta.** O cliente gera um token opaco que vale 60 segundos; a equipe lê e o cliente entra na fila. Gerar um novo invalida o anterior.
+- **Pagamento pelo gateway.** A API cria a cobrança e confirma por webhook com assinatura validada e processamento idempotente. Cartão nunca passa pela API.
+- **Sessão em cookie httpOnly.** O navegador fala só com as rotas `/api/*` do próprio Next, que repassam para a API. A exceção é o tempo real do painel: `/api/realtime/token` entrega o token ao JavaScript e o navegador conecta direto na API (Socket.IO) em `API_PUBLIC_URL`.
+- **Redirecionamento só interno.** O `?from=` do login aceita apenas caminho do próprio app, inclusive depois de resolver `..` e `%2e`.
+- **Cor da barbearia.** Cada barbearia escolhe a cor de marca e o modo claro ou escuro em Configurações, Aparência. Os tons derivados são calculados com contraste mínimo garantido. A última aparência fica num cookie (`bb_theme` no painel, `bc_theme` no cliente) para quando a API não responde.
 
-Os detalhes estão em `docs/constituicao/` e nas specs de cada app.
+Os detalhes estão em `docs/design.md`, em `docs/constituicao/` e nas specs de cada app.
