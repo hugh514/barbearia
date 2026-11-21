@@ -97,6 +97,16 @@ test('fila: Esperando em linhas compactas, só o primeiro com o botão cheio', a
   expect((await last.boundingBox())?.height ?? 0).toBeLessThanOrEqual(64);
 });
 
+test('sidebar ocupa a altura toda e fica fixa ao rolar página longa', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 });
+  await page.goto('/fila');
+  const docHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  const column = page.getByTestId('sidebar-coluna');
+  expect((await column.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(docHeight - 1);
+  await page.mouse.wheel(0, 2000);
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Clientes' })).toBeInViewport();
+});
+
 test('fila no celular: colunas viram abas com alvos de 44px e sem rolagem lateral', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/fila');
@@ -122,4 +132,57 @@ test('fila no celular: colunas viram abas com alvos de 44px e sem rolagem latera
     expect((await start.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+test('clientes: busca vai para a URL e o detalhe salva a edição', async ({ page }) => {
+  const id = unique();
+  const name = `Teste Edicao ${id}`;
+  const created = await page.request.post('/api/customers', {
+    data: { name, phone: `117${id}` },
+  });
+  expect(created.ok()).toBeTruthy();
+
+  await page.goto('/clientes');
+  await page.getByLabel('Buscar clientes').fill(name);
+  await expect(page).toHaveURL(new RegExp(`q=Teste\\+Edicao\\+${id}`));
+  await page.getByRole('link', { name }).click();
+  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Atendimentos' })).toBeVisible();
+
+  const novo = `${name} Silva`;
+  await page.getByLabel('Nome').fill(novo);
+  await page.getByRole('button', { name: 'Salvar dados' }).click();
+  await expect(page.getByText('Dados do cliente salvos.')).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: novo })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Voltar para Clientes' }).click();
+  await expect(page).toHaveURL(/\/clientes$/);
+});
+
+test('equipe: editar e desativar com confirmação, sem desativar a si mesmo', async ({ page }) => {
+  const id = unique();
+  const name = `Barbeiro Teste ${id} com um nome comprido que precisa caber na tabela`;
+  const created = await page.request.post('/api/users', {
+    data: { name, email: `e2e.${id}@barbearia.example`, password: 'Senha1234', role: 'BARBEIRO' },
+  });
+  expect(created.ok()).toBeTruthy();
+
+  await page.goto('/barbeiros');
+  const ativos = page.getByRole('table', { name: 'Membros ativos' });
+  await expect(ativos.getByRole('row', { name: /Administrador Demo/ }).getByRole('button', { name: /Desativar/ })).toHaveCount(0);
+
+  await ativos.getByRole('button', { name: `Editar ${name}` }).click();
+  const edit = page.getByRole('dialog', { name: 'Editar membro' });
+  await edit.getByLabel('Papel').selectOption('GERENTE');
+  await edit.getByRole('button', { name: 'Salvar alterações' }).click();
+  await expect(page.getByText('Alterações salvas.')).toBeVisible();
+  await expect(ativos.getByRole('row', { name: new RegExp(`Barbeiro Teste ${id}`) })).toContainText('Gerente');
+
+  await ativos.getByRole('button', { name: `Desativar ${name}` }).click();
+  const confirm = page.getByRole('dialog', { name: /^Desativar Barbeiro Teste/ });
+  await confirm.getByRole('button', { name: 'Desativar membro' }).click();
+  await expect(page.getByText(`${name} foi desativado.`)).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Membros desativados' })).toContainText(`Barbeiro Teste ${id}`);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1280);
 });
