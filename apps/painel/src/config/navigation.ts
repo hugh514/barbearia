@@ -7,6 +7,7 @@ import {
   CreditCard,
   MessageSquare,
   QrCode,
+  Repeat,
   Settings,
   type LucideIcon,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Fila de hoje', href: '/fila', icon: ListOrdered, roles: STAFF },
   { label: 'Clientes', href: '/clientes', icon: Users, roles: STAFF },
   { label: 'Planos', href: '/planos', icon: CreditCard, roles: ADMIN_GERENTE },
+  { label: 'Assinaturas', href: '/assinaturas', icon: Repeat, roles: ADMIN_GERENTE },
   { label: 'Financeiro', href: '/financeiro', icon: DollarSign, roles: ADMIN_GERENTE },
   { label: 'Inbox', href: '/inbox', icon: MessageSquare, roles: STAFF },
   { label: 'Check-in', href: '/checkin', icon: QrCode, roles: STAFF },
