@@ -43,6 +43,10 @@ Para parar: `docker compose down`. Para zerar o banco também: `docker compose d
 
 Em produção os fronts marcam os cookies de sessão como `Secure`, e o navegador só os aceita em https. O compose roda em http, então os serviços `painel` e `cliente` recebem `COOKIE_SECURE=false`. Só o valor `false`, escrito assim, desliga o `Secure`; sem a variável ou com qualquer outro valor, vale o padrão (ligado em produção). Nunca use `COOKIE_SECURE=false` num ambiente com https.
 
+### IP de quem chama, pelo painel
+
+O painel fala com a API pelo próprio servidor, então sem ajuste o limite de tentativas de login da API conta todo mundo como um IP só. Com `FORWARD_CLIENT_IP=true`, o painel repassa à API só o último endereço do `X-Forwarded-For` (ou o `X-Real-IP`), o que o proxy da frente anotou, como o app cliente já faz. Só ligue com um proxy de borda que acrescente o IP real ao cabeçalho, e com `TRUST_PROXY` na API: o Next mantém o cabeçalho que o navegador mandar, e sem a borda qualquer um forja um IP novo a cada tentativa.
+
 ## Login de teste
 
 Essas senhas existem só no seed, para ambiente local. Não use em produção.
@@ -104,6 +108,6 @@ Cada app tem o próprio `package.json` e `package-lock.json`. Não há workspace
 - **Check-in por QR Code de vida curta.** O cliente gera um token opaco que vale 60 segundos e é guardado no Redis; a equipe lê e o cliente entra na fila. Gerar um novo invalida o anterior.
 - **Pagamento pelo gateway.** A API cria a cobrança no Mercado Pago e confirma por webhook com assinatura validada e processamento idempotente. Cartão nunca passa pela API.
 - **Sessão em cookie httpOnly nos fronts.** Nas chamadas REST, o navegador fala só com as rotas `/api/*` do próprio Next, que repassam para a API, e os tokens ficam em cookie httpOnly. A exceção é o tempo real do painel: a rota `/api/realtime/token` devolve o access token ao JavaScript e o navegador conecta direto na API (Socket.IO) em `API_PUBLIC_URL`. Por isso essa URL precisa ser alcançável pelo navegador (no compose, `http://127.0.0.1:3000`).
-- **Tema por barbearia.** Cada barbearia escolhe uma cor e o modo claro ou escuro (Configurações, Aparência). O layout de cada front lê `GET /channels/config/appearance` e guarda a última aparência num cookie `vez_theme` (só cor, modo e nome), usado quando o token expira ou a API não responde.
+- **Tema por barbearia.** Cada barbearia escolhe uma cor e o modo claro ou escuro (Configurações, Aparência). O layout de cada front lê `GET /channels/config/appearance` e guarda a última aparência num cookie (`bb_theme` no painel, `bc_theme` no cliente; só cor, modo e nome), usado quando o token expira ou a API não responde.
 
 Os detalhes estão em `docs/constituicao/` e nas specs de cada app.

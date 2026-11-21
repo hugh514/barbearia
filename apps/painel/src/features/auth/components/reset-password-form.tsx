@@ -38,7 +38,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       <input type="hidden" {...register('token')} />
       <div className="space-y-2">
         <Label htmlFor="password">Nova senha</Label>
@@ -46,6 +46,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           id="password"
           type="password"
           autoComplete="new-password"
+          className="h-11"
           invalid={!!errors.password}
           {...register('password')}
         />
@@ -59,6 +60,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           id="confirmPassword"
           type="password"
           autoComplete="new-password"
+          className="h-11"
           invalid={!!errors.confirmPassword}
           {...register('confirmPassword')}
         />
@@ -69,11 +71,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
         )}
       </div>
       {serverError && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2.5 text-sm text-destructive">
           {serverError}
         </p>
       )}
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? 'Salvando…' : 'Redefinir senha'}
       </Button>
     </form>

@@ -10,7 +10,7 @@ test.describe('Fluxos públicos (sem sessão)', () => {
   test('login inválido mostra erro e não redireciona', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('E-mail').fill('admin@barbearia.example');
-    await page.getByLabel('Senha').fill('senha-errada');
+    await page.getByLabel('Senha', { exact: true }).fill('senha-errada');
     await page.getByRole('button', { name: /entrar/i }).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await expect(page).toHaveURL(/\/login/);

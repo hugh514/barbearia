@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiFetch } from '@/lib/http/server-fetch';
+import { forwardedFor } from '@/lib/http/forwarded-for';
 import { forgotPasswordSchema } from '@/features/auth/schemas';
 
 export async function POST(request: Request) {
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
   await apiFetch('/auth/forgot-password', {
     method: 'POST',
     body: parsed.data,
+    headers: forwardedFor(request),
   }).catch(() => undefined);
 
   return NextResponse.json({ ok: true }, { status: 200 });

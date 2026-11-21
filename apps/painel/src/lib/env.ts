@@ -14,7 +14,7 @@ export const env = {
     access: process.env.SESSION_COOKIE_ACCESS ?? 'bb_at',
     refresh: process.env.SESSION_COOKIE_REFRESH ?? 'bb_rt',
     // Última aparência da barbearia (cor, modo, nome). Não é sensível.
-    theme: 'vez_theme',
+    theme: 'bb_theme',
   },
   // Cookie Secure em produção. Só COOKIE_SECURE=false, explícito, desliga (http local
   // do compose); qualquer outro valor mantém o padrão.
@@ -22,4 +22,6 @@ export const env = {
     process.env.COOKIE_SECURE === 'false'
       ? false
       : process.env.NODE_ENV === 'production',
+  // Repassa o X-Forwarded-For à API. Ver lib/http/forwarded-for.ts antes de ligar.
+  forwardClientIp: process.env.FORWARD_CLIENT_IP === 'true',
 } as const;

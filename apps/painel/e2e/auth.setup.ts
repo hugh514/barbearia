@@ -6,7 +6,7 @@ const ADMIN = { email: 'admin@barbearia.example', password: 'admin123' };
 setup('autenticar como admin', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('E-mail').fill(ADMIN.email);
-  await page.getByLabel('Senha').fill(ADMIN.password);
+  await page.getByLabel('Senha', { exact: true }).fill(ADMIN.password);
   await page.getByRole('button', { name: /entrar/i }).click();
   await expect(page).toHaveURL(/\/dashboard/);
   await page.context().storageState({ path: AUTH_FILE });

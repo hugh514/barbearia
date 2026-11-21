@@ -4,10 +4,14 @@ const jar = new Map<string, string>();
 const set = vi.fn<(name: string, value: string, opts?: object) => void>((name, value) => {
   jar.set(name, value);
 });
+const del = vi.fn<(name: string) => void>((name) => {
+  jar.delete(name);
+});
 vi.mock('next/headers', () => ({
   cookies: async () => ({
     get: (name: string) => (jar.has(name) ? { value: jar.get(name) } : undefined),
     set,
+    delete: del,
   }),
 }));
 
@@ -47,7 +51,7 @@ describe('getTenantTheme', () => {
     expect(t.businessName).toBe('Barbearia Modelo');
   });
 
-  it('API com 401 cai no cookie vez_theme', async () => {
+  it('API com 401 cai no cookie bb_theme', async () => {
     readAccessToken.mockResolvedValue('expirado');
     apiFetch.mockResolvedValue(fail(401));
     jar.set(THEME_COOKIE, JSON.stringify({ brandColor: '#0A6A82', themeMode: 'dark', businessName: 'Navalha' }));
@@ -96,6 +100,18 @@ describe('cookie de tema', () => {
     expect(name).toBe(THEME_COOKIE);
     expect(JSON.parse(value)).toEqual({ brandColor: '#6E1F2A', themeMode: 'dark', businessName: 'X' });
     expect(opts).toMatchObject({ httpOnly: true, sameSite: 'lax', path: '/' });
+  });
+
+  it('o cookie se chama bb_theme, no prefixo dos outros cookies do painel', () => {
+    expect(THEME_COOKIE).toBe('bb_theme');
+  });
+
+  it('rememberAppearance sem aparência apaga o cookie antigo', async () => {
+    jar.set(THEME_COOKIE, JSON.stringify({ brandColor: '#6E1F2A' }));
+    await rememberAppearance(null);
+    expect(del).toHaveBeenCalledWith(THEME_COOKIE);
+    expect(jar.has(THEME_COOKIE)).toBe(false);
+    expect(set).not.toHaveBeenCalled();
   });
 
   it('parseThemeCookie recusa lixo', () => {
