@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // Datas relativas dependem do dia local: fixa o fuso dos testes.
+    env: { TZ: 'America/Sao_Paulo' },
   },
   resolve: {
     alias: {
