@@ -1,19 +1,17 @@
 import { Suspense } from 'react';
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import type { Metadata } from 'next';
 import { LoginForm } from '@/features/auth/components/login-form';
+import { AuthHeading } from '@/features/auth/components/auth-heading';
+
+export const metadata: Metadata = { title: 'Entrar' };
 
 export default function LoginPage() {
   return (
-    <Card>
-      <CardHeader>
-        <h1 className="text-xl font-bold text-foreground">Entrar no painel</h1>
-        <CardDescription>Use o e-mail cadastrado pela barbearia.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Suspense fallback={null}>
-          <LoginForm />
-        </Suspense>
-      </CardContent>
-    </Card>
+    <>
+      <AuthHeading title="Entrar" description="Use o e-mail e a senha da sua conta." />
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
+    </>
   );
 }

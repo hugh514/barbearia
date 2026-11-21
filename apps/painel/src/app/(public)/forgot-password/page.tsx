@@ -1,24 +1,17 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import type { Metadata } from 'next';
 import { ForgotPasswordForm } from '@/features/auth/components/forgot-password-form';
+import { AuthHeading } from '@/features/auth/components/auth-heading';
+
+export const metadata: Metadata = { title: 'Recuperar senha' };
 
 export default function ForgotPasswordPage() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl font-bold">Recuperar senha</CardTitle>
-        <CardDescription>
-          Enviamos um link para você criar uma senha nova.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ForgotPasswordForm />
-      </CardContent>
-    </Card>
+    <>
+      <AuthHeading
+        title="Recuperar senha"
+        description="Informe o e-mail da sua conta. Enviamos um link para criar uma senha nova."
+      />
+      <ForgotPasswordForm />
+    </>
   );
 }

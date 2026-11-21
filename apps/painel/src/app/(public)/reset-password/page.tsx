@@ -1,12 +1,9 @@
 import Link from 'next/link';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import type { Metadata } from 'next';
 import { ResetPasswordForm } from '@/features/auth/components/reset-password-form';
+import { AuthHeading } from '@/features/auth/components/auth-heading';
+
+export const metadata: Metadata = { title: 'Nova senha' };
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -16,24 +13,22 @@ export default async function ResetPasswordPage({
   const { token } = await searchParams;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl font-bold">Definir nova senha</CardTitle>
-        <CardDescription>Escolha uma senha forte para sua conta</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {token ? (
-          <ResetPasswordForm token={token} />
-        ) : (
-          <p className="text-sm text-destructive">
-            Link inválido ou expirado. Solicite um novo em{' '}
-            <Link href="/forgot-password" className="underline">
-              recuperar senha
-            </Link>
-            .
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <>
+      <AuthHeading
+        title="Definir nova senha"
+        description="Use ao menos 8 caracteres, com maiúscula, minúscula e número."
+      />
+      {token ? (
+        <ResetPasswordForm token={token} />
+      ) : (
+        <p role="alert" className="rounded-md bg-destructive-soft px-3 py-2.5 text-sm text-destructive">
+          Este link não vale mais. Peça outro em{' '}
+          <Link href="/forgot-password" className="font-semibold underline underline-offset-4">
+            Recuperar senha
+          </Link>
+          .
+        </p>
+      )}
+    </>
   );
 }
