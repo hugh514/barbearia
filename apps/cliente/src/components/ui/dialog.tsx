@@ -75,7 +75,8 @@ export function Dialog({
     // Primeiro campo; sem campo, o primeiro controle que não é o Fechar.
     const target =
       panel?.querySelector<HTMLElement>('input, select, textarea') ??
-      panel?.querySelector<HTMLElement>(`${FOCUSABLE}:not([data-dialog-close])`) ??
+      // FOCUSABLE é uma lista: o :not() precisa valer para cada item, então filtra depois.
+      [...(panel?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].find((el) => !el.hasAttribute('data-dialog-close')) ??
       panel;
     target?.focus();
 
