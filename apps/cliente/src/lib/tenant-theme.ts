@@ -10,6 +10,8 @@ import { themeFrom, type TenantTheme } from '@/lib/theme';
 /** Cookie não sensível com a última aparência conhecida (fallback do layout). */
 export const THEME_COOKIE = env.cookies.theme;
 const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+// Nome antigo do cookie de tema: sai no próximo login para não sobrar com tema velho.
+const LEGACY_THEME_COOKIE = 'vez_theme';
 
 const appearanceSchema = z.object({
   businessName: z.string().nullish(),
@@ -64,7 +66,9 @@ export async function rememberAppearance(input: unknown): Promise<void> {
     brandColor: a.brandColor ?? null,
     themeMode: a.themeMode ?? null,
   };
-  (await cookies()).set(THEME_COOKIE, JSON.stringify(value), {
+  const store = await cookies();
+  store.delete(LEGACY_THEME_COOKIE);
+  store.set(THEME_COOKIE, JSON.stringify(value), {
     httpOnly: true,
     sameSite: 'lax',
     secure: env.cookieSecure,
@@ -73,10 +77,17 @@ export async function rememberAppearance(input: unknown): Promise<void> {
   });
 }
 
+// Login sem aparência não pode herdar o tema de outra barbearia.
+export async function forgetAppearance(): Promise<void> {
+  const store = await cookies();
+  store.delete(THEME_COOKIE);
+  store.delete(LEGACY_THEME_COOKIE);
+}
+
 /**
  * Tema e nome da barbearia do usuário logado, para o layout. Tenta a API com o
  * access token atual (sem refresh: o layout não grava cookie); se não houver
- * token ou a API falhar, usa o cookie vez_theme; sem ele, o padrão.
+ * token ou a API falhar, usa o cookie bc_theme; sem ele, o padrão.
  * `cache` evita chamar a API duas vezes no mesmo request (layout raiz e do app).
  */
 export const getTenantTheme = cache(async (): Promise<TenantAppearance> => {

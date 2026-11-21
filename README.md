@@ -45,7 +45,7 @@ Em produção os fronts marcam os cookies de sessão como `Secure`, e o navegado
 
 ### IP de quem chama, pelo painel
 
-O painel fala com a API pelo próprio servidor, então sem ajuste o limite de tentativas de login da API conta todo mundo como um IP só. Com `FORWARD_CLIENT_IP=true`, o painel repassa o `X-Forwarded-For` que recebeu. Só ligue com um proxy de borda na frente do painel que acrescente o IP real ao cabeçalho, e com `TRUST_PROXY` na API contando o painel como um salto: o Next mantém o cabeçalho que o navegador mandar, e sem a borda qualquer um forja um IP novo a cada tentativa.
+O painel fala com a API pelo próprio servidor, então sem ajuste o limite de tentativas de login da API conta todo mundo como um IP só. Com `FORWARD_CLIENT_IP=true`, o painel repassa à API só o último endereço do `X-Forwarded-For` (ou o `X-Real-IP`), o que o proxy da frente anotou, como o app cliente já faz. Só ligue com um proxy de borda que acrescente o IP real ao cabeçalho, e com `TRUST_PROXY` na API: o Next mantém o cabeçalho que o navegador mandar, e sem a borda qualquer um forja um IP novo a cada tentativa.
 
 ## Login de teste
 

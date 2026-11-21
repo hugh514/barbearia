@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiFetch } from '@/lib/http/server-fetch';
 import { setSessionCookies } from '@/lib/auth/cookies';
 import { sessionFromToken } from '@/lib/auth/jwt';
-import { fetchAppearance, rememberAppearance } from '@/lib/tenant-theme';
+import { fetchAppearance, forgetAppearance, rememberAppearance } from '@/lib/tenant-theme';
 import { loginSchema, tokenPairSchema } from '@/features/auth/schemas';
 
 export async function POST(request: Request) {
@@ -21,6 +21,13 @@ export async function POST(request: Request) {
   });
 
   const json = await res.json().catch(() => null);
+  // Erro interno da API não chega à tela (pode trazer detalhe do banco).
+  if (res.status >= 500) {
+    return NextResponse.json(
+      { error: 'Bad Gateway', message: 'Não foi possível entrar agora. Tente de novo.', statusCode: 502 },
+      { status: 502 },
+    );
+  }
   if (!res.ok) {
     return NextResponse.json(json ?? { message: 'Falha no login' }, {
       status: res.status,
@@ -36,9 +43,11 @@ export async function POST(request: Request) {
   }
 
   await setSessionCookies(tokens.data.accessToken, tokens.data.refreshToken);
-  // Guarda o tema da barbearia para o layout usar quando o token expirar.
+  // Guarda o tema da barbearia para o layout usar quando o token expirar. Sem
+  // aparência, apaga o cookie para não ficar com o tema de outra barbearia.
   const appearance = await fetchAppearance(tokens.data.accessToken);
   if (appearance) await rememberAppearance(appearance);
+  else await forgetAppearance();
   const session = sessionFromToken(tokens.data.accessToken);
   return NextResponse.json({ user: session?.user ?? null }, { status: 200 });
 }
