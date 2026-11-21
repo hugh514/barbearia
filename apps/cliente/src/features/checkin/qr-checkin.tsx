@@ -13,7 +13,7 @@ const tokenResponseSchema = z.object({
   expiresInSeconds: z.number(),
 });
 
-export function QrCheckin() {
+export function QrCheckin({ variant = 'primary' }: { variant?: 'primary' | 'secondary' }) {
   const [open, setOpen] = useState(false);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -47,7 +47,7 @@ export function QrCheckin() {
 
   return (
     <>
-      <Button size="lg" className="w-full" onClick={generate} disabled={loading}>
+      <Button size="lg" variant={variant} className="w-full" onClick={generate} disabled={loading}>
         <QrCode />
         {loading ? 'Gerando…' : 'Mostrar QR de entrada'}
       </Button>
@@ -61,7 +61,7 @@ export function QrCheckin() {
         className="max-w-xs text-center"
       >
         {dataUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
+          // eslint-disable-next-line @next/next/no-img-element -- QR é data URL gerada no navegador; next/image não otimiza data URL
           <img src={dataUrl} alt="QR de check-in" className="mx-auto rounded-md" />
         )}
         <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
