@@ -46,7 +46,7 @@ Na fila: esperando é neutro, na cadeira usa a marca, feitos em muted, cancelado
 
 ### Modo
 
-Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /channels/config/appearance`; se o token expirou ou a API falhou, usa o cookie `vez_theme` gravado no login e ao salvar a aparência) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (login, cadastro) vale o padrão.
+Claro ou escuro é escolha da barbearia (padrão claro), não do sistema operacional. O layout raiz de cada front lê o tema da barbearia do usuário logado no servidor (`getTenantTheme()`, que chama `GET /channels/config/appearance`; se o token expirou ou a API falhou, usa o cookie de tema gravado no login e ao salvar a aparência: `bb_theme` no painel, `vez_theme` no cliente) e põe as variáveis no `style` do `<html>` junto com `data-theme`. Sem sessão (tela de login, cadastro) o layout não chama a API: vale o cookie de tema, se o navegador ainda tiver um, senão o padrão Cobalto claro. O logout apaga o cookie; no painel, o login sem aparência na API também.
 
 ## Marca
 
