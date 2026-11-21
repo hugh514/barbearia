@@ -1,22 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Power } from 'lucide-react';
+import { Plus, Pencil, Archive, RotateCcw } from 'lucide-react';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmDialog } from '@/components/ui/dialog';
+import { ErrorState } from '@/components/ui/error-state';
 import { useToast } from '@/components/ui/toast';
+import { useSession } from '@/features/auth/session-context';
 import { usePlans, usePlanActions } from '@/features/plans/use-plans';
 import { PlanDialog } from '@/features/plans/plan-dialog';
 import type { Plan } from '@/features/plans/schemas';
 import { formatCents } from '@/lib/format';
 
 export default function PlanosPage() {
-  const { data, isLoading, isError } = usePlans();
-  const { setActive } = usePlanActions();
+  const { data, isLoading, isError, refetch } = usePlans();
+  const { setActive, archive } = usePlanActions();
   const { toast } = useToast();
+  // Arquivar e reativar são só do ADMIN na API; o gerente só vê os planos.
+  const canArchive = useSession().user?.role === 'ADMIN';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
   const [toggling, setToggling] = useState<Plan | null>(null);
@@ -27,20 +31,18 @@ export default function PlanosPage() {
 
   function confirmToggle() {
     if (!toggling) return;
-    const next = !toggling.active;
-    setActive.mutate(
-      { id: toggling.id, active: next },
-      {
-        onSuccess: () => {
-          toast(next ? 'Plano ativado.' : 'Plano desativado.');
-          setToggling(null);
-        },
-        onError: (e) => {
-          toast(e instanceof Error ? e.message : 'Erro ao alterar plano', 'error');
-          setToggling(null);
-        },
+    const done = {
+      onSuccess: () => {
+        toast(toggling.active ? 'Plano arquivado.' : 'Plano reativado.');
+        setToggling(null);
       },
-    );
+      onError: (e: unknown) => {
+        toast(e instanceof Error ? e.message : 'Não foi possível alterar o plano.', 'error');
+        setToggling(null);
+      },
+    };
+    if (toggling.active) archive.mutate(toggling.id, done);
+    else setActive.mutate({ id: toggling.id, active: true }, done);
   }
 
   const renderPlan = (plan: Plan) => (
@@ -72,16 +74,19 @@ export default function PlanosPage() {
             }}
           >
             <Pencil className="size-4" />
-            Editar
+            Editar plano
           </Button>
-          <Button
-            variant={plan.active ? 'ghost' : 'primary'}
-            size="sm"
-            onClick={() => setToggling(plan)}
-          >
-            <Power className="size-4" />
-            {plan.active ? 'Desativar' : 'Ativar'}
-          </Button>
+          {canArchive && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setToggling(plan)}
+              aria-label={`${plan.active ? 'Arquivar' : 'Reativar'} plano ${plan.name}`}
+            >
+              {plan.active ? <Archive className="size-4" /> : <RotateCcw className="size-4" />}
+              {plan.active ? 'Arquivar' : 'Reativar'}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -105,7 +110,18 @@ export default function PlanosPage() {
         }
       />
 
-      {isError && <p className="mb-4 text-sm text-destructive">Erro ao carregar planos.</p>}
+      {isError && (
+        <div className="mb-4">
+          <ErrorState
+            message="Não foi possível carregar os planos."
+            action={
+              <Button variant="secondary" size="sm" onClick={() => refetch()}>
+                Tentar de novo
+              </Button>
+            }
+          />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,7 +143,7 @@ export default function PlanosPage() {
           {inactivePlans.length > 0 && (
             <div>
               <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-                Inativos
+                Arquivados
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {inactivePlans.map(renderPlan)}
@@ -150,15 +166,15 @@ export default function PlanosPage() {
         open={Boolean(toggling)}
         onClose={() => setToggling(null)}
         onConfirm={confirmToggle}
-        title={toggling?.active ? 'Desativar plano?' : 'Ativar plano?'}
+        title={toggling?.active ? 'Arquivar plano?' : 'Reativar plano?'}
         description={
           toggling?.active
-            ? `"${toggling?.name}" deixará de aparecer para novos clientes.`
-            : `"${toggling?.name}" voltará a ficar disponível.`
+            ? `${toggling?.name} sai da vitrine e ninguém mais consegue assinar. Quem já assina continua com o plano até cancelar.`
+            : `${toggling?.name} volta a aparecer para novos clientes.`
         }
-        confirmLabel={toggling?.active ? 'Desativar' : 'Ativar'}
+        confirmLabel={toggling?.active ? 'Arquivar plano' : 'Reativar plano'}
         tone={toggling?.active ? 'destructive' : 'default'}
-        loading={setActive.isPending}
+        loading={setActive.isPending || archive.isPending}
       />
     </div>
   );

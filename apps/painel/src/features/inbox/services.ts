@@ -1,8 +1,10 @@
 import { apiClient } from '@/lib/http/client';
 import {
   conversationListSchema,
+  conversationSchema,
   messageListSchema,
   type Conversation,
+  type ConversationStatus,
 } from './schemas';
 
 export async function listConversations(
@@ -36,5 +38,17 @@ export async function replyConversation(
   await apiClient(`/channels/${conversation.channel.toLowerCase()}/reply`, {
     method: 'POST',
     body: { conversationId: conversation.id, message },
+  });
+}
+
+/** Status que a equipe pode escolher (ABERTA é só o de chegada). */
+export type SettableStatus = Exclude<ConversationStatus, 'ABERTA'>;
+
+/** Muda o status; ao passar para Em atendimento a API atribui a quem pegou. */
+export async function updateConversationStatus(id: string, status: SettableStatus) {
+  return apiClient(`/conversations/${id}/status`, {
+    method: 'PATCH',
+    body: { status },
+    schema: conversationSchema,
   });
 }
